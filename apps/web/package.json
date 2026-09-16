@@ -14,8 +14,10 @@
     "@booking/db": "workspace:*",
     "@booking/ui": "workspace:*",
     "framer-motion": "^11.11.0",
+    "lucide-react": "^0.454.0",
     "next": "^15.0.3",
     "next-auth": "5.0.0-beta.32",
+    "next-themes": "^0.4.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "zod": "^3.23.8"
