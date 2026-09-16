@@ -52,6 +52,13 @@ function nextWeekdayAt(weekday: number, hour: number): Date {
   return d;
 }
 
+/** Today at hour:minute UTC — used so the demo dashboard has live "today" data. */
+function todayAt(hour: number, minute = 0): Date {
+  const d = new Date();
+  d.setUTCHours(hour, minute, 0, 0);
+  return d;
+}
+
 async function main() {
   // 1. Tenant root (idempotent by slug).
   const business = await prisma.business.upsert({
@@ -214,6 +221,36 @@ async function main() {
     {
       businessId, customerId: mia.id, serviceId: styling.id, employeeId: noah.id, locationId: location.id,
       startAt: tuesday14, endAt: new Date(tuesday14.getTime() + 30 * 60000),
+      priceTotal: 60, status: 'ACCEPTED', source: 'widget',
+    },
+    prisma,
+  );
+
+  // Today's bookings so the dashboard's timeline, utilization and pending queue
+  // demonstrate with live data (non-overlapping per employee).
+  const todayMorning = todayAt(10, 0); // Emma, 60m
+  const todayMidday = todayAt(11, 30); // Noah, 30m, awaiting approval
+  const todayAfternoon = todayAt(14, 30); // Emma, 30m
+  await createBooking(
+    {
+      businessId, customerId: mia.id, serviceId: haircut.id, employeeId: emma.id, locationId: location.id,
+      startAt: todayMorning, endAt: new Date(todayMorning.getTime() + 60 * 60000),
+      priceTotal: 120, status: 'ACCEPTED', source: 'admin',
+    },
+    prisma,
+  );
+  await createBooking(
+    {
+      businessId, customerId: liam.id, serviceId: styling.id, employeeId: noah.id, locationId: location.id,
+      startAt: todayMidday, endAt: new Date(todayMidday.getTime() + 30 * 60000),
+      priceTotal: 60, status: 'PENDING', source: 'widget',
+    },
+    prisma,
+  );
+  await createBooking(
+    {
+      businessId, customerId: liam.id, serviceId: styling.id, employeeId: emma.id, locationId: location.id,
+      startAt: todayAfternoon, endAt: new Date(todayAfternoon.getTime() + 30 * 60000),
       priceTotal: 60, status: 'ACCEPTED', source: 'widget',
     },
     prisma,
