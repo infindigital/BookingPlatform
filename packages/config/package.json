@@ -1,0 +1,22 @@
+{
+  "name": "@booking/config",
+  "version": "0.1.0",
+  "private": true,
+  "files": [
+    "tsconfig.base.json",
+    "tailwind-preset.js",
+    "eslint-preset.js"
+  ],
+  "main": "index.js",
+  "scripts": {
+    "lint": "echo \"(config) no lint\"",
+    "typecheck": "echo \"(config) no typecheck\""
+  },
+  "devDependencies": {
+    "eslint-config-next": "^15.0.0",
+    "eslint-config-prettier": "^9.1.0"
+  },
+  "peerDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}
