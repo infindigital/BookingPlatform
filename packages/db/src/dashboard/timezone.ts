@@ -89,6 +89,19 @@ export function dateMidnightInstant(dayKey: string, timeZone: string): Date {
 }
 
 /**
+ * Absolute instant for a local wall-clock time (`YYYY-MM-DD` + minutes since
+ * midnight) in `timeZone`. Inverse of `localWallClock`. Used to turn an admin's
+ * date/time picker input into a UTC instant for storage.
+ */
+export function wallTimeToInstant(dayKey: string, minutes: number, timeZone: string): Date {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dayKey);
+  if (!m) throw new Error(`Invalid dayKey: ${dayKey}`);
+  const naiveUTC = Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 0, 0, 0) + minutes * 60_000;
+  const offset = tzOffsetMs(timeZone, new Date(naiveUTC));
+  return new Date(naiveUTC - offset);
+}
+
+/**
  * Wall-clock position of `instant` in `timeZone`: the local calendar day
  * (`YYYY-MM-DD`) and minutes since local midnight. Used to lay bookings onto the
  * calendar grid in the business's own timezone.

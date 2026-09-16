@@ -1,7 +1,22 @@
 export { prisma } from './client';
 export * from './repositories/index';
 export { createBooking, type CreateBookingInput } from './booking/create-booking';
-export { setBookingStatus, type BookingTransition } from './booking/transition';
+export { setBookingStatus, transitionBooking, type BookingTransition } from './booking/transition';
+export { rescheduleBooking, type RescheduleInput, type RescheduleResult } from './booking/reschedule';
+export {
+  getBookingsList,
+  type BookingListRow,
+  type BookingListFilters,
+  type BookingListResult,
+} from './bookings/list';
+export {
+  getBookingFormData,
+  type BookingFormData,
+  type FormService,
+  type FormEmployee,
+  type FormLocation,
+  type FormCustomer,
+} from './bookings/form';
 export {
   getDashboardMetrics,
   type DashboardData,
@@ -17,7 +32,7 @@ export {
   type CalendarService,
   type CalendarQuery,
 } from './calendar/bookings';
-export { localWallClock, dateMidnightInstant } from './dashboard/timezone';
+export { localWallClock, dateMidnightInstant, wallTimeToInstant } from './dashboard/timezone';
 export { hashPassword, verifyPassword } from './auth/password';
 export { findUserForAuth, type AuthUser } from './auth/lookup';
 export { writeAudit, type AuditInput } from './audit';

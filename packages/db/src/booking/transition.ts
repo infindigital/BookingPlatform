@@ -1,11 +1,50 @@
 import { Prisma, type BookingStatus, type PrismaClient } from '@prisma/client';
-import { ValidationError } from '@booking/core';
+import { ValidationError, canTransition } from '@booking/core';
 import { prisma } from '../client';
 
 export interface BookingTransition {
   id: string;
   from: BookingStatus;
   to: BookingStatus;
+}
+
+/**
+ * Transition a booking using the core state machine as the single guard.
+ * Tenant-scoped and transactional: the current status is read and validated
+ * against `canTransition` before the write, so no illegal or self transition can
+ * be persisted (concurrent double-decisions collapse — the second sees the new
+ * status and is rejected).
+ *
+ * Phase 12/13: enqueue a NotificationJob for the state change where marked.
+ */
+export async function transitionBooking(
+  businessId: string,
+  bookingId: string,
+  to: BookingStatus,
+  db: PrismaClient = prisma,
+): Promise<BookingTransition> {
+  if (!businessId) throw new Error('transitionBooking requires a businessId.');
+  if (!bookingId) throw new ValidationError('A booking id is required.');
+
+  return db.$transaction(async (tx: Prisma.TransactionClient) => {
+    const booking = await tx.booking.findFirst({
+      where: { id: bookingId, businessId },
+      select: { id: true, status: true },
+    });
+    if (!booking) throw new ValidationError('Booking not found.');
+
+    if (!canTransition(booking.status, to)) {
+      throw new ValidationError(
+        `A ${booking.status.toLowerCase()} booking cannot be changed to ${to.toLowerCase()}.`,
+      );
+    }
+
+    await tx.booking.update({ where: { id: booking.id }, data: { status: to } });
+
+    // Phase 12/13: enqueue a NotificationJob for the state change here.
+
+    return { id: booking.id, from: booking.status, to };
+  });
 }
 
 /**
