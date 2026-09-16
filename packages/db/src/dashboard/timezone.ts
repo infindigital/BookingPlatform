@@ -81,6 +81,37 @@ export function localWeekday(instant: Date, timeZone: string): number {
   return map[name] ?? 0;
 }
 
+/** Absolute instant of local midnight for a `YYYY-MM-DD` calendar date in `timeZone`. */
+export function dateMidnightInstant(dayKey: string, timeZone: string): Date {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dayKey);
+  if (!m) throw new Error(`Invalid dayKey: ${dayKey}`);
+  return localMidnightToInstant(timeZone, Number(m[1]), Number(m[2]), Number(m[3]));
+}
+
+/**
+ * Wall-clock position of `instant` in `timeZone`: the local calendar day
+ * (`YYYY-MM-DD`) and minutes since local midnight. Used to lay bookings onto the
+ * calendar grid in the business's own timezone.
+ */
+export function localWallClock(instant: Date, timeZone: string): { dayKey: string; minutes: number } {
+  const dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hourCycle: 'h23',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  const parts = dtf.formatToParts(instant);
+  const get = (type: Intl.DateTimeFormatPartTypes): string => parts.find((p) => p.type === type)?.value ?? '00';
+  const year = get('year');
+  const month = get('month');
+  const day = get('day');
+  const minutes = Number(get('hour')) * 60 + Number(get('minute'));
+  return { dayKey: `${year}-${month}-${day}`, minutes };
+}
+
 /** Minutes between two "HH:MM" wall-clock strings; 0 if malformed or negative. */
 export function minutesBetween(openTime: string, closeTime: string): number {
   const toMin = (s: string): number | null => {

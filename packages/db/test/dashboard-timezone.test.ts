@@ -4,6 +4,8 @@ import {
   localMonthRange,
   localWeekday,
   minutesBetween,
+  localWallClock,
+  dateMidnightInstant,
 } from '../src/dashboard/timezone';
 
 describe('dashboard timezone helpers', () => {
@@ -58,5 +60,20 @@ describe('dashboard timezone helpers', () => {
     expect(minutesBetween('09:30', '10:00')).toBe(30);
     expect(minutesBetween('17:00', '09:00')).toBe(0); // negative clamped
     expect(minutesBetween('bad', '17:00')).toBe(0);
+  });
+
+  it('reports local wall-clock day + minutes from midnight', () => {
+    const instant = new Date('2026-09-16T13:30:00.000Z');
+    expect(localWallClock(instant, 'UTC')).toEqual({ dayKey: '2026-09-16', minutes: 13 * 60 + 30 });
+    // In Asia/Singapore (+08:00) the same instant is 21:30 on the 16th.
+    expect(localWallClock(instant, 'Asia/Singapore')).toEqual({ dayKey: '2026-09-16', minutes: 21 * 60 + 30 });
+    // In America/New_York (-04:00 DST) it is 09:30 on the 16th.
+    expect(localWallClock(instant, 'America/New_York')).toEqual({ dayKey: '2026-09-16', minutes: 9 * 60 + 30 });
+  });
+
+  it('round-trips a date key through its local midnight instant', () => {
+    const instant = dateMidnightInstant('2026-09-16', 'Asia/Singapore');
+    expect(instant.toISOString()).toBe('2026-09-15T16:00:00.000Z');
+    expect(localWallClock(instant, 'Asia/Singapore')).toEqual({ dayKey: '2026-09-16', minutes: 0 });
   });
 });
