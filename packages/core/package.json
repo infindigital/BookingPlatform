@@ -1,0 +1,21 @@
+{
+  "name": "@booking/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./booking": "./src/booking/index.ts",
+    "./errors": "./src/errors.ts"
+  },
+  "scripts": {
+    "lint": "echo \"(core) type-checked via tsc\"",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@booking/config": "workspace:*",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.5"
+  }
+}

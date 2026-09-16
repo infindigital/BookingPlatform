@@ -1,0 +1,9 @@
+{
+  "extends": "@booking/config/tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": []
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}
