@@ -24,10 +24,12 @@
   },
   "dependencies": {
     "@booking/core": "workspace:*",
-    "@prisma/client": "^5.22.0"
+    "@prisma/client": "^5.22.0",
+    "bcryptjs": "^2.4.3"
   },
   "devDependencies": {
     "@booking/config": "workspace:*",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22.9.0",
     "prisma": "^5.22.0",
     "tsx": "^4.19.2",

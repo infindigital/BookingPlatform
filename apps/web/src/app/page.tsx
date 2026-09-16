@@ -1,7 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Button } from '@booking/ui/button';
+import { Button, buttonVariants } from '@booking/ui/button';
 import { demoConfig } from '@/config/demo';
 
 const foundationChecklist = [
@@ -54,11 +55,11 @@ export default function HomePage() {
         </ul>
 
         <div className="mt-10 flex flex-wrap items-center gap-3">
-          <Button onClick={() => window.open('/api/health', '_blank')}>
-            Check system health
-          </Button>
-          <Button variant="outline" onClick={() => window.open('https://code.claude.com/docs', '_blank')}>
-            Documentation
+          <Link href="/admin" className={buttonVariants({ variant: 'primary' })}>
+            Open dashboard
+          </Link>
+          <Button variant="outline" onClick={() => window.open('/api/health', '_blank')}>
+            System health
           </Button>
         </div>
       </motion.div>

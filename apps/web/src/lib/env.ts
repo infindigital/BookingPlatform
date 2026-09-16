@@ -20,6 +20,9 @@ const serverSchema = z.object({
       message: 'DATABASE_URL must be a postgresql:// or mysql:// connection string',
     })
     .optional(),
+  // NextAuth (Auth.js) session signing secret. Required in production; a dev
+  // fallback keeps local runs and CI builds working without extra setup.
+  AUTH_SECRET: z.string().min(1).optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverSchema>;

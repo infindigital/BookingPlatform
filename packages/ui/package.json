@@ -6,7 +6,9 @@
   "exports": {
     "./styles.css": "./src/styles.css",
     "./lib/cn": "./src/lib/cn.ts",
-    "./button": "./src/components/button.tsx"
+    "./button": "./src/components/button.tsx",
+    "./input": "./src/components/input.tsx",
+    "./label": "./src/components/label.tsx"
   },
   "scripts": {
     "lint": "echo \"(ui) type-checked via tsc; ESLint flat-config added in a later phase\"",

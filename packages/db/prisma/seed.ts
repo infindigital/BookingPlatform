@@ -5,6 +5,9 @@
  */
 import { PrismaClient, type NotificationEvent } from '@prisma/client';
 import { createBooking } from '../src/booking/create-booking';
+import { hashPassword } from '../src/auth/password';
+
+const DEMO_PASSWORD = 'password123';
 
 const prisma = new PrismaClient();
 
@@ -111,11 +114,12 @@ async function main() {
     skipDuplicates: true,
   });
 
-  // 4. Admin user (passwordless placeholder — real auth in Phase 3).
+  // 4. Admin user with a real (hashed) password.
+  const passwordHash = await hashPassword(DEMO_PASSWORD);
   const admin = await prisma.user.upsert({
     where: { businessId_email: { businessId, email: 'admin@aurora.example' } },
-    update: {},
-    create: { businessId, email: 'admin@aurora.example', name: 'Avery Admin' },
+    update: { passwordHash },
+    create: { businessId, email: 'admin@aurora.example', name: 'Avery Admin', passwordHash },
   });
   await prisma.userRole.upsert({
     where: { userId_roleId: { userId: admin.id, roleId: adminRole.id } },
@@ -145,8 +149,19 @@ async function main() {
   });
 
   // 7. Employees + services + working hours.
+  // Emma also has a login account with the Employee role (for RBAC/employee panel).
+  const emmaUser = await prisma.user.upsert({
+    where: { businessId_email: { businessId, email: 'emma@aurora.example' } },
+    update: { passwordHash },
+    create: { businessId, email: 'emma@aurora.example', name: 'Emma Rivera', passwordHash },
+  });
+  await prisma.userRole.upsert({
+    where: { userId_roleId: { userId: emmaUser.id, roleId: employeeRole.id } },
+    update: {},
+    create: { userId: emmaUser.id, roleId: employeeRole.id },
+  });
   const emma = await prisma.employee.create({
-    data: { businessId, firstName: 'Emma', lastName: 'Rivera', title: 'Senior Specialist', email: 'emma@aurora.example' },
+    data: { businessId, userId: emmaUser.id, firstName: 'Emma', lastName: 'Rivera', title: 'Senior Specialist', email: 'emma@aurora.example' },
   });
   const noah = await prisma.employee.create({
     data: { businessId, firstName: 'Noah', lastName: 'Chen', title: 'Specialist', email: 'noah@aurora.example' },
