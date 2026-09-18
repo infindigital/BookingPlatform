@@ -34,8 +34,17 @@ export default async function PublicBookingPage({
   const themeStyle = themeCssVars(data.form.theme) as CSSProperties;
 
   return (
-    <main className="min-h-dvh bg-muted/30" style={themeStyle}>
-      <div className="mx-auto max-w-2xl px-4 py-8 sm:py-14">
+    <main className="relative min-h-dvh bg-muted/20" style={themeStyle}>
+      {/* Soft, brand-aware glow derived from the business's own primary color. */}
+      <div
+        className="pointer-events-none fixed inset-0 -z-10"
+        aria-hidden
+        style={{
+          background:
+            'radial-gradient(55rem 40rem at 50% -8%, hsl(var(--primary) / 0.14), transparent 60%), radial-gradient(40rem 30rem at 100% 100%, hsl(var(--primary) / 0.08), transparent 60%)',
+        }}
+      />
+      <div className="mx-auto max-w-5xl px-4 py-10 sm:py-16">
         <BookingWizard data={data} slug={slug} />
       </div>
     </main>

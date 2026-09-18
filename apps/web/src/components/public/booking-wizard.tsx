@@ -177,14 +177,14 @@ export function BookingWizard({
   if (confirmation?.ok || previewDone) {
     const c = confirmation?.ok ? confirmation.confirmation : null;
     return (
-      <div className="rounded-2xl border border-border bg-background p-6 shadow-sm sm:p-8">
-        <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-success/10 text-success">
-          <CalendarCheck className="size-7" />
+      <div className="mx-auto max-w-xl rounded-3xl border border-border bg-card p-8 shadow-premium sm:p-10">
+        <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-success/10 text-success">
+          <CalendarCheck className="size-8" />
         </div>
-        <h1 className="mt-4 text-center text-xl font-semibold">Request received</h1>
+        <h1 className="mt-5 text-center text-2xl font-bold tracking-tight">Request received</h1>
         <p className="mt-1 text-center text-sm text-muted-foreground">
           Thanks, {details.firstName || 'there'}. Your appointment is{' '}
-          <span className="font-medium text-foreground">pending confirmation</span> — {business.name} will review it shortly.
+          <span className="font-medium text-foreground">pending confirmation</span>. {business.name} will review it shortly.
         </p>
         {settings.confirmationMessage ? (
           <p className="mt-2 text-center text-sm text-muted-foreground">{settings.confirmationMessage}</p>
@@ -223,15 +223,19 @@ export function BookingWizard({
 
   // ---- Wizard ----
   return (
-    <div className="rounded-2xl border border-border bg-background shadow-sm">
-      <div className="border-b border-border p-5 sm:p-6">
-        <h1 className="text-lg font-semibold tracking-tight">{business.name}</h1>
-        <p className="text-sm text-muted-foreground">Book an appointment</p>
-        <Stepper flow={flow} current={stepIdx} />
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-premium">
+      <div className="relative border-b border-border p-6 sm:p-8">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-primary/10 to-transparent" aria-hidden />
+        <div className="relative">
+          <p className="text-xs font-semibold uppercase tracking-wider text-primary">Book an appointment</p>
+          <h1 className="mt-1.5 text-2xl font-bold tracking-tight sm:text-3xl">{business.name}</h1>
+          <Stepper flow={flow} current={stepIdx} />
+        </div>
       </div>
 
-      <div className="min-h-[19rem] p-5 sm:p-6">
-        <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-muted-foreground">
+      <div className="min-h-[24rem] p-6 sm:p-8">
+        <h2 className="mb-5 text-lg font-semibold tracking-tight">
           {stepKey === 'service' && 'Choose a service'}
           {stepKey === 'team' && 'Choose your team member'}
           {stepKey === 'time' && 'Pick a date & time'}
@@ -344,24 +348,55 @@ export function BookingWizard({
         ) : null}
       </div>
 
-      <div className="flex items-center justify-between gap-3 border-t border-border p-4 sm:px-6">
+      <div className="flex items-center justify-between gap-3 border-t border-border p-5 sm:px-8">
         {stepIdx > 0 ? (
-          <Button variant="ghost" onClick={back} disabled={pending}>
+          <Button variant="ghost" size="lg" onClick={back} disabled={pending}>
             <ArrowLeft /> Back
           </Button>
         ) : (
           <span />
         )}
         {stepKey !== 'review' ? (
-          <Button onClick={next} disabled={!canContinue()}>
+          <Button size="lg" className="shadow-glow" onClick={next} disabled={!canContinue()}>
             Continue <ArrowRight />
           </Button>
         ) : (
-          <Button onClick={confirm} disabled={pending} aria-busy={pending}>
+          <Button size="lg" className="shadow-glow" onClick={confirm} disabled={pending} aria-busy={pending}>
             {pending ? 'Confirming…' : 'Confirm booking'} <Check />
           </Button>
         )}
       </div>
+      </div>
+
+      {/* Live booking summary (desktop) */}
+      <aside className="hidden h-fit rounded-3xl border border-border bg-card/70 p-6 backdrop-blur lg:sticky lg:top-8 lg:block">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Your booking</p>
+        <div className="mt-4 space-y-3.5 text-sm">
+          <SummaryRow label="Service" value={service?.name} />
+          {showTeamStep ? (
+            <SummaryRow label="Team" value={chosenStaff?.name ?? (serviceId ? 'Any available' : undefined)} />
+          ) : null}
+          <SummaryRow label="When" value={slot ? confirmationWhen(slot.startISO, timeZone) : undefined} />
+          <SummaryRow label="Duration" value={service ? formatDuration(service.durationMinutes) : undefined} />
+        </div>
+        {settings.showPrices && service ? (
+          <div className="mt-5 flex items-center justify-between border-t border-border pt-4 text-lg font-bold">
+            <span>Total</span>
+            <span>{formatMoney(service.price, business.currency)}</span>
+          </div>
+        ) : null}
+      </aside>
+    </div>
+  );
+}
+
+function SummaryRow({ label, value }: { label: string; value?: string }) {
+  return (
+    <div className="flex items-start justify-between gap-3">
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className={`text-right font-medium ${value ? 'text-foreground' : 'text-muted-foreground/50'}`}>
+        {value ?? 'Not selected'}
+      </dd>
     </div>
   );
 }
