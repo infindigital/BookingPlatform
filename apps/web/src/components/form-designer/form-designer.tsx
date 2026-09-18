@@ -5,6 +5,8 @@ import { Check, Eye, RotateCcw } from 'lucide-react';
 import type { PublicBookingData, FormConfigForAdmin } from '@booking/db';
 import {
   FORM_THEME_PRESETS,
+  DEFAULT_FORM_THEME,
+  DEFAULT_FORM_SETTINGS,
   themeCssVars,
   normaliseHex,
   DEFAULT_STEPS,
@@ -69,6 +71,23 @@ export function FormDesigner({
     if (preset) setTokens(preset);
   }
 
+  const activePresetKey = useMemo(() => {
+    const match = initial.presets.find(
+      (p) =>
+        p.tokens.primary.toLowerCase() === tokens.primary.toLowerCase() &&
+        p.tokens.radius === tokens.radius &&
+        p.tokens.font === tokens.font,
+    );
+    return match?.key ?? null;
+  }, [initial.presets, tokens]);
+
+  function resetToDefault() {
+    setTokens(DEFAULT_FORM_THEME);
+    setSettings(DEFAULT_FORM_SETTINGS);
+    setTeamStep(DEFAULT_STEPS.includes('employee'));
+    setError(null);
+  }
+
   function save() {
     setError(null);
     startTransition(async () => {
@@ -93,22 +112,38 @@ export function FormDesigner({
     <div className="grid gap-6 lg:grid-cols-[minmax(0,22rem)_1fr]">
       {/* Controls */}
       <div className="space-y-6">
-        <section className="rounded-xl border border-border bg-card p-4">
-          <h2 className="text-sm font-semibold">Theme</h2>
-          <p className="mb-3 text-xs text-muted-foreground">Start from a preset, then fine-tune.</p>
+        <section className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+          <h2 className="text-sm font-semibold">Style presets</h2>
+          <p className="mb-3 text-xs text-muted-foreground">Pick a style, then fine-tune the colour, corners and font.</p>
 
-          <div className="flex flex-wrap gap-1.5">
-            {initial.presets.map((p) => (
-              <button
-                key={p.key}
-                type="button"
-                onClick={() => applyPreset(p.key)}
-                className="flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-xs font-medium hover:border-primary/50"
-              >
-                <span className="size-2.5 rounded-full" style={{ background: p.tokens.primary }} />
-                {p.name}
-              </button>
-            ))}
+          <div className="grid grid-cols-3 gap-2">
+            {initial.presets.map((p) => {
+              const active = activePresetKey === p.key;
+              return (
+                <button
+                  key={p.key}
+                  type="button"
+                  onClick={() => applyPreset(p.key)}
+                  aria-pressed={active}
+                  title={p.name}
+                  className={`group rounded-xl border p-2 text-left transition-all hover:-translate-y-0.5 ${
+                    active ? 'border-primary ring-2 ring-primary/40' : 'border-border hover:border-primary/40'
+                  }`}
+                >
+                  <span
+                    className="block h-10 w-full"
+                    style={{
+                      borderRadius: p.tokens.radius,
+                      background: `linear-gradient(135deg, ${p.tokens.primary}, ${p.tokens.primary}b3)`,
+                    }}
+                  />
+                  <span className="mt-1.5 flex items-center justify-between">
+                    <span className="text-xs font-medium">{p.name}</span>
+                    {active ? <Check className="size-3.5 text-primary" /> : null}
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
           <div className="mt-4 space-y-3">
@@ -207,7 +242,7 @@ export function FormDesigner({
           </p>
         ) : null}
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button onClick={save} disabled={!dirty || pending} aria-busy={pending}>
             <Check /> {pending ? 'Saving…' : dirty ? 'Save changes' : 'Saved'}
           </Button>
@@ -216,6 +251,9 @@ export function FormDesigner({
               <RotateCcw /> Revert
             </Button>
           ) : null}
+          <Button variant="outline" onClick={resetToDefault} disabled={pending}>
+            Reset to default
+          </Button>
         </div>
       </div>
 

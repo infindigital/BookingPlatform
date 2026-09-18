@@ -31,10 +31,16 @@ export interface FormConfigForAdmin extends ResolvedForm {
 const CUSTOM_THEME_KEY = 'custom';
 
 const PRESET_META: Record<string, string> = {
+  aurora: 'Aurora',
   minimal: 'Minimal',
+  noir: 'Noir',
   luxury: 'Luxury',
   modern: 'Modern',
+  ocean: 'Ocean',
   medical: 'Medical',
+  forest: 'Forest',
+  blossom: 'Blossom',
+  sunset: 'Sunset',
   editorial: 'Editorial',
 };
 

@@ -223,7 +223,7 @@ export function BookingWizard({
 
   // ---- Wizard ----
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+    <div className={preview ? '' : 'grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]'}>
       <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-premium">
       <div className="relative border-b border-border p-6 sm:p-8">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-primary/10 to-transparent" aria-hidden />
@@ -368,7 +368,8 @@ export function BookingWizard({
       </div>
       </div>
 
-      {/* Live booking summary (desktop) */}
+      {/* Live booking summary (desktop only, hidden in the designer preview) */}
+      {preview ? null : (
       <aside className="hidden h-fit rounded-3xl border border-border bg-card/70 p-6 backdrop-blur lg:sticky lg:top-8 lg:block">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Your booking</p>
         <div className="mt-4 space-y-3.5 text-sm">
@@ -386,6 +387,7 @@ export function BookingWizard({
           </div>
         ) : null}
       </aside>
+      )}
     </div>
   );
 }

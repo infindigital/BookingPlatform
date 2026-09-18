@@ -25,10 +25,16 @@ export const DEFAULT_FORM_THEME: FormThemeTokens = {
 
 /** Named starting points shown in the designer. Values live here (source of truth). */
 export const FORM_THEME_PRESETS: Record<string, FormThemeTokens> = {
+  aurora: { primary: '#6d5efc', radius: '1rem', font: 'sans' },
   minimal: { primary: '#4f46e5', radius: '0.625rem', font: 'system' },
+  noir: { primary: '#111827', radius: '0.25rem', font: 'sans' },
   luxury: { primary: '#8b6d3f', radius: '0.25rem', font: 'serif' },
   modern: { primary: '#0ea5e9', radius: '1rem', font: 'sans' },
+  ocean: { primary: '#2563eb', radius: '0.5rem', font: 'sans' },
   medical: { primary: '#0d9488', radius: '0.5rem', font: 'sans' },
+  forest: { primary: '#15803d', radius: '0.5rem', font: 'sans' },
+  blossom: { primary: '#db2777', radius: '1rem', font: 'sans' },
+  sunset: { primary: '#ea580c', radius: '1rem', font: 'sans' },
   editorial: { primary: '#b91c1c', radius: '0rem', font: 'serif' },
 };
 
