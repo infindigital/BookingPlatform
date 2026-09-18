@@ -44,20 +44,24 @@ Full annotated list: [`.env.example`](../.env.example).
 ## A. Vercel + Neon (demo)
 
 ### 1. Create the database on Neon
-1. Create a Neon project → copy the **connection string** (the *pooled* one, host contains
-   `-pooler`). It looks like:
-   `postgresql://USER:PASSWORD@ep-xxx-pooler.REGION.aws.neon.tech/neondb?sslmode=require`
-2. Keep it handy — it becomes `DATABASE_URL`.
+Neon gives you **two** connection strings — grab both from the dashboard's *Connection Details*:
+- **Pooled** (host contains `-pooler`) → used by the app at runtime on Vercel (serverless opens
+  many connections). This becomes `DATABASE_URL` in Vercel.
+- **Direct / unpooled** (same host **without** `-pooler`, toggle off "Pooled connection") → used
+  for **migrations + seed**, which need a normal session.
+
+Both end with `?sslmode=require`.
 
 ### 2. Push the schema + seed the demo
-Run these once from your machine, pointing at Neon:
+Run these once from your machine using the **direct (unpooled)** URL:
 
 ```bash
-export DATABASE_URL="postgresql://…-pooler…/neondb?sslmode=require"
+export DATABASE_URL="postgresql://USER:PASSWORD@ep-xxx.REGION.aws.neon.tech/neondb?sslmode=require"
 pnpm install
 pnpm --filter @booking/db migrate:deploy   # apply migrations to Neon
 pnpm --filter @booking/db seed              # demo business "Aurora Studio" + admin + widget key
 ```
+Then in Vercel (step 4) set `DATABASE_URL` to the **pooled** URL for runtime.
 
 The seed creates a demo login `admin@aurora.example` / `password123` and a widget key
 `pk_demo_booking_123`. **Change both before showing a real client** (see the checklist).
