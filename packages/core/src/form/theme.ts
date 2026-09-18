@@ -7,42 +7,68 @@
  * only. All maths here is pure and dependency-free.
  */
 
-export type FormFont = 'system' | 'sans' | 'serif';
+export type FormFont =
+  | 'system'
+  | 'sans'
+  | 'serif'
+  | 'poppins'
+  | 'montserrat'
+  | 'sora'
+  | 'grotesk'
+  | 'playfair'
+  | 'lora'
+  | 'dmserif';
+
+/** Overall colour scheme of the booking form surface. */
+export type FormSurface = 'light' | 'dark';
 
 export interface FormThemeTokens {
-  /** Brand colour as a hex string, e.g. "#4f46e5". */
+  /** Brand colour as a hex string, e.g. "#4f46e5". Drives accents AND headers. */
   primary: string;
   /** CSS length for the corner radius, e.g. "0.625rem". */
   radius: string;
   font: FormFont;
+  /** Light or dark surface for the whole form (backgrounds, cards, text). */
+  surface: FormSurface;
 }
 
 export const DEFAULT_FORM_THEME: FormThemeTokens = {
   primary: '#4f46e5',
   radius: '0.625rem',
   font: 'system',
+  surface: 'light',
 };
 
 /** Named starting points shown in the designer. Values live here (source of truth). */
 export const FORM_THEME_PRESETS: Record<string, FormThemeTokens> = {
-  aurora: { primary: '#6d5efc', radius: '1rem', font: 'sans' },
-  minimal: { primary: '#4f46e5', radius: '0.625rem', font: 'system' },
-  noir: { primary: '#111827', radius: '0.25rem', font: 'sans' },
-  luxury: { primary: '#8b6d3f', radius: '0.25rem', font: 'serif' },
-  modern: { primary: '#0ea5e9', radius: '1rem', font: 'sans' },
-  ocean: { primary: '#2563eb', radius: '0.5rem', font: 'sans' },
-  medical: { primary: '#0d9488', radius: '0.5rem', font: 'sans' },
-  forest: { primary: '#15803d', radius: '0.5rem', font: 'sans' },
-  blossom: { primary: '#db2777', radius: '1rem', font: 'sans' },
-  sunset: { primary: '#ea580c', radius: '1rem', font: 'sans' },
-  editorial: { primary: '#b91c1c', radius: '0rem', font: 'serif' },
+  aurora: { primary: '#6d5efc', radius: '1rem', font: 'sora', surface: 'light' },
+  minimal: { primary: '#4f46e5', radius: '0.625rem', font: 'system', surface: 'light' },
+  noir: { primary: '#8b5cf6', radius: '0.25rem', font: 'grotesk', surface: 'dark' },
+  luxury: { primary: '#b8925a', radius: '0.25rem', font: 'playfair', surface: 'dark' },
+  modern: { primary: '#0ea5e9', radius: '1rem', font: 'poppins', surface: 'light' },
+  ocean: { primary: '#2563eb', radius: '0.5rem', font: 'montserrat', surface: 'light' },
+  medical: { primary: '#0d9488', radius: '0.5rem', font: 'sans', surface: 'light' },
+  forest: { primary: '#15803d', radius: '0.5rem', font: 'lora', surface: 'light' },
+  blossom: { primary: '#db2777', radius: '1rem', font: 'poppins', surface: 'light' },
+  sunset: { primary: '#ea580c', radius: '1rem', font: 'montserrat', surface: 'light' },
+  editorial: { primary: '#e11d48', radius: '0rem', font: 'dmserif', surface: 'dark' },
 };
 
 export const FORM_FONT_STACKS: Record<FormFont, string> = {
   system: "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
   sans: "'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
   serif: "'Georgia', 'Times New Roman', ui-serif, serif",
+  poppins: "'Poppins', ui-sans-serif, system-ui, sans-serif",
+  montserrat: "'Montserrat', ui-sans-serif, system-ui, sans-serif",
+  sora: "'Sora', ui-sans-serif, system-ui, sans-serif",
+  grotesk: "'Space Grotesk', ui-sans-serif, system-ui, sans-serif",
+  playfair: "'Playfair Display', Georgia, ui-serif, serif",
+  lora: "'Lora', Georgia, ui-serif, serif",
+  dmserif: "'DM Serif Display', Georgia, ui-serif, serif",
 };
+
+/** Every valid font key, for validation. */
+export const FORM_FONTS = Object.keys(FORM_FONT_STACKS) as FormFont[];
 
 const HEX_RE = /^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
@@ -120,8 +146,9 @@ export function resolveFormTheme(raw: unknown): FormThemeTokens {
   const t = (raw ?? {}) as Partial<FormThemeTokens>;
   const primary = typeof t.primary === 'string' && parseHex(t.primary) ? normaliseHex(t.primary) : DEFAULT_FORM_THEME.primary;
   const radius = typeof t.radius === 'string' && /^\d*\.?\d+(px|rem|em)$/.test(t.radius.trim()) ? t.radius.trim() : DEFAULT_FORM_THEME.radius;
-  const font: FormFont = t.font === 'sans' || t.font === 'serif' || t.font === 'system' ? t.font : DEFAULT_FORM_THEME.font;
-  return { primary, radius, font };
+  const font: FormFont = FORM_FONTS.includes(t.font as FormFont) ? (t.font as FormFont) : DEFAULT_FORM_THEME.font;
+  const surface: FormSurface = t.surface === 'dark' || t.surface === 'light' ? t.surface : DEFAULT_FORM_THEME.surface;
+  return { primary, radius, font, surface };
 }
 
 /** Lower-case, ensure a leading '#', expand 3-digit to 6-digit. */
@@ -132,18 +159,68 @@ export function normaliseHex(hex: string): string {
   return `#${to2(rgb.r)}${to2(rgb.g)}${to2(rgb.b)}`;
 }
 
+/** Shift an "H S% L%" triple by hue/saturation/lightness deltas (clamped/wrapped). */
+export function shiftHslTriple(triple: string, dh: number, ds: number, dl: number): string {
+  const m = /^(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)%\s+(-?\d+(?:\.\d+)?)%$/.exec(triple.trim());
+  if (!m) return triple;
+  const h = (((Number(m[1]) + dh) % 360) + 360) % 360;
+  const s = Math.min(100, Math.max(0, Number(m[2]) + ds));
+  const l = Math.min(100, Math.max(0, Number(m[3]) + dl));
+  return `${Math.round(h)} ${Math.round(s)}% ${Math.round(l)}%`;
+}
+
+/** Neutral (background/card/text/border) tokens per surface scheme. */
+const SURFACE_NEUTRALS: Record<FormSurface, Record<string, string>> = {
+  light: {
+    '--background': '0 0% 100%',
+    '--foreground': '224 32% 12%',
+    '--card': '0 0% 100%',
+    '--card-foreground': '224 32% 12%',
+    '--popover': '0 0% 100%',
+    '--popover-foreground': '224 32% 12%',
+    '--muted': '220 16% 96%',
+    '--muted-foreground': '220 10% 40%',
+    '--secondary': '220 16% 96%',
+    '--secondary-foreground': '224 24% 20%',
+    '--accent': '220 16% 94%',
+    '--accent-foreground': '224 24% 20%',
+    '--border': '220 16% 90%',
+    '--input': '220 16% 90%',
+  },
+  dark: {
+    '--background': '224 32% 8%',
+    '--foreground': '220 16% 96%',
+    '--card': '224 30% 11%',
+    '--card-foreground': '220 16% 96%',
+    '--popover': '224 30% 11%',
+    '--popover-foreground': '220 16% 96%',
+    '--muted': '224 22% 16%',
+    '--muted-foreground': '220 12% 65%',
+    '--secondary': '224 22% 18%',
+    '--secondary-foreground': '220 16% 92%',
+    '--accent': '224 22% 20%',
+    '--accent-foreground': '220 16% 92%',
+    '--border': '224 20% 24%',
+    '--input': '224 20% 24%',
+  },
+};
+
 /**
- * The CSS custom properties to apply the theme to a scoped element. Overrides
- * the brand colour (and its readable foreground), the focus ring, the corner
- * radius and the font. Neutrals/background stay on the design-system defaults so
- * light/dark still adapt.
+ * The CSS custom properties to apply the theme to a scoped element. The brand
+ * colour drives the accent AND two derived gradient stops (`--brand-1/2`) used
+ * by the headers, so changing the colour restyles the WHOLE form, not just the
+ * button. The surface scheme swaps the neutral background/card/text tokens.
  */
 export function themeCssVars(tokens: FormThemeTokens): Record<string, string> {
   const hsl = hexToHslTriple(tokens.primary) ?? hexToHslTriple(DEFAULT_FORM_THEME.primary)!;
   return {
+    ...SURFACE_NEUTRALS[tokens.surface],
     '--primary': hsl,
     '--primary-foreground': readableForeground(tokens.primary),
     '--ring': hsl,
+    // Brand-derived gradient stops (headers/heroes read from these).
+    '--brand-1': hsl,
+    '--brand-2': shiftHslTriple(hsl, 22, 4, 6),
     '--radius': tokens.radius,
     '--font-sans': FORM_FONT_STACKS[tokens.font],
   };

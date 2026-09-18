@@ -410,7 +410,7 @@ export function BookingWizard({
     return (
       <div className={preview ? '' : 'mx-auto max-w-3xl'}>
         <div className="overflow-hidden border border-border shadow-premium">
-          <div className="bg-gradient-to-br from-primary via-[hsl(var(--aurora-2))] to-[hsl(var(--aurora-3))] p-6 text-primary-foreground sm:p-9">
+          <div className="bg-gradient-to-br from-[hsl(var(--brand-1))] to-[hsl(var(--brand-2))] p-6 text-primary-foreground sm:p-9">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/70">Book an appointment</p>
             <h1 className="mt-1 text-3xl font-extrabold tracking-tight sm:text-5xl">{business.name}</h1>
             <div className="mt-5 flex items-center gap-3">
@@ -434,7 +434,7 @@ export function BookingWizard({
   if (layout === 'split') {
     return (
       <div className="grid overflow-hidden border border-border shadow-premium lg:grid-cols-[17rem_1fr]">
-        <div className="relative hidden flex-col justify-between bg-gradient-to-br from-primary via-[hsl(var(--aurora-2))] to-[hsl(var(--aurora-3))] p-7 text-primary-foreground lg:flex">
+        <div className="relative hidden flex-col justify-between bg-gradient-to-br from-[hsl(var(--brand-1))] to-[hsl(var(--brand-2))] p-7 text-primary-foreground lg:flex">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/70">Book with</p>
             <h1 className="mt-1 text-2xl font-extrabold leading-tight">{business.name}</h1>
@@ -467,7 +467,7 @@ export function BookingWizard({
     return (
       <div className={preview ? '' : 'mx-auto max-w-2xl'}>
         <div className="border border-border bg-card shadow-premium">
-          <div className="h-1 w-full bg-gradient-to-r from-primary via-[hsl(var(--aurora-2))] to-[hsl(var(--aurora-3))]" />
+          <div className="h-1 w-full bg-gradient-to-r from-[hsl(var(--brand-1))] to-[hsl(var(--brand-2))]" />
           <div className="px-6 py-9 text-center sm:px-12">
             <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-primary">Book an appointment</p>
             <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">{business.name}</h1>
@@ -488,7 +488,7 @@ export function BookingWizard({
     return (
       <div className={preview ? '' : 'mx-auto max-w-2xl'}>
         <div className="overflow-hidden border border-border shadow-premium">
-          <div className="relative flex min-h-[11rem] flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-primary via-[hsl(var(--aurora-2))] to-[hsl(var(--aurora-3))] p-8 text-center text-primary-foreground">
+          <div className="relative flex min-h-[11rem] flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-[hsl(var(--brand-1))] to-[hsl(var(--brand-2))] p-8 text-center text-primary-foreground">
             <span className="pointer-events-none absolute -top-12 right-4 size-44 rounded-full bg-white/10 blur-3xl" aria-hidden />
             <span className="pointer-events-none absolute -bottom-16 -left-8 size-44 rounded-full bg-black/10 blur-3xl" aria-hidden />
             <p className="relative text-[11px] font-bold uppercase tracking-[0.24em] text-white/70">Book an appointment</p>

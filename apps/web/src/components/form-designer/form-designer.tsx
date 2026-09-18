@@ -15,6 +15,7 @@ import {
   type FormStepKey,
   type FormFont,
   type FormLayout,
+  type FormSurface,
 } from '@booking/core';
 import { Button } from '@booking/ui/button';
 import { BookingWizard } from '@/components/public/booking-wizard';
@@ -29,8 +30,19 @@ const RADIUS_OPTIONS: { label: string; value: string }[] = [
 ];
 const FONT_OPTIONS: { label: string; value: FormFont }[] = [
   { label: 'System', value: 'system' },
-  { label: 'Inter (sans)', value: 'sans' },
-  { label: 'Serif', value: 'serif' },
+  { label: 'Inter', value: 'sans' },
+  { label: 'Poppins', value: 'poppins' },
+  { label: 'Montserrat', value: 'montserrat' },
+  { label: 'Sora', value: 'sora' },
+  { label: 'Space Grotesk', value: 'grotesk' },
+  { label: 'Playfair Display', value: 'playfair' },
+  { label: 'Lora', value: 'lora' },
+  { label: 'DM Serif Display', value: 'dmserif' },
+  { label: 'Serif (system)', value: 'serif' },
+];
+const SURFACE_OPTIONS: { label: string; value: FormSurface }[] = [
+  { label: 'Light', value: 'light' },
+  { label: 'Dark', value: 'dark' },
 ];
 const LAYOUT_OPTIONS: { value: FormLayout; label: string; hint: string }[] = [
   { value: 'classic', label: 'Classic', hint: 'Card with live summary' },
@@ -170,7 +182,8 @@ export function FormDesigner({
       (p) =>
         p.tokens.primary.toLowerCase() === tokens.primary.toLowerCase() &&
         p.tokens.radius === tokens.radius &&
-        p.tokens.font === tokens.font,
+        p.tokens.font === tokens.font &&
+        p.tokens.surface === tokens.surface,
     );
     return match?.key ?? null;
   }, [initial.presets, tokens]);
@@ -288,27 +301,54 @@ export function FormDesigner({
                   className={`${CONTROL} font-mono`}
                 />
               </div>
+              <p className="mt-1 text-[11px] text-muted-foreground">Recolours the whole form: headers, gradients and accents.</p>
             </Field>
 
-            <Field label="Corners">
-              <select className={CONTROL} value={tokens.radius} onChange={(e) => setToken({ radius: e.target.value })}>
-                {RADIUS_OPTIONS.map((r) => (
-                  <option key={r.value} value={r.value}>
-                    {r.label}
-                  </option>
-                ))}
-              </select>
+            <Field label="Surface">
+              <div className="grid grid-cols-2 gap-2">
+                {SURFACE_OPTIONS.map((s) => {
+                  const active = tokens.surface === s.value;
+                  return (
+                    <button
+                      key={s.value}
+                      type="button"
+                      onClick={() => setToken({ surface: s.value })}
+                      aria-pressed={active}
+                      className={`flex items-center gap-2 border px-3 py-2 text-sm transition-colors ${
+                        active ? 'border-primary ring-2 ring-primary/40' : 'border-border hover:border-primary/40'
+                      }`}
+                    >
+                      <span
+                        className={`size-4 border ${s.value === 'dark' ? 'border-slate-700 bg-slate-900' : 'border-border bg-white'}`}
+                      />
+                      {s.label}
+                    </button>
+                  );
+                })}
+              </div>
             </Field>
 
-            <Field label="Font">
-              <select className={CONTROL} value={tokens.font} onChange={(e) => setToken({ font: e.target.value as FormFont })}>
-                {FONT_OPTIONS.map((f) => (
-                  <option key={f.value} value={f.value}>
-                    {f.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Corners">
+                <select className={CONTROL} value={tokens.radius} onChange={(e) => setToken({ radius: e.target.value })}>
+                  {RADIUS_OPTIONS.map((r) => (
+                    <option key={r.value} value={r.value}>
+                      {r.label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field label="Font">
+                <select className={CONTROL} value={tokens.font} onChange={(e) => setToken({ font: e.target.value as FormFont })}>
+                  {FONT_OPTIONS.map((f) => (
+                    <option key={f.value} value={f.value}>
+                      {f.label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </div>
           </div>
         </section>
 

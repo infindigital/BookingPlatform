@@ -45,10 +45,11 @@ describe('resolveFormTheme', () => {
     expect(resolveFormTheme({ primary: 'xxx', radius: 'huge', font: 'comic' })).toEqual(DEFAULT_FORM_THEME);
   });
   it('keeps valid values (normalising hex)', () => {
-    expect(resolveFormTheme({ primary: '#ABC', radius: '1rem', font: 'serif' })).toEqual({
+    expect(resolveFormTheme({ primary: '#ABC', radius: '1rem', font: 'serif', surface: 'dark' })).toEqual({
       primary: '#aabbcc',
       radius: '1rem',
       font: 'serif',
+      surface: 'dark',
     });
   });
   it('tolerates null / non-objects', () => {
@@ -66,11 +67,14 @@ describe('normaliseHex', () => {
 
 describe('themeCssVars', () => {
   it('emits the overriding custom properties', () => {
-    const vars = themeCssVars({ primary: '#4f46e5', radius: '0.5rem', font: 'sans' });
+    const vars = themeCssVars({ primary: '#4f46e5', radius: '0.5rem', font: 'sans', surface: 'light' });
     expect(vars['--primary']).toBe('243 75% 59%');
     expect(vars['--ring']).toBe('243 75% 59%');
     expect(vars['--primary-foreground']).toBe('0 0% 100%');
     expect(vars['--radius']).toBe('0.5rem');
     expect(vars['--font-sans']).toContain('Inter');
+    expect(vars['--brand-1']).toBe('243 75% 59%');
+    expect(vars['--brand-2']).toBeDefined();
+    expect(vars['--background']).toBe('0 0% 100%');
   });
 });

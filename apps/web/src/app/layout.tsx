@@ -30,10 +30,12 @@ export default function RootLayout({
         {/* Premium web font, loaded at runtime (no build-time bundler fetch). */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* Loaded at runtime (not via next/font) to keep offline builds working. */}
+        {/* Loaded at runtime (not via next/font) to keep offline builds working.
+            Includes the app font (Plus Jakarta Sans) plus the selectable booking-
+            form fonts so a business's chosen font renders on /book/[slug]. */}
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
-          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&family=Lora:wght@400;500;600&family=DM+Serif+Display&display=swap"
           rel="stylesheet"
         />
       </head>
