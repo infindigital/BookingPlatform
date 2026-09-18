@@ -5,6 +5,7 @@ import { repositoriesFor } from '../repositories/index';
 import { wallTimeToInstant } from '../dashboard/timezone';
 import { getAvailability } from '../availability/availability';
 import { loadResolvedForm } from '../form/config';
+import { referenceFor } from './reference';
 import { writeAudit } from '../audit';
 
 /**
@@ -61,11 +62,6 @@ function parseHHMM(value: string): number | null {
   const min = Number(m[2]);
   if (h > 23 || min > 59) return null;
   return h * 60 + min;
-}
-
-/** Short, human-friendly reference derived from the booking id (display only). */
-function referenceFor(id: string): string {
-  return id.slice(-8).toUpperCase();
 }
 
 export async function createPublicBooking(

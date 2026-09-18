@@ -198,10 +198,18 @@ export function BookingWizard({
           {settings.showPrices && service ? <Row label="Price" value={formatMoney(service.price, business.currency)} /> : null}
         </dl>
 
-        <div className="mt-6 flex justify-center">
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
           <Button variant="outline" onClick={reset}>
             Book another appointment
           </Button>
+          {!preview ? (
+            <a
+              href={`/book/${slug}/manage`}
+              className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Manage your booking
+            </a>
+          ) : null}
         </div>
       </div>
     );

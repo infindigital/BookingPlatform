@@ -76,6 +76,14 @@ export {
   type PublicBookingCustomer,
   type PublicBookingConfirmation,
 } from './public/create-public-booking';
+export { referenceFor } from './public/reference';
+export {
+  lookupCustomerBookings,
+  cancelOwnBooking,
+  rescheduleOwnBooking,
+  type ManageLookupResult,
+  type ManageBookingRow,
+} from './public/manage';
 export { hashPassword, verifyPassword } from './auth/password';
 export { findUserForAuth, type AuthUser } from './auth/lookup';
 export { writeAudit, type AuditInput } from './audit';
