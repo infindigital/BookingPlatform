@@ -21,6 +21,7 @@ const PERMISSIONS = [
   'service.manage',
   'employee.manage',
   'customer.manage',
+  'payment.manage',
   'settings.manage',
   'analytics.read',
 ];

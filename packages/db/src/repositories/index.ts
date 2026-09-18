@@ -6,6 +6,7 @@ import { BookingRepository } from './booking.repository';
 import { BusinessRepository } from './business.repository';
 import { EmployeeRepository } from './employee.repository';
 import { WebhookRepository } from '../integrations/webhook.repository';
+import { PaymentRepository } from '../payments/payment.repository';
 
 export { BaseRepository } from './base';
 export { ServiceRepository } from './service.repository';
@@ -32,6 +33,7 @@ export function repositoriesFor(businessId: string, db: PrismaClient = prisma) {
     bookings: new BookingRepository(businessId, db),
     employees: new EmployeeRepository(businessId, db),
     webhooks: new WebhookRepository(businessId, db),
+    payments: new PaymentRepository(businessId, db),
   };
 }
 

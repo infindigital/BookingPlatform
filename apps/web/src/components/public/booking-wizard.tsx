@@ -196,6 +196,12 @@ export function BookingWizard({
           {(c?.employeeName ?? chosenStaff?.name) ? <Row label="With" value={c?.employeeName ?? chosenStaff!.name} /> : null}
           {slot ? <Row label="When" value={confirmationWhen(c?.startISO ?? slot.startISO, timeZone)} /> : null}
           {settings.showPrices && service ? <Row label="Price" value={formatMoney(service.price, business.currency)} /> : null}
+          {c && c.amountDue > 0 ? (
+            <Row
+              label={c.amountDue < c.price ? 'Deposit due' : 'Amount due'}
+              value={formatMoney(c.amountDue, c.currency)}
+            />
+          ) : null}
         </dl>
 
         <div className="mt-6 flex flex-wrap items-center justify-center gap-2">

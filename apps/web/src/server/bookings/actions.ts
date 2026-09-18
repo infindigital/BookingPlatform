@@ -10,6 +10,7 @@ import {
   repositoriesFor,
   wallTimeToInstant,
   getAvailability,
+  ensurePaymentForBooking,
 } from '@booking/db';
 import type { BookingStatus, NotificationEvent } from '@booking/db';
 import { DomainError, actionByKey } from '@booking/core';
@@ -267,6 +268,15 @@ export async function createBookingAction(
       entityId: booking.id,
       metadata: { source: 'admin' },
     });
+    // Create the payment record per policy (best-effort; never blocks the booking).
+    try {
+      await ensurePaymentForBooking(businessId, booking.id, {
+        price: Number(service.price),
+        currency: business?.currency ?? 'USD',
+      });
+    } catch (error) {
+      logger.error('payment.ensure.failed', { bookingId: booking.id, message: (error as Error)?.message });
+    }
     // Admin bookings are confirmed on creation → confirmation + reminder.
     await handleBookingEvent(businessId, booking.id, 'BOOKING_ACCEPTED');
     refresh();

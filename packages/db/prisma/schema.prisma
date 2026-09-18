@@ -42,6 +42,22 @@ enum PaymentStatus {
   FAILED
 }
 
+enum PaymentMode {
+  NONE
+  DEPOSIT
+  FULL
+}
+
+enum DepositType {
+  PERCENT
+  FIXED
+}
+
+enum PaymentTxnType {
+  CHARGE
+  REFUND
+}
+
 enum NotificationChannel {
   EMAIL
   WHATSAPP
@@ -127,6 +143,8 @@ model Business {
   bookings             Booking[]
   bookingItems         BookingItem[]
   payments             Payment[]
+  paymentTransactions  PaymentTransaction[]
+  paymentSettings      PaymentSettings?
   notificationTemplate NotificationTemplate[]
   notificationJobs     NotificationJob[]
   notificationLogs     NotificationLog[]
@@ -140,14 +158,14 @@ model Business {
 }
 
 model Website {
-  id        String   @id @default(cuid())
+  id         String   @id @default(cuid())
   businessId String
-  name      String
-  domain    String?
-  publicKey String   @unique
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  name       String
+  domain     String?
+  publicKey  String   @unique
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   business           Business            @relation(fields: [businessId], references: [id], onDelete: Cascade)
   formConfigurations FormConfiguration[]
@@ -287,14 +305,14 @@ model ServiceExtra {
 }
 
 model Location {
-  id        String   @id @default(cuid())
+  id         String   @id @default(cuid())
   businessId String
-  name      String
-  address   String?
-  timezone  String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  name       String
+  address    String?
+  timezone   String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   business             Business               @relation(fields: [businessId], references: [id], onDelete: Cascade)
   bookings             Booking[]
@@ -310,17 +328,17 @@ model Location {
 // ---------------------------------------------------------------------------
 
 model Employee {
-  id        String   @id @default(cuid())
+  id         String   @id @default(cuid())
   businessId String
-  userId    String?
-  firstName String
-  lastName  String
-  email     String?
-  phone     String?
-  title     String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  userId     String?
+  firstName  String
+  lastName   String
+  email      String?
+  phone      String?
+  title      String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   business     Business               @relation(fields: [businessId], references: [id], onDelete: Cascade)
   user         User?                  @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -351,13 +369,13 @@ model EmployeeService {
 }
 
 model BusinessHours {
-  id         String   @id @default(cuid())
+  id         String  @id @default(cuid())
   businessId String
   locationId String?
   dayOfWeek  Int // 0=Sunday .. 6=Saturday
   openTime   String // "HH:mm"
   closeTime  String // "HH:mm"
-  isClosed   Boolean  @default(false)
+  isClosed   Boolean @default(false)
 
   business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
   location Location? @relation(fields: [locationId], references: [id], onDelete: Cascade)
@@ -366,7 +384,7 @@ model BusinessHours {
 }
 
 model EmployeeWorkingHours {
-  id         String   @id @default(cuid())
+  id         String  @id @default(cuid())
   businessId String
   employeeId String
   locationId String?
@@ -384,15 +402,15 @@ model EmployeeWorkingHours {
 }
 
 model Break {
-  id                     String @id @default(cuid())
+  id                     String  @id @default(cuid())
   businessId             String
   employeeWorkingHoursId String
   startTime              String // "HH:mm"
   endTime                String // "HH:mm"
   label                  String?
 
-  business      Business             @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  workingHours  EmployeeWorkingHours @relation(fields: [employeeWorkingHoursId], references: [id], onDelete: Cascade)
+  business     Business             @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  workingHours EmployeeWorkingHours @relation(fields: [employeeWorkingHoursId], references: [id], onDelete: Cascade)
 
   @@index([businessId])
   @@index([employeeWorkingHoursId])
@@ -451,15 +469,15 @@ model BlockedTime {
 // ---------------------------------------------------------------------------
 
 model Customer {
-  id        String   @id @default(cuid())
+  id         String   @id @default(cuid())
   businessId String
-  firstName String
-  lastName  String
-  email     String
-  phone     String?
-  timezone  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  firstName  String
+  lastName   String
+  email      String
+  phone      String?
+  timezone   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   business Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
   notes    CustomerNote[]
@@ -526,14 +544,14 @@ model Booking {
 }
 
 model BookingItem {
-  id             String   @id @default(cuid())
+  id             String  @id @default(cuid())
   businessId     String
   bookingId      String
   serviceId      String?
   serviceExtraId String?
   label          String
-  quantity       Int      @default(1)
-  unitPrice      Decimal  @default(0) @db.Decimal(10, 2)
+  quantity       Int     @default(1)
+  unitPrice      Decimal @default(0) @db.Decimal(10, 2)
 
   business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
   booking  Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
@@ -544,22 +562,64 @@ model BookingItem {
 }
 
 model Payment {
-  id         String        @id @default(cuid())
-  businessId String
-  bookingId  String        @unique
-  status     PaymentStatus @default(UNPAID)
-  amount     Decimal       @default(0) @db.Decimal(10, 2)
-  amountPaid Decimal       @default(0) @db.Decimal(10, 2)
-  currency   String        @default("USD")
-  provider   String?
+  id          String        @id @default(cuid())
+  businessId  String
+  bookingId   String        @unique
+  status      PaymentStatus @default(UNPAID)
+  /// The amount required for this booking (per the payment policy at booking time).
+  amount      Decimal       @default(0) @db.Decimal(10, 2)
+  /// Net collected (charges − refunds); a cached rollup of the transaction ledger.
+  amountPaid  Decimal       @default(0) @db.Decimal(10, 2)
+  currency    String        @default("USD")
+  provider    String?
   providerRef String?
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
-  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  booking  Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  business     Business             @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  booking      Booking              @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  transactions PaymentTransaction[]
 
   @@index([businessId])
+  @@index([businessId, status])
+}
+
+/// Immutable ledger of money movements against a Payment. amountPaid + status on
+/// Payment are always recomputed from these rows inside the same transaction.
+model PaymentTransaction {
+  id              String         @id @default(cuid())
+  businessId      String
+  paymentId       String
+  type            PaymentTxnType
+  amount          Decimal        @db.Decimal(10, 2)
+  method          String?
+  reference       String?
+  note            String?
+  createdByUserId String?
+  createdAt       DateTime       @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  payment  Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+  @@index([paymentId])
+}
+
+/// Per-business payment policy (deposit / full / none) and offline collection
+/// instructions. One row per business. No payment provider is mandatory.
+model PaymentSettings {
+  id           String      @id @default(cuid())
+  businessId   String      @unique
+  mode         PaymentMode @default(NONE)
+  depositType  DepositType @default(PERCENT)
+  depositValue Decimal     @default(0) @db.Decimal(10, 2)
+  currency     String      @default("USD")
+  instructions String?
+  methods      Json?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
 }
 
 // ---------------------------------------------------------------------------
@@ -744,15 +804,15 @@ model WebhookDelivery {
 }
 
 model AuditLog {
-  id           String   @id @default(cuid())
-  businessId   String
-  actorUserId  String?
-  action       String
-  entity       String?
-  entityId     String?
-  metadata     Json?
-  ip           String?
-  createdAt    DateTime @default(now())
+  id          String   @id @default(cuid())
+  businessId  String
+  actorUserId String?
+  action      String
+  entity      String?
+  entityId    String?
+  metadata    Json?
+  ip          String?
+  createdAt   DateTime @default(now())
 
   business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
   actor    User?    @relation(fields: [actorUserId], references: [id], onDelete: SetNull)

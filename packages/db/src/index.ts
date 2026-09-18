@@ -101,6 +101,7 @@ export {
 } from './public/manage';
 export * from './notifications/index';
 export * from './integrations/index';
+export * from './payments/index';
 export { hashPassword, verifyPassword } from './auth/password';
 export { findUserForAuth, type AuthUser } from './auth/lookup';
 export { writeAudit, type AuditInput } from './audit';

@@ -8,6 +8,8 @@ import { loadResolvedForm } from '../form/config';
 import { referenceFor } from './reference';
 import { writeAudit } from '../audit';
 import { handleBookingEvent } from '../notifications/enqueue';
+import { ensurePaymentForBooking } from '../payments/create';
+import { logger } from '../logger';
 
 /**
  * Public (customer-initiated) booking creation.
@@ -54,6 +56,8 @@ export interface PublicBookingConfirmation {
   timezone: string;
   currency: string;
   price: number;
+  /** Amount required now per the business's payment policy (0 if none). */
+  amountDue: number;
 }
 
 function parseHHMM(value: string): number | null {
@@ -165,6 +169,21 @@ export async function createPublicBooking(
     metadata: { source: 'public' },
   }, db);
 
+  // Create the payment record per the business's policy (best-effort: a payment
+  // problem must never fail a booking the customer has already completed).
+  let amountDue = 0;
+  try {
+    const payment = await ensurePaymentForBooking(
+      businessId,
+      booking.id,
+      { price: Number(service.price), currency: business.currency },
+      db,
+    );
+    amountDue = payment?.amountDue ?? 0;
+  } catch (error) {
+    logger.error('payment.ensure.failed', { bookingId: booking.id, message: (error as Error)?.message });
+  }
+
   await handleBookingEvent(businessId, booking.id, 'BOOKING_CREATED', db);
 
   return {
@@ -179,5 +198,6 @@ export async function createPublicBooking(
     timezone: timeZone,
     currency: business.currency,
     price: Number(service.price),
+    amountDue,
   };
 }
