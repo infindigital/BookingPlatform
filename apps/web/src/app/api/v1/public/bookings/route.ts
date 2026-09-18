@@ -24,9 +24,27 @@ export async function POST(request: Request) {
   if (!guard.ok) return guard.response;
   const { ctx } = guard;
 
+  // Reject oversized payloads before reading them (a booking is a few short
+  // fields; anything large is abuse). Guard both the declared and actual size.
+  const MAX_BODY = 8 * 1024;
+  const declared = Number(request.headers.get('content-length') ?? '0');
+  if (Number.isFinite(declared) && declared > MAX_BODY) {
+    return apiError('Request body too large.', 413, ctx.origin, ctx.website.domain);
+  }
+
+  let raw: string;
+  try {
+    raw = await request.text();
+  } catch {
+    return apiError('Unable to read request body.', 400, ctx.origin, ctx.website.domain);
+  }
+  if (raw.length > MAX_BODY) {
+    return apiError('Request body too large.', 413, ctx.origin, ctx.website.domain);
+  }
+
   let body: Record<string, unknown>;
   try {
-    body = (await request.json()) as Record<string, unknown>;
+    body = raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
   } catch {
     return apiError('Request body must be valid JSON.', 400, ctx.origin, ctx.website.domain);
   }

@@ -2,6 +2,8 @@ import NextAuth, { type NextAuthResult } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import { z } from 'zod';
 import { findUserForAuth, verifyPassword, writeAudit } from '@booking/db';
+import { RateLimiter } from '@booking/core';
+import { logger } from '@/lib/logger';
 import { authConfig } from './config';
 
 const credentialsSchema = z.object({
@@ -9,6 +11,22 @@ const credentialsSchema = z.object({
   password: z.string().min(1),
   businessSlug: z.string().optional(),
 });
+
+/**
+ * Brute-force throttle for credential logins. In-process, dependency-free (no
+ * Redis) — a best-effort guard keyed by email+IP that blocks after too many
+ * attempts in a short window. A successful login clears the counter, so a
+ * legitimate user who mistypes a few times is never locked out for long.
+ */
+const LOGIN_LIMIT = 8;
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const loginLimiter = new RateLimiter({ limit: LOGIN_LIMIT, windowMs: LOGIN_WINDOW_MS });
+
+function clientIpFrom(request: Request | undefined): string {
+  const fwd = request?.headers.get('x-forwarded-for');
+  if (fwd) return fwd.split(',')[0]!.trim();
+  return request?.headers.get('x-real-ip') ?? 'unknown';
+}
 
 /**
  * Full Auth.js instance (Node runtime). Adds the Credentials provider that
@@ -25,16 +43,27 @@ const result = NextAuth({
         password: { label: 'Password', type: 'password' },
         businessSlug: { label: 'Business', type: 'text' },
       },
-      async authorize(raw) {
+      async authorize(raw, request) {
         const parsed = credentialsSchema.safeParse(raw);
         if (!parsed.success) return null;
 
         const { email, password, businessSlug } = parsed.data;
+
+        // Throttle before any DB / bcrypt work so brute force is cheap to deny.
+        const throttleKey = `${email.toLowerCase()}:${clientIpFrom(request)}`;
+        if (!loginLimiter.check(throttleKey).allowed) {
+          logger.warn('auth.login.throttled', { email: email.toLowerCase() });
+          return null;
+        }
+
         const user = await findUserForAuth(email, businessSlug);
         if (!user || !user.passwordHash) return null;
 
         const ok = await verifyPassword(password, user.passwordHash);
         if (!ok) return null;
+
+        // Successful login: clear the attempt counter for this email+IP.
+        loginLimiter.reset(throttleKey);
 
         return {
           id: user.id,

@@ -79,6 +79,20 @@ export async function createPublicBooking(
   if (!firstName || !email) throw new ValidationError('Please provide your name and email.');
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new ValidationError('Please provide a valid email address.');
 
+  // Length caps on untrusted public input — reject abusive/oversized payloads
+  // before they reach the database (defence in depth; the API also caps body size).
+  const phone = input.customer.phone?.trim() || null;
+  const notes = input.notes?.trim() || null;
+  if (
+    firstName.length > 100 ||
+    lastName.length > 100 ||
+    email.length > 200 ||
+    (phone && phone.length > 40) ||
+    (notes && notes.length > 2000)
+  ) {
+    throw new ValidationError('One of the fields is too long. Please shorten your details.');
+  }
+
   const minutes = parseHHMM(input.time);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.dayKey) || minutes === null) {
     throw new ValidationError('Please choose a valid date and time.');
@@ -139,7 +153,7 @@ export async function createPublicBooking(
     email,
     firstName,
     lastName,
-    phone: input.customer.phone?.trim() || null,
+    phone,
   });
 
   const booking = await repos.bookings.create({
@@ -153,7 +167,7 @@ export async function createPublicBooking(
     currency: business.currency,
     status: 'PENDING',
     source: 'public',
-    notes: input.notes?.trim() || null,
+    notes,
   });
 
   const employee = employeeId

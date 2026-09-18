@@ -105,4 +105,20 @@ describe('createPublicBooking', () => {
       ),
     ).rejects.toBeInstanceOf(ValidationError);
   });
+
+  it('rejects oversized public input (defence in depth)', async () => {
+    await expect(
+      createPublicBooking(
+        {
+          slug,
+          serviceId,
+          dayKey: DAY,
+          time: '11:00',
+          customer: { firstName: 'C', lastName: 'D', email: 'big@example.com' },
+          notes: 'x'.repeat(2001),
+        },
+        prisma,
+      ),
+    ).rejects.toBeInstanceOf(ValidationError);
+  });
 });
