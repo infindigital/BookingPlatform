@@ -104,6 +104,7 @@ export * from './integrations/index';
 export * from './payments/index';
 export * from './settings/index';
 export * from './analytics/index';
+export * from './events/index';
 export { hashPassword, verifyPassword } from './auth/password';
 export { findUserForAuth, type AuthUser } from './auth/lookup';
 export { writeAudit, type AuditInput } from './audit';

@@ -8,6 +8,7 @@ import { EmployeeRepository } from './employee.repository';
 import { WebhookRepository } from '../integrations/webhook.repository';
 import { PaymentRepository } from '../payments/payment.repository';
 import { SettingsRepository } from '../settings/settings.repository';
+import { EventRepository } from '../events/event.repository';
 
 export { BaseRepository } from './base';
 export { ServiceRepository } from './service.repository';
@@ -36,6 +37,7 @@ export function repositoriesFor(businessId: string, db: PrismaClient = prisma) {
     webhooks: new WebhookRepository(businessId, db),
     payments: new PaymentRepository(businessId, db),
     settings: new SettingsRepository(businessId, db),
+    events: new EventRepository(businessId, db),
   };
 }
 

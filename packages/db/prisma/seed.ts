@@ -24,6 +24,7 @@ const PERMISSIONS = [
   'payment.manage',
   'settings.manage',
   'analytics.read',
+  'event.manage',
 ];
 
 const FORM_THEMES = [

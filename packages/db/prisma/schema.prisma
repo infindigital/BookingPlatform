@@ -58,6 +58,20 @@ enum PaymentTxnType {
   REFUND
 }
 
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  COMPLETED
+}
+
+enum EventRegistrationStatus {
+  REGISTERED
+  CANCELLED
+  ATTENDED
+  NO_SHOW
+}
+
 enum NotificationChannel {
   EMAIL
   WHATSAPP
@@ -155,6 +169,8 @@ model Business {
   webhooks             Webhook[]
   webhookDeliveries    WebhookDelivery[]
   auditLogs            AuditLog[]
+  events               Event[]
+  eventRegistrations   EventRegistration[]
 }
 
 model Website {
@@ -319,6 +335,7 @@ model Location {
   businessHours        BusinessHours[]
   employeeWorkingHours EmployeeWorkingHours[]
   blockedTimes         BlockedTime[]
+  events               Event[]
 
   @@index([businessId])
 }
@@ -347,6 +364,7 @@ model Employee {
   timeOff      TimeOff[]
   blockedTimes BlockedTime[]
   bookings     Booking[]
+  events       Event[]
 
   @@unique([userId])
   @@index([businessId])
@@ -479,9 +497,10 @@ model Customer {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  business Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  notes    CustomerNote[]
-  bookings Booking[]
+  business      Business            @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  notes         CustomerNote[]
+  bookings      Booking[]
+  registrations EventRegistration[]
 
   @@unique([businessId, email])
   @@index([businessId])
@@ -819,4 +838,56 @@ model AuditLog {
 
   @@index([businessId])
   @@index([businessId, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Events (ticketed group classes / workshops)
+// ---------------------------------------------------------------------------
+
+model Event {
+  id          String      @id @default(cuid())
+  businessId  String
+  title       String
+  description String?
+  startAt     DateTime
+  endAt       DateTime
+  /// Total number of seats offered.
+  capacity    Int         @default(0)
+  price       Decimal     @default(0) @db.Decimal(10, 2)
+  currency    String      @default("USD")
+  locationId  String?
+  /// Optional host/instructor for the event.
+  employeeId  String?
+  status      EventStatus @default(DRAFT)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  business      Business            @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  location      Location?           @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  employee      Employee?           @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  registrations EventRegistration[]
+
+  @@index([businessId, startAt])
+  @@index([businessId, status])
+}
+
+model EventRegistration {
+  id         String                  @id @default(cuid())
+  businessId String
+  eventId    String
+  customerId String
+  /// Number of seats this registration occupies.
+  seats      Int                     @default(1)
+  status     EventRegistrationStatus @default(REGISTERED)
+  note       String?
+  createdAt  DateTime                @default(now())
+  updatedAt  DateTime                @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  event    Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, eventId])
+  @@index([businessId, customerId])
+  @@index([eventId, status])
 }

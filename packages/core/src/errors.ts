@@ -16,6 +16,13 @@ export class BookingConflictError extends DomainError {
   }
 }
 
+/** Raised when an event registration cannot be placed because it is sold out. */
+export class EventCapacityError extends DomainError {
+  constructor(message = 'This event does not have enough remaining seats.') {
+    super('EVENT_CAPACITY', message);
+  }
+}
+
 /** Raised when an entity is accessed outside its owning business (tenant leak guard). */
 export class TenantIsolationError extends DomainError {
   constructor(message = 'Cross-business data access is not permitted.') {
