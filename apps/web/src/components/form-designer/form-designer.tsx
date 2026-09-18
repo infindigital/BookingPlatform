@@ -37,6 +37,10 @@ const LAYOUT_OPTIONS: { value: FormLayout; label: string; hint: string }[] = [
   { value: 'minimal', label: 'Minimal', hint: 'Borderless and airy' },
   { value: 'bold', label: 'Bold', hint: 'Big colour header' },
   { value: 'split', label: 'Split', hint: 'Brand rail + steps' },
+  { value: 'elegant', label: 'Elegant', hint: 'Centered luxury' },
+  { value: 'portrait', label: 'Portrait', hint: 'Cover-style hero' },
+  { value: 'sidebar', label: 'Sidebar', hint: 'Stepped side nav' },
+  { value: 'spotlight', label: 'Spotlight', hint: 'Dark premium header' },
 ];
 
 /** Tiny wireframe that previews each layout's structure. */
@@ -68,6 +72,44 @@ function LayoutGlyph({ value }: { value: FormLayout }) {
         <span className="h-1.5 w-1/2 bg-foreground/25" />
         <span className="h-1.5 bg-foreground/15" />
         <span className="h-1.5 w-3/4 bg-foreground/15" />
+      </span>
+    );
+  }
+  if (value === 'elegant') {
+    return (
+      <span className={`flex flex-col ${base} items-center justify-center gap-1 px-1`}>
+        <span className="h-0.5 w-6 bg-primary" />
+        <span className="h-1.5 w-1/2 bg-foreground/25" />
+        <span className="h-1.5 w-3/4 bg-foreground/15" />
+      </span>
+    );
+  }
+  if (value === 'portrait') {
+    return (
+      <span className={`flex flex-col ${base} gap-1`}>
+        <span className="h-5 bg-primary" />
+        <span className="mx-1 h-1.5 bg-foreground/25" />
+        <span className="mx-1 h-1.5 w-2/3 bg-foreground/15" />
+      </span>
+    );
+  }
+  if (value === 'sidebar') {
+    return (
+      <span className={`flex ${base} gap-1`}>
+        <span className="w-1/3 bg-foreground/15" />
+        <span className="flex flex-1 flex-col gap-1 p-1">
+          <span className="h-1.5 bg-foreground/25" />
+          <span className="h-1.5 w-2/3 bg-foreground/15" />
+        </span>
+      </span>
+    );
+  }
+  if (value === 'spotlight') {
+    return (
+      <span className={`flex flex-col ${base} gap-1`}>
+        <span className="h-4 bg-foreground/80" />
+        <span className="mx-1 h-1.5 bg-foreground/25" />
+        <span className="mx-1 h-1.5 w-2/3 bg-foreground/15" />
       </span>
     );
   }

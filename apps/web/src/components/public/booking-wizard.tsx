@@ -462,6 +462,121 @@ export function BookingWizard({
     );
   }
 
+  // ---- ELEGANT: refined, centered, luxury spacing ----
+  if (layout === 'elegant') {
+    return (
+      <div className={preview ? '' : 'mx-auto max-w-2xl'}>
+        <div className="border border-border bg-card shadow-premium">
+          <div className="h-1 w-full bg-gradient-to-r from-primary via-[hsl(var(--aurora-2))] to-[hsl(var(--aurora-3))]" />
+          <div className="px-6 py-9 text-center sm:px-12">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-primary">Book an appointment</p>
+            <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">{business.name}</h1>
+            <div className="mx-auto mt-5 h-px w-14 bg-border" />
+            <div className="mt-6 text-left">
+              <Stepper flow={flow} current={stepIdx} />
+            </div>
+          </div>
+          <div className="min-h-[22rem] px-6 pb-9 sm:px-12">{body}</div>
+          <div className="flex items-center justify-between gap-3 border-t border-border px-6 py-5 sm:px-12">{footer}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // ---- PORTRAIT: cover-style hero header ----
+  if (layout === 'portrait') {
+    return (
+      <div className={preview ? '' : 'mx-auto max-w-2xl'}>
+        <div className="overflow-hidden border border-border shadow-premium">
+          <div className="relative flex min-h-[11rem] flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-primary via-[hsl(var(--aurora-2))] to-[hsl(var(--aurora-3))] p-8 text-center text-primary-foreground">
+            <span className="pointer-events-none absolute -top-12 right-4 size-44 rounded-full bg-white/10 blur-3xl" aria-hidden />
+            <span className="pointer-events-none absolute -bottom-16 -left-8 size-44 rounded-full bg-black/10 blur-3xl" aria-hidden />
+            <p className="relative text-[11px] font-bold uppercase tracking-[0.24em] text-white/70">Book an appointment</p>
+            <h1 className="relative mt-2 text-4xl font-extrabold tracking-tight sm:text-5xl">{business.name}</h1>
+          </div>
+          <div className="min-h-[22rem] bg-card p-6 sm:p-8">
+            <Stepper flow={flow} current={stepIdx} />
+            <div className="mt-6">{body}</div>
+          </div>
+          <div className="flex items-center justify-between gap-3 border-t border-border bg-card p-5 sm:px-8">{footer}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // ---- SIDEBAR: neutral stepped side navigation ----
+  if (layout === 'sidebar') {
+    return (
+      <div className="grid overflow-hidden border border-border shadow-premium lg:grid-cols-[16rem_1fr]">
+        <aside className="hidden flex-col gap-6 border-r border-border bg-muted/40 p-6 lg:flex">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Book with</p>
+            <h1 className="mt-1 text-xl font-bold tracking-tight">{business.name}</h1>
+          </div>
+          <ol className="space-y-1">
+            {flow.map((key, i) => (
+              <li
+                key={key}
+                className={`flex items-center gap-3 px-2 py-2 text-sm ${
+                  i === stepIdx ? 'bg-primary/10 font-semibold text-foreground' : 'text-muted-foreground'
+                }`}
+              >
+                <span
+                  className={`flex size-6 items-center justify-center text-xs font-bold ${
+                    i < stepIdx
+                      ? 'bg-primary text-primary-foreground'
+                      : i === stepIdx
+                        ? 'bg-primary/20 text-primary'
+                        : 'bg-border text-muted-foreground'
+                  }`}
+                >
+                  {i < stepIdx ? <Check className="size-3.5" /> : i + 1}
+                </span>
+                {STEP_LABEL[key]}
+              </li>
+            ))}
+          </ol>
+        </aside>
+        <div className="bg-card">
+          <div className="min-h-[24rem] p-6 sm:p-8">{body}</div>
+          <div className="flex items-center justify-between gap-3 border-t border-border p-5 sm:px-8">{footer}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // ---- SPOTLIGHT: dark premium header with a glow ----
+  if (layout === 'spotlight') {
+    return (
+      <div className={preview ? '' : 'mx-auto max-w-3xl'}>
+        <div className="overflow-hidden border border-border shadow-premium">
+          <div className="relative overflow-hidden bg-slate-950 p-6 text-white sm:p-9">
+            <span
+              className="pointer-events-none absolute left-1/2 top-0 size-72 -translate-x-1/2 -translate-y-1/3 rounded-full bg-[hsl(var(--aurora-1))]/40 blur-3xl"
+              aria-hidden
+            />
+            <div className="relative">
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/60">Book an appointment</p>
+              <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-5xl">{business.name}</h1>
+              <div className="mt-6">
+                <div className="flex items-center gap-1.5">
+                  {flow.map((key, i) => (
+                    <div key={key} className={`h-1 flex-1 ${i <= stepIdx ? 'bg-white' : 'bg-white/25'}`} />
+                  ))}
+                </div>
+                <p className="mt-2 text-xs font-medium text-white/60">
+                  Step {Math.min(stepIdx + 1, flow.length)} of {flow.length} · {stepTitle}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="min-h-[22rem] bg-card p-6 sm:p-9">{bodyCore}</div>
+          <div className="flex items-center justify-between gap-3 border-t border-border bg-card p-5 sm:px-9">{footer}</div>
+        </div>
+      </div>
+    );
+  }
+
   // ---- CLASSIC (default): card + live summary aside ----
   return (
     <div className={preview ? '' : 'grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]'}>

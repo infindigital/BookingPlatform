@@ -8,7 +8,16 @@
  */
 
 /** Visual layout design for the public booking flow. */
-export const FORM_LAYOUTS = ['classic', 'minimal', 'bold', 'split'] as const;
+export const FORM_LAYOUTS = [
+  'classic',
+  'minimal',
+  'bold',
+  'split',
+  'elegant',
+  'portrait',
+  'sidebar',
+  'spotlight',
+] as const;
 export type FormLayout = (typeof FORM_LAYOUTS)[number];
 
 export interface FormSettings {
