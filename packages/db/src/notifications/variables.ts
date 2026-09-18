@@ -2,6 +2,29 @@ import type { PrismaClient } from '@prisma/client';
 import { referenceFor } from '../public/reference';
 
 /**
+ * Base URL for customer-facing links (magic-link "manage booking"). Server-side
+ * only; falls back to localhost for dev. Trailing slash trimmed.
+ */
+function appBaseUrl(): string {
+  const raw = process.env.APP_URL?.trim() || 'http://localhost:3000';
+  return raw.replace(/\/+$/, '');
+}
+
+/**
+ * Build the magic-link URL to the public manage page, pre-filling the customer's
+ * email + booking reference. Both are things the recipient already holds (the mail
+ * is sent to that address, and the reference is on their confirmation), so this is
+ * a convenience link, not a bearer secret — every action still re-verifies the
+ * (email, reference) pair server-side.
+ */
+function manageUrlFor(slug: string, email: string | null, reference: string): string | null {
+  if (!slug) return null;
+  const params = new URLSearchParams({ ref: reference });
+  if (email) params.set('email', email);
+  return `${appBaseUrl()}/book/${encodeURIComponent(slug)}/manage?${params.toString()}`;
+}
+
+/**
  * Resolve the template variables (and recipient contacts) for a booking. Dates
  * are formatted in the business timezone via `Intl` — no date library, per the
  * cost policy. Returns null when the booking cannot be found for the tenant.
@@ -11,6 +34,10 @@ export interface BookingNotificationContext {
   vars: Record<string, string>;
   recipientEmail: string | null;
   recipientPhone: string | null;
+  /** Business display name — used to brand the HTML email shell. */
+  businessName: string;
+  /** Magic-link to the public manage page (email + reference pre-filled), or null. */
+  manageUrl: string | null;
   startAt: Date;
   status: string;
 }
@@ -32,7 +59,7 @@ export async function buildBookingContext(
       customer: { select: { firstName: true, lastName: true, email: true, phone: true } },
       service: { select: { name: true } },
       employee: { select: { firstName: true, lastName: true } },
-      business: { select: { name: true, timezone: true } },
+      business: { select: { name: true, timezone: true, slug: true } },
     },
   });
   if (!booking) return null;
@@ -51,6 +78,9 @@ export async function buildBookingContext(
   const firstName = booking.customer.firstName ?? '';
   const lastName = booking.customer.lastName ?? '';
   const employeeName = booking.employee ? `${booking.employee.firstName} ${booking.employee.lastName}`.trim() : 'our team';
+  const reference = referenceFor(booking.id);
+  const recipientEmail = booking.customer.email ?? null;
+  const manageUrl = manageUrlFor(booking.business.slug, recipientEmail, reference);
 
   const vars: Record<string, string> = {
     'customer.firstName': firstName,
@@ -60,15 +90,18 @@ export async function buildBookingContext(
     'service.name': booking.service.name,
     'booking.date': dateFmt.format(booking.startAt),
     'booking.time': timeFmt.format(booking.startAt),
-    'booking.reference': referenceFor(booking.id),
+    'booking.reference': reference,
     'booking.employee': employeeName,
     'booking.price': price,
+    'booking.manageUrl': manageUrl ?? '',
   };
 
   return {
     vars,
-    recipientEmail: booking.customer.email ?? null,
+    recipientEmail,
     recipientPhone: booking.customer.phone ?? null,
+    businessName: booking.business.name,
+    manageUrl,
     startAt: booking.startAt,
     status: booking.status,
   };

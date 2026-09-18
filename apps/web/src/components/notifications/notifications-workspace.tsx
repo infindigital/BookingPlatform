@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail, Clock, CheckCircle2, Pencil, Zap } from 'lucide-react';
-import type { NotificationTemplateConfig, NotificationActivity } from '@booking/db';
+import type { NotificationTemplateConfig, NotificationActivity, EmailConfigStatus } from '@booking/db';
 import { Badge } from '@booking/ui/badge';
 import { TemplateEditorDrawer } from './template-editor-drawer';
 import { ActivityTable } from './activity-table';
+import { EmailDeliveryCard } from './email-delivery-card';
 
 type Tab = 'templates' | 'activity';
 
@@ -14,10 +15,14 @@ export function NotificationsWorkspace({
   templates,
   activity,
   timeZone,
+  emailStatus,
+  adminEmail,
 }: {
   templates: NotificationTemplateConfig[];
   activity: NotificationActivity;
   timeZone: string;
+  emailStatus: EmailConfigStatus;
+  adminEmail: string;
 }) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>('templates');
@@ -43,6 +48,8 @@ export function NotificationsWorkspace({
           Customer messages for every booking event, delivered through a durable queue.
         </p>
       </header>
+
+      <EmailDeliveryCard status={emailStatus} defaultTo={adminEmail} />
 
       {/* Tabs */}
       <div className="flex items-center gap-1 border-b border-border">

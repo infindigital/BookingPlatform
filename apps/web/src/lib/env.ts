@@ -26,6 +26,19 @@ const serverSchema = z.object({
   // Shared secret for the notification-queue cron endpoint. When unset, the
   // endpoint is disabled (returns 404) so it can never be triggered anonymously.
   NOTIFICATIONS_CRON_SECRET: z.string().min(1).optional(),
+  // Email (SMTP) transport. All optional: when SMTP_HOST + EMAIL_FROM are set the
+  // real SMTP provider handles the EMAIL channel; otherwise a no-op keeps dev/demo
+  // working with no mail setup. These are server-side only — credentials never
+  // reach the client (cost policy: no mandatory paid email service; any SMTP works).
+  SMTP_HOST: z.string().min(1).optional(),
+  SMTP_PORT: z.coerce.number().int().positive().max(65535).optional(),
+  SMTP_SECURE: z.enum(['true', 'false']).optional(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_TLS_REJECT_UNAUTHORIZED: z.enum(['true', 'false']).optional(),
+  EMAIL_FROM: z.string().email().optional(),
+  EMAIL_FROM_NAME: z.string().optional(),
+  EMAIL_REPLY_TO: z.string().email().optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverSchema>;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useTransition } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { CalendarClock, Clock, ArrowLeft, CalendarX2 } from 'lucide-react';
 import type { ManageLookupResult, ManageBookingRow } from '@booking/db';
 import { Button } from '@booking/ui/button';
@@ -20,20 +20,29 @@ function todayInTz(timeZone: string): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 }
 
-export function ManagePanel({ slug, businessName }: { slug: string; businessName: string }) {
-  const [email, setEmail] = useState('');
-  const [reference, setReference] = useState('');
+export function ManagePanel({
+  slug,
+  businessName,
+  initialEmail = '',
+  initialReference = '',
+}: {
+  slug: string;
+  businessName: string;
+  initialEmail?: string;
+  initialReference?: string;
+}) {
+  const [email, setEmail] = useState(initialEmail);
+  const [reference, setReference] = useState(initialReference.toUpperCase());
   const [creds, setCreds] = useState<{ email: string; reference: string } | null>(null);
   const [result, setResult] = useState<ManageLookupResult | null>(null);
 
   const [looking, startLookup] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  function submitLookup(e: React.FormEvent) {
-    e.preventDefault();
+  function runLookup(lookupEmail: string, lookupReference: string) {
     setError(null);
     startLookup(async () => {
-      const res = await lookupBookingsAction({ slug, email, reference });
+      const res = await lookupBookingsAction({ slug, email: lookupEmail, reference: lookupReference });
       if (res.ok) {
         setCreds({ email: res.email, reference: res.reference });
         setResult(res.result);
@@ -41,6 +50,22 @@ export function ManagePanel({ slug, businessName }: { slug: string; businessName
         setError(res.error);
       }
     });
+  }
+
+  // Auto-verify when arriving via a magic link that pre-fills both fields.
+  const autoRan = useRef(false);
+  useEffect(() => {
+    if (autoRan.current) return;
+    if (initialEmail && initialReference) {
+      autoRan.current = true;
+      runLookup(initialEmail, initialReference.toUpperCase());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function submitLookup(e: React.FormEvent) {
+    e.preventDefault();
+    runLookup(email, reference);
   }
 
   function signOut() {

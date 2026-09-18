@@ -1,5 +1,13 @@
 import type { NotificationChannel, NotificationEvent, PrismaClient } from '@prisma/client';
-import { renderTemplate, defaultTemplate, nextRetryAt, shouldRetry, type NotificationEventKey } from '@booking/core';
+import {
+  renderTemplate,
+  defaultTemplate,
+  nextRetryAt,
+  shouldRetry,
+  renderBrandedEmail,
+  renderEmailText,
+  type NotificationEventKey,
+} from '@booking/core';
 import { prisma } from '../client';
 import { logger } from '../logger';
 import { getChannelProvider } from './provider';
@@ -80,12 +88,23 @@ export async function processDueNotifications(
       const subject = tmpl.subject ? renderTemplate(tmpl.subject, vars) : null;
       const body = renderTemplate(tmpl.body, vars);
 
+      // For EMAIL, wrap the rendered text in the branded HTML shell (with the
+      // magic-link manage button) and use a text alternative that carries the link.
+      let html: string | null = null;
+      let text = body;
+      if (job.channel === 'EMAIL') {
+        const manageUrl = ctx?.manageUrl ?? null;
+        html = renderBrandedEmail({ businessName: ctx?.businessName ?? '', bodyText: body, manageUrl });
+        text = renderEmailText({ bodyText: body, manageUrl });
+      }
+
       const provider = getChannelProvider(job.channel);
       const send = await provider.send({
         channel: job.channel,
         recipient,
         subject,
-        body,
+        body: text,
+        html,
         event: job.event,
         bookingId: job.bookingId,
       });

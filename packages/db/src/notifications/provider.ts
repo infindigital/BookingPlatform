@@ -18,6 +18,8 @@ export interface NotificationMessage {
   recipient: string;
   subject: string | null;
   body: string;
+  /** Optional rich (HTML) alternative — set by the dispatcher for the EMAIL channel. */
+  html?: string | null;
   event: string;
   bookingId: string | null;
 }

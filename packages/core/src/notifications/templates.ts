@@ -61,6 +61,7 @@ export const TEMPLATE_VARIABLES: readonly { token: string; description: string }
   { token: 'booking.reference', description: 'Booking reference code' },
   { token: 'booking.employee', description: 'Assigned team member' },
   { token: 'booking.price', description: 'Total price' },
+  { token: 'booking.manageUrl', description: 'Link to view / reschedule / cancel' },
 ];
 
 /** Default English copy for every event (EMAIL). Other channels reuse the body. */

@@ -8,6 +8,17 @@ export {
   getChannelProvider,
 } from './provider';
 export {
+  SmtpEmailProvider,
+  emailProviderFromEnv,
+  emailConfigFromEnv,
+  emailConfigStatus,
+  type EmailIdentity,
+  type EmailConfigStatus,
+} from './smtp-provider';
+export { sendSmtpMail, buildMimeMessage, type SmtpConfig, type SmtpMail, type SmtpSendResult } from './smtp-client';
+export { registerProvidersFromEnv } from './register';
+export { sendTestEmail } from './test-email';
+export {
   enqueueBookingEvent,
   scheduleBookingReminder,
   cancelBookingReminders,

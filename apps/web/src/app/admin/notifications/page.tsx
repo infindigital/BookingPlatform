@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { getNotificationTemplates, getNotificationActivity, businessRepository } from '@booking/db';
+import { getNotificationTemplates, getNotificationActivity, emailConfigStatus, businessRepository } from '@booking/db';
 import { requirePermission } from '@/server/auth/guard';
 import { NotificationsWorkspace } from '@/components/notifications/notifications-workspace';
 
@@ -20,6 +20,8 @@ export default async function NotificationsPage() {
       templates={templates}
       activity={activity}
       timeZone={business?.timezone || 'UTC'}
+      emailStatus={emailConfigStatus()}
+      adminEmail={session.user.email ?? ''}
     />
   );
 }

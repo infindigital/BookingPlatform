@@ -12,5 +12,11 @@ export async function register(): Promise<void> {
       appUrl: env.APP_URL,
       databaseConfigured: Boolean(env.DATABASE_URL),
     });
+
+    // Wire notification channel providers (real SMTP email when configured,
+    // otherwise the default no-op) once, at boot.
+    const { registerProvidersFromEnv } = await import('@booking/db');
+    const { email } = registerProvidersFromEnv();
+    logger.info('Notification providers ready', { emailTransport: email ? 'smtp' : 'noop' });
   }
 }
