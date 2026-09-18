@@ -17,6 +17,8 @@ export const FORM_LAYOUTS = [
   'portrait',
   'sidebar',
   'spotlight',
+  'glass',
+  'boutique',
 ] as const;
 export type FormLayout = (typeof FORM_LAYOUTS)[number];
 

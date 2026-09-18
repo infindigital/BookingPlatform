@@ -34,7 +34,7 @@ export default async function PublicBookingPage({
   const themeStyle = themeCssVars(data.form.theme) as CSSProperties;
 
   return (
-    <main className="relative min-h-dvh bg-muted/20" style={themeStyle}>
+    <main className="relative min-h-dvh bg-background font-sans text-foreground" style={themeStyle}>
       {/* Soft, brand-aware glow derived from the business's own primary color. */}
       <div
         className="pointer-events-none fixed inset-0 -z-10"

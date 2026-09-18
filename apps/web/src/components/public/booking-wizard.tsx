@@ -252,22 +252,33 @@ export function BookingWizard({
                         type="button"
                         onClick={() => pickService(s.id)}
                         aria-pressed={active}
-                        className={`flex w-full items-center gap-3 rounded-none border p-4 text-left transition-colors ${
-                          active ? 'border-primary ring-1 ring-primary' : 'border-border hover:border-primary/40'
+                        className={`group relative flex w-full items-stretch gap-4 overflow-hidden rounded-none border p-4 pl-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-premium ${
+                          active
+                            ? 'border-primary bg-primary/5 ring-2 ring-primary/40'
+                            : 'border-border hover:border-primary/50'
                         }`}
                       >
-                        <span className="mt-0.5 size-2.5 shrink-0 rounded-full" style={{ background: s.color ?? 'hsl(var(--primary))' }} />
-                        <span className="min-w-0 flex-1">
-                          <span className="block font-medium">{s.name}</span>
+                        <span
+                          className="w-1.5 shrink-0 self-stretch"
+                          style={{ background: s.color ?? 'hsl(var(--primary))' }}
+                          aria-hidden
+                        />
+                        <span className="min-w-0 flex-1 py-0.5">
+                          <span className="flex items-center gap-2">
+                            <span className="block text-base font-semibold tracking-tight">{s.name}</span>
+                            {active ? <Check className="size-4 shrink-0 text-primary" /> : null}
+                          </span>
                           {s.description ? (
-                            <span className="mt-0.5 line-clamp-2 block text-sm text-muted-foreground">{s.description}</span>
+                            <span className="mt-1 line-clamp-2 block text-sm text-muted-foreground">{s.description}</span>
                           ) : null}
-                          <span className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                          <span className="mt-2 inline-flex items-center gap-1.5 bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
                             <Clock className="size-3.5" /> {formatDuration(s.durationMinutes)}
                           </span>
                         </span>
                         {settings.showPrices ? (
-                          <span className="shrink-0 text-sm font-semibold">{formatMoney(s.price, business.currency)}</span>
+                          <span className="flex shrink-0 flex-col items-end justify-center">
+                            <span className="text-lg font-bold tracking-tight">{formatMoney(s.price, business.currency)}</span>
+                          </span>
                         ) : null}
                       </button>
                     );
@@ -577,6 +588,48 @@ export function BookingWizard({
     );
   }
 
+  // ---- GLASS: frosted card floating over a brand gradient ----
+  if (layout === 'glass') {
+    return (
+      <div className="relative overflow-hidden p-4 sm:p-10">
+        <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--brand-1))] to-[hsl(var(--brand-2))]" aria-hidden />
+        <span className="pointer-events-none absolute -left-10 top-6 size-52 rounded-full bg-white/20 blur-3xl" aria-hidden />
+        <span className="pointer-events-none absolute -right-8 bottom-0 size-52 rounded-full bg-black/10 blur-3xl" aria-hidden />
+        <div className="relative mx-auto max-w-2xl border border-white/25 bg-card/80 p-6 shadow-premium backdrop-blur-2xl sm:p-9">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Book an appointment</p>
+          <h1 className="mt-1.5 text-3xl font-bold tracking-tight sm:text-4xl">{business.name}</h1>
+          <Stepper flow={flow} current={stepIdx} />
+          <div className="mt-7 min-h-[20rem]">{body}</div>
+          <div className="mt-7 flex items-center justify-between gap-3 border-t border-border/60 pt-5">{footer}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // ---- BOUTIQUE: centered luxury with a brand monogram ----
+  if (layout === 'boutique') {
+    const initial = business.name.trim().charAt(0).toUpperCase() || 'B';
+    return (
+      <div className={preview ? '' : 'mx-auto max-w-2xl'}>
+        <div className="border border-border bg-card shadow-premium">
+          <div className="flex flex-col items-center px-6 py-9 text-center sm:px-12">
+            <span className="flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-[hsl(var(--brand-1))] to-[hsl(var(--brand-2))] text-2xl font-bold text-primary-foreground shadow-glow">
+              {initial}
+            </span>
+            <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.3em] text-primary">Book an appointment</p>
+            <h1 className="mt-1.5 text-3xl font-bold tracking-tight sm:text-4xl">{business.name}</h1>
+            <div className="mx-auto mt-5 h-px w-14 bg-border" />
+            <div className="mt-6 w-full text-left">
+              <Stepper flow={flow} current={stepIdx} />
+            </div>
+          </div>
+          <div className="min-h-[22rem] px-6 pb-9 sm:px-12">{body}</div>
+          <div className="flex items-center justify-between gap-3 border-t border-border px-6 py-5 sm:px-12">{footer}</div>
+        </div>
+      </div>
+    );
+  }
+
   // ---- CLASSIC (default): card + live summary aside ----
   return (
     <div className={preview ? '' : 'grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]'}>
@@ -610,11 +663,23 @@ function SummaryRow({ label, value }: { label: string; value?: string }) {
 
 function Stepper({ flow, current }: { flow: FlowStep[]; current: number }) {
   return (
-    <div className="mt-4 flex items-center gap-1.5" aria-label={`Step ${current + 1} of ${flow.length}`}>
+    <div className="mt-4 flex items-center gap-2" aria-label={`Step ${current + 1} of ${flow.length}`}>
       {flow.map((key, i) => (
         <div key={key} className="flex flex-1 flex-col gap-1.5">
-          <div className={`h-1 rounded-full ${i <= current ? 'bg-primary' : 'bg-border'}`} />
-          <span className={`hidden text-[11px] sm:block ${i === current ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>
+          <div
+            className={`h-1.5 ${
+              i < current
+                ? 'bg-primary'
+                : i === current
+                  ? 'bg-gradient-to-r from-primary to-[hsl(var(--brand-2))]'
+                  : 'bg-border'
+            }`}
+          />
+          <span
+            className={`hidden text-[11px] font-medium uppercase tracking-wide sm:block ${
+              i === current ? 'text-primary' : 'text-muted-foreground'
+            }`}
+          >
             {STEP_LABEL[key]}
           </span>
         </div>

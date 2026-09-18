@@ -53,6 +53,8 @@ const LAYOUT_OPTIONS: { value: FormLayout; label: string; hint: string }[] = [
   { value: 'portrait', label: 'Portrait', hint: 'Cover-style hero' },
   { value: 'sidebar', label: 'Sidebar', hint: 'Stepped side nav' },
   { value: 'spotlight', label: 'Spotlight', hint: 'Dark premium header' },
+  { value: 'glass', label: 'Glass', hint: 'Frosted over gradient' },
+  { value: 'boutique', label: 'Boutique', hint: 'Monogram luxury' },
 ];
 
 /** Tiny wireframe that previews each layout's structure. */
@@ -122,6 +124,25 @@ function LayoutGlyph({ value }: { value: FormLayout }) {
         <span className="h-4 bg-foreground/80" />
         <span className="mx-1 h-1.5 bg-foreground/25" />
         <span className="mx-1 h-1.5 w-2/3 bg-foreground/15" />
+      </span>
+    );
+  }
+  if (value === 'glass') {
+    return (
+      <span className={`relative flex ${base} items-center justify-center bg-primary/30 p-1`}>
+        <span className="flex h-full w-3/4 flex-col justify-center gap-1 bg-background/70 p-1 backdrop-blur">
+          <span className="h-1.5 bg-foreground/25" />
+          <span className="h-1.5 w-2/3 bg-foreground/15" />
+        </span>
+      </span>
+    );
+  }
+  if (value === 'boutique') {
+    return (
+      <span className={`flex flex-col ${base} items-center justify-center gap-1 px-1`}>
+        <span className="size-3 rounded-full bg-primary" />
+        <span className="h-1.5 w-1/2 bg-foreground/25" />
+        <span className="h-1.5 w-3/4 bg-foreground/15" />
       </span>
     );
   }
@@ -426,7 +447,7 @@ export function FormDesigner({
         <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
           <Eye className="size-3.5" /> Live preview
         </div>
-        <div className="rounded-none border border-dashed border-border bg-muted/30 p-3 sm:p-5" style={previewStyle}>
+        <div className="rounded-none border border-dashed border-border bg-background font-sans text-foreground p-3 sm:p-5" style={previewStyle}>
           <div className="mx-auto max-w-2xl">
             <BookingWizard data={previewData} slug={slug} settings={settings} steps={steps} preview />
           </div>
