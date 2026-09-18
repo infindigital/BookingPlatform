@@ -7,6 +7,7 @@ import { getAvailability } from '../availability/availability';
 import { loadResolvedForm } from '../form/config';
 import { referenceFor } from './reference';
 import { writeAudit } from '../audit';
+import { handleBookingEvent } from '../notifications/enqueue';
 
 /**
  * Public (customer-initiated) booking creation.
@@ -163,6 +164,8 @@ export async function createPublicBooking(
     entityId: booking.id,
     metadata: { source: 'public' },
   }, db);
+
+  await handleBookingEvent(businessId, booking.id, 'BOOKING_CREATED', db);
 
   return {
     id: booking.id,

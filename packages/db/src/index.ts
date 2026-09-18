@@ -99,6 +99,7 @@ export {
   type ManageLookupResult,
   type ManageBookingRow,
 } from './public/manage';
+export * from './notifications/index';
 export { hashPassword, verifyPassword } from './auth/password';
 export { findUserForAuth, type AuthUser } from './auth/lookup';
 export { writeAudit, type AuditInput } from './audit';
@@ -111,4 +112,8 @@ export type {
   Employee,
   BookingStatus,
   PaymentStatus,
+  NotificationEvent,
+  NotificationChannel,
+  NotificationJobStatus,
+  NotificationLogStatus,
 } from '@prisma/client';

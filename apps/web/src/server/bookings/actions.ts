@@ -5,11 +5,13 @@ import {
   transitionBooking,
   rescheduleBooking,
   writeAudit,
+  handleBookingEvent,
   prisma,
   repositoriesFor,
   wallTimeToInstant,
   getAvailability,
 } from '@booking/db';
+import type { BookingStatus, NotificationEvent } from '@booking/db';
 import { DomainError, actionByKey } from '@booking/core';
 import { requirePermission } from '@/server/auth/guard';
 import { logger } from '@/lib/logger';
@@ -71,7 +73,16 @@ function refresh(): void {
   revalidatePath('/admin');
   revalidatePath('/admin/bookings');
   revalidatePath('/admin/calendar');
+  revalidatePath('/admin/notifications');
 }
+
+/** Map a booking status change to the customer notification event it triggers. */
+const STATUS_EVENT: Partial<Record<BookingStatus, NotificationEvent>> = {
+  ACCEPTED: 'BOOKING_ACCEPTED',
+  REJECTED: 'BOOKING_REJECTED',
+  CANCELLED: 'BOOKING_CANCELLED',
+  COMPLETED: 'BOOKING_COMPLETED',
+};
 
 function parseMinutes(time: string): number | null {
   const m = /^(\d{1,2}):(\d{2})$/.exec(time.trim());
@@ -104,6 +115,8 @@ export async function bookingAction(formData: FormData): Promise<void> {
       entityId: result.id,
       metadata: { from: result.from, to: result.to },
     });
+    const event = STATUS_EVENT[def.target];
+    if (event) await handleBookingEvent(session.user.businessId, result.id, event);
   } catch (error) {
     if (error instanceof DomainError) {
       logger.info('booking.action.skipped', { bookingId, action: def.key, code: error.code });
@@ -159,6 +172,7 @@ export async function rescheduleBookingAction(
       entityId: result.id,
       metadata: { to: startAt.toISOString() },
     });
+    await handleBookingEvent(session.user.businessId, result.id, 'BOOKING_RESCHEDULED');
     refresh();
     return { ok: true };
   } catch (error) {
@@ -253,6 +267,8 @@ export async function createBookingAction(
       entityId: booking.id,
       metadata: { source: 'admin' },
     });
+    // Admin bookings are confirmed on creation → confirmation + reminder.
+    await handleBookingEvent(businessId, booking.id, 'BOOKING_ACCEPTED');
     refresh();
     return { ok: true };
   } catch (error) {

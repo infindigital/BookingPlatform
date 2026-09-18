@@ -23,6 +23,9 @@ const serverSchema = z.object({
   // NextAuth (Auth.js) session signing secret. Required in production; a dev
   // fallback keeps local runs and CI builds working without extra setup.
   AUTH_SECRET: z.string().min(1).optional(),
+  // Shared secret for the notification-queue cron endpoint. When unset, the
+  // endpoint is disabled (returns 404) so it can never be triggered anonymously.
+  NOTIFICATIONS_CRON_SECRET: z.string().min(1).optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverSchema>;

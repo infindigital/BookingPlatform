@@ -3,7 +3,7 @@
  * Idempotent: re-running rebuilds the demo business's data cleanly.
  * Cost policy: runs against the free/local Postgres dev database.
  */
-import { PrismaClient, type NotificationEvent } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { createBooking } from '../src/booking/create-booking';
 import { hashPassword } from '../src/auth/password';
 
@@ -33,15 +33,6 @@ const FORM_THEMES = [
   { key: 'editorial', name: 'Editorial' },
 ];
 
-const NOTIFICATION_EVENTS: NotificationEvent[] = [
-  'BOOKING_CREATED',
-  'BOOKING_ACCEPTED',
-  'BOOKING_REJECTED',
-  'BOOKING_CANCELLED',
-  'BOOKING_RESCHEDULED',
-  'BOOKING_COMPLETED',
-  'BOOKING_REMINDER',
-];
 
 /** Next occurrence of the given weekday at hour:00 UTC, from today. */
 function nextWeekdayAt(weekday: number, hour: number): Date {
@@ -75,6 +66,8 @@ async function main() {
   const businessId = business.id;
 
   // Clean this business's dependent data for a deterministic reseed.
+  await prisma.notificationLog.deleteMany({ where: { businessId } });
+  await prisma.notificationJob.deleteMany({ where: { businessId } });
   await prisma.booking.deleteMany({ where: { businessId } });
   await prisma.customer.deleteMany({ where: { businessId } });
   await prisma.employeeService.deleteMany({ where: { businessId } });
@@ -286,16 +279,9 @@ async function main() {
     data: { businessId, customerId: mia.id, authorUserId: admin.id, body: 'VIP — prefers Emma and morning appointments.' },
   });
 
-  // 10. Notification templates (email) for each booking event.
-  for (const event of NOTIFICATION_EVENTS) {
-    await prisma.notificationTemplate.create({
-      data: {
-        businessId, event, channel: 'EMAIL',
-        subject: `${event.replace(/_/g, ' ').toLowerCase()} — {{business.name}}`,
-        body: `Hi {{customer.firstName}}, your booking for {{service.name}} on {{booking.startAt}} is now ${event.replace('BOOKING_', '').toLowerCase()}.`,
-      },
-    });
-  }
+  // 10. Notification templates: left at the built-in defaults so every event
+  // renders correct copy out of the box; a row is only written once an admin
+  // customises a template (which then shows as "Customised" in the UI).
 
   // 11. Form themes (5 presets) + default configuration.
   const themes = [] as { id: string; key: string }[];

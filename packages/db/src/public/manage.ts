@@ -6,6 +6,7 @@ import { getAvailability } from '../availability/availability';
 import { transitionBooking } from '../booking/transition';
 import { rescheduleBooking } from '../booking/reschedule';
 import { writeAudit } from '../audit';
+import { handleBookingEvent } from '../notifications/enqueue';
 import { referenceFor } from './reference';
 
 /**
@@ -169,6 +170,7 @@ export async function cancelOwnBooking(
     { businessId: owner.businessId, actorUserId: null, action: 'booking.public_cancel', entity: 'Booking', entityId: bookingId },
     db,
   );
+  await handleBookingEvent(owner.businessId, bookingId, 'BOOKING_CANCELLED', db);
 }
 
 function parseHHMM(value: string): number | null {
@@ -226,5 +228,6 @@ export async function rescheduleOwnBooking(
     { businessId: owner.businessId, actorUserId: null, action: 'booking.public_reschedule', entity: 'Booking', entityId: bookingId, metadata: { to: startAt.toISOString() } },
     db,
   );
+  await handleBookingEvent(owner.businessId, bookingId, 'BOOKING_RESCHEDULED', db);
   return { startISO: startAt.toISOString() };
 }
