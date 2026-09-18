@@ -37,8 +37,10 @@ export default async function AdminDashboardPage({
     <div className="mx-auto max-w-6xl space-y-8">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Welcome back, {firstName}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h1 className="text-3xl font-extrabold tracking-tight">
+            Welcome back, <span className="text-gradient">{firstName}</span>
+          </h1>
+          <p className="mt-1.5 text-sm text-muted-foreground">
             Here&rsquo;s what&rsquo;s happening at {business?.name ?? 'your business'} today.
           </p>
         </div>

@@ -29,16 +29,19 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
                     onClick={onNavigate}
                     aria-current={active ? 'page' : undefined}
                     className={cn(
-                      'group flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors',
+                      'group relative flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm transition-all',
                       active
-                        ? 'bg-accent font-medium text-accent-foreground'
+                        ? 'bg-gradient-to-r from-primary/15 to-primary/5 font-semibold text-foreground shadow-sm'
                         : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground',
                     )}
                   >
+                    {active ? (
+                      <span className="absolute inset-y-1.5 left-0 w-1 rounded-full bg-primary" aria-hidden />
+                    ) : null}
                     <item.icon
                       className={cn(
-                        'size-4 shrink-0',
-                        active ? 'text-foreground' : 'text-muted-foreground',
+                        'size-4 shrink-0 transition-colors',
+                        active ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground',
                       )}
                     />
                     {item.label}
