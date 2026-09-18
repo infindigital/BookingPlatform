@@ -31,6 +31,21 @@ export {
   type CustomerStats,
 } from './customers/detail';
 export {
+  getEmployeesList,
+  type EmployeeListRow,
+  type EmployeesListFilters,
+  type EmployeesListResult,
+} from './employees/list';
+export {
+  getEmployeeDetail,
+  type EmployeeDetail,
+  type EmployeeServiceOption,
+  type EmployeeScheduleDay,
+  type EmployeeScheduleBreak,
+  type EmployeeTimeOffRow,
+  type EmployeeStats,
+} from './employees/detail';
+export {
   getDashboardMetrics,
   type DashboardData,
   type DashboardKpis,
