@@ -53,6 +53,16 @@ function todayAt(hour: number, minute = 0): Date {
 }
 
 async function main() {
+  // Safe to run on every deploy: if the demo business already exists, skip so a
+  // redeploy never wipes data configured during a live demo. Set SEED_FORCE=1 to
+  // rebuild the demo business's data from scratch.
+  const existing = await prisma.business.findUnique({ where: { slug: DEMO_SLUG }, select: { id: true } });
+  if (existing && process.env.SEED_FORCE !== '1') {
+    // eslint-disable-next-line no-console
+    console.log('Seed skipped: demo business already present (set SEED_FORCE=1 to rebuild).');
+    return;
+  }
+
   // 1. Tenant root (idempotent by slug).
   const business = await prisma.business.upsert({
     where: { slug: DEMO_SLUG },
