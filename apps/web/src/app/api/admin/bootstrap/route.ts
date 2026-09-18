@@ -38,6 +38,15 @@ async function handle(request: Request): Promise<NextResponse> {
   if (token !== secret) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
 
   const force = url.searchParams.get('force') === '1';
+  const clean = (e: unknown) => ((e as Error)?.message ?? String(e)).replace(/\s+/g, ' ').trim().slice(0, 500);
+
+  // 0. Prove we can actually reach the database and reveal the real error if not.
+  try {
+    await prisma.$queryRawUnsafe('SELECT 1');
+  } catch (e) {
+    logger.error('bootstrap.connect.failed', { message: clean(e) });
+    return NextResponse.json({ ok: false, step: 'connect', error: clean(e) }, { status: 500 });
+  }
 
   let executed = 0;
   let skipped = 0;
@@ -49,18 +58,18 @@ async function handle(request: Request): Promise<NextResponse> {
       executed += 1;
     } catch (e) {
       const msg = (e as Error)?.message ?? String(e);
-      if (/already exists/i.test(msg)) {
+      if (/already exists|duplicate/i.test(msg)) {
         skipped += 1; // table / type / constraint / index already present
       } else {
-        errors.push(msg.split('\n')[0]!.slice(0, 200));
+        errors.push(clean(e));
       }
     }
   }
 
   if (errors.length) {
-    logger.error('bootstrap.migrate.failed', { errors: errors.slice(0, 5) });
+    logger.error('bootstrap.migrate.failed', { errors: errors.slice(0, 3) });
     return NextResponse.json(
-      { ok: false, step: 'migrate', migrate: { executed, skipped, errorCount: errors.length }, errors: errors.slice(0, 5) },
+      { ok: false, step: 'migrate', migrate: { executed, skipped, errorCount: errors.length }, firstError: errors[0], errors: errors.slice(0, 3) },
       { status: 500 },
     );
   }
