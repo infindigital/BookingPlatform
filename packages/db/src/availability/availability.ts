@@ -2,6 +2,8 @@ import type { BookingStatus, PrismaClient } from '@prisma/client';
 import {
   generateSlots,
   subtractManySpans,
+  intersectSpans,
+  buildBusinessHoursConstraint,
   weekdayOf,
   addDays,
   SLOT_OCCUPYING_STATUSES,
@@ -105,7 +107,7 @@ export async function getAvailability(
   const rangeStart = dateMidnightInstant(params.fromDayKey, timeZone);
   const rangeEnd = dateMidnightInstant(addDays(params.toDayKey, 1), timeZone);
 
-  const [workingHours, bookings, timeOff, blocked, holidays] = await Promise.all([
+  const [workingHours, bookings, timeOff, blocked, holidays, businessHoursRows] = await Promise.all([
     db.employeeWorkingHours.findMany({
       where: { businessId, employeeId: { in: employeeIds } },
       select: { employeeId: true, dayOfWeek: true, startTime: true, endTime: true, breaks: { select: { startTime: true, endTime: true } } },
@@ -129,7 +131,16 @@ export async function getAvailability(
       select: { employeeId: true, startAt: true, endAt: true },
     }),
     db.holiday.findMany({ where: { businessId }, select: { date: true, recurringYearly: true } }),
+    db.businessHours.findMany({
+      where: { businessId, locationId: null },
+      select: { dayOfWeek: true, openTime: true, closeTime: true, isClosed: true },
+    }),
   ]);
+
+  // Business-wide opening hours act as an outer boundary on every employee's
+  // bookable windows. When no rows are configured the constraint is inert, so
+  // availability is unchanged for businesses that never set opening hours.
+  const businessHours = buildBusinessHoursConstraint(businessHoursRows);
 
   // Per-employee busy spans (bookings + own time-off + own/global blocks).
   const busyByEmployee = new Map<string, Span[]>();
@@ -169,6 +180,19 @@ export async function getAvailability(
       continue;
     }
     const weekday = weekdayOf(dayKey);
+    // A business-wide closed day yields no availability for anyone.
+    if (businessHours.closedDays.has(weekday)) {
+      resultDays.push({ dayKey, slots: [] });
+      continue;
+    }
+    // Business opening windows for this weekday, as instants (undefined = unconstrained).
+    const bhForDay = businessHours.windowsByDay.get(weekday);
+    const businessSpans: Span[] | null = bhForDay
+      ? bhForDay.map((w) => ({
+          start: wallTimeToInstant(dayKey, w.open, timeZone).getTime(),
+          end: wallTimeToInstant(dayKey, w.close, timeZone).getTime(),
+        }))
+      : null;
     const startsByEmployee = new Map<number, string[]>(); // startMs → employeeIds
 
     for (const empId of employeeIds) {
@@ -197,10 +221,13 @@ export async function getAvailability(
         windows.push(...subtractManySpans([base], holes));
       }
       if (windows.length === 0) continue;
+      // Clip to the business opening hours when they are configured.
+      const bounded = businessSpans ? intersectSpans(windows, businessSpans) : windows;
+      if (bounded.length === 0) continue;
 
       const busy = [...(busyByEmployee.get(empId) ?? []), ...globalBlocks];
       const starts = generateSlots({
-        windows,
+        windows: bounded,
         busy,
         durationMs,
         stepMs,

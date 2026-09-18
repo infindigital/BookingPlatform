@@ -58,3 +58,24 @@ export function overlapsAny(start: number, end: number, spans: Span[]): boolean 
   }
   return false;
 }
+
+/**
+ * Intersect two span sets — the ranges covered by BOTH. Inputs need not be
+ * sorted or disjoint. Used to clip a resource's working windows to an outer
+ * boundary (e.g. business opening hours).
+ */
+export function intersectSpans(a: Span[], b: Span[]): Span[] {
+  const A = mergeSpans(a);
+  const B = mergeSpans(b);
+  const out: Span[] = [];
+  let i = 0;
+  let j = 0;
+  while (i < A.length && j < B.length) {
+    const start = Math.max(A[i]!.start, B[j]!.start);
+    const end = Math.min(A[i]!.end, B[j]!.end);
+    if (end > start) out.push({ start, end });
+    if (A[i]!.end < B[j]!.end) i++;
+    else j++;
+  }
+  return out;
+}
