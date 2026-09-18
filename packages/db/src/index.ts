@@ -40,6 +40,21 @@ export {
   type AvailabilityDay,
   type AvailabilitySlot,
 } from './availability/availability';
+export {
+  getPublicBookingData,
+  type PublicBookingData,
+  type PublicBusiness,
+  type PublicServiceCategory,
+  type PublicService,
+  type PublicEmployee,
+} from './public/booking-data';
+export { getPublicAvailability, type PublicAvailabilityParams } from './public/availability';
+export {
+  createPublicBooking,
+  type CreatePublicBookingInput,
+  type PublicBookingCustomer,
+  type PublicBookingConfirmation,
+} from './public/create-public-booking';
 export { hashPassword, verifyPassword } from './auth/password';
 export { findUserForAuth, type AuthUser } from './auth/lookup';
 export { writeAudit, type AuditInput } from './audit';

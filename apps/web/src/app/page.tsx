@@ -58,7 +58,10 @@ export default function HomePage() {
           <Link href="/admin" className={buttonVariants({ variant: 'primary' })}>
             Open dashboard
           </Link>
-          <Button variant="outline" onClick={() => window.open('/api/health', '_blank')}>
+          <Link href="/book/demo-business" className={buttonVariants({ variant: 'outline' })}>
+            Try the booking flow
+          </Link>
+          <Button variant="ghost" onClick={() => window.open('/api/health', '_blank')}>
             System health
           </Button>
         </div>
