@@ -9,7 +9,7 @@ import type { NotificationChannel } from '@prisma/client';
  * Email/Integrations phases without touching the dispatcher.
  *
  * The default provider is a no-op that "accepts" the message and returns a
- * synthetic id — it never contacts a third party (honouring the cost policy: no
+ * synthetic id - it never contacts a third party (honouring the cost policy: no
  * mandatory paid service), and it lets the whole pipeline be tested end to end.
  */
 
@@ -18,7 +18,7 @@ export interface NotificationMessage {
   recipient: string;
   subject: string | null;
   body: string;
-  /** Optional rich (HTML) alternative — set by the dispatcher for the EMAIL channel. */
+  /** Optional rich (HTML) alternative - set by the dispatcher for the EMAIL channel. */
   html?: string | null;
   event: string;
   bookingId: string | null;

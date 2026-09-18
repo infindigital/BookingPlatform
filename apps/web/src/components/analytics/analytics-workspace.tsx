@@ -80,7 +80,7 @@ export function AnalyticsWorkspace({
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Bookings, revenue and mix over time — {data.fromDayKey} → {data.toDayKey} ({GRANULARITY_NOTE[data.granularity]}).
+            Bookings, revenue and mix over time - {data.fromDayKey} → {data.toDayKey} ({GRANULARITY_NOTE[data.granularity]}).
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -106,7 +106,7 @@ export function AnalyticsWorkspace({
               className="h-8 rounded-md border border-border bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="From date"
             />
-            <span className="text-xs text-muted-foreground">–</span>
+            <span className="text-xs text-muted-foreground">-</span>
             <input
               type="date"
               value={to}
@@ -130,7 +130,7 @@ export function AnalyticsWorkspace({
       </div>
 
       {/* Time series */}
-      <section className="rounded-xl border border-border bg-card p-4">
+      <section className="rounded-none border border-border bg-card p-4">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-semibold">Over time</h2>
           <div className="flex rounded-lg border border-border p-0.5 text-xs">
@@ -159,7 +159,7 @@ export function AnalyticsWorkspace({
       </section>
 
       {/* Status mix */}
-      <section className="rounded-xl border border-border bg-card p-4">
+      <section className="rounded-none border border-border bg-card p-4">
         <h2 className="mb-3 text-sm font-semibold">Booking status mix</h2>
         <StatusBar segments={statusSegments} />
       </section>
@@ -182,7 +182,7 @@ export function AnalyticsWorkspace({
 
 function SummaryCard({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string; sub?: string }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
+    <div className="rounded-none border border-border bg-card p-4">
       <div className="flex items-center gap-2 text-muted-foreground">
         <span className="flex size-7 items-center justify-center rounded-lg bg-muted text-foreground">{icon}</span>
         <span className="text-sm">{label}</span>
@@ -195,7 +195,7 @@ function SummaryCard({ icon, label, value, sub }: { icon: React.ReactNode; label
 
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-border bg-card p-4">
+    <section className="rounded-none border border-border bg-card p-4">
       <h2 className="mb-3 text-sm font-semibold">{title}</h2>
       {children}
     </section>

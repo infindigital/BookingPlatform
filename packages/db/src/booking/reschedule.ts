@@ -25,7 +25,7 @@ export interface RescheduleResult {
  * RESCHEDULED (the booking then awaits re-confirmation via the state machine).
  *
  * The raw lock statement is the one dialect-specific query (Postgres quoting
- * shown; MySQL uses backticks) — mirrors create-booking.ts.
+ * shown; MySQL uses backticks) - mirrors create-booking.ts.
  */
 export async function rescheduleBooking(
   businessId: string,

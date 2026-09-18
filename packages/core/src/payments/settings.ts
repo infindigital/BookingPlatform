@@ -1,10 +1,10 @@
 import { clampMoney, normalizeCurrency } from './money';
 
 /**
- * Payment policy — pure domain.
+ * Payment policy - pure domain.
  *
  * A business decides, per its own rules, how much a customer owes when a booking
- * is made: nothing (NONE), a deposit (DEPOSIT — a percentage of the price or a
+ * is made: nothing (NONE), a deposit (DEPOSIT - a percentage of the price or a
  * fixed amount), or the full price (FULL). This is intentionally
  * provider-agnostic: the amount owed is a domain fact; *how* it is collected
  * (an offline/manual record, or a real gateway) is a separate concern layered on

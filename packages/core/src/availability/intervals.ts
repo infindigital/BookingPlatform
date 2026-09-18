@@ -1,6 +1,6 @@
 /**
  * Pure interval (span) math for the availability engine. Spans are numeric
- * [start, end) ranges (milliseconds) — framework- and timezone-free. The data
+ * [start, end) ranges (milliseconds) - framework- and timezone-free. The data
  * layer resolves working hours / bookings / time-off into spans and calls these.
  */
 
@@ -60,7 +60,7 @@ export function overlapsAny(start: number, end: number, spans: Span[]): boolean 
 }
 
 /**
- * Intersect two span sets — the ranges covered by BOTH. Inputs need not be
+ * Intersect two span sets - the ranges covered by BOTH. Inputs need not be
  * sorted or disjoint. Used to clip a resource's working windows to an outer
  * boundary (e.g. business opening hours).
  */

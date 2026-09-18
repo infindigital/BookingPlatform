@@ -436,7 +436,7 @@ function HoursEditor({ detail, canWrite, onSaved }: { detail: EmployeeDetail; ca
               {d.enabled ? (
                 <div className="flex items-center gap-1.5 text-sm">
                   <input type="time" disabled={!canWrite} value={d.startTime} onChange={(e) => patch(i, { startTime: e.target.value })} className={`${CONTROL} w-28`} />
-                  <span className="text-muted-foreground">–</span>
+                  <span className="text-muted-foreground">-</span>
                   <input type="time" disabled={!canWrite} value={d.endTime} onChange={(e) => patch(i, { endTime: e.target.value })} className={`${CONTROL} w-28`} />
                   {canWrite ? (
                     <button type="button" onClick={() => addBreak(i)} className="ml-1 inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs text-muted-foreground hover:text-foreground" title="Add a break">
@@ -454,7 +454,7 @@ function HoursEditor({ detail, canWrite, onSaved }: { detail: EmployeeDetail; ca
                   <li key={bIdx} className="flex flex-wrap items-center gap-1.5 text-sm">
                     <span className="text-xs text-muted-foreground">Break</span>
                     <input type="time" disabled={!canWrite} value={b.startTime} onChange={(e) => patchBreak(i, bIdx, { startTime: e.target.value })} className={`${CONTROL} w-28`} />
-                    <span className="text-muted-foreground">–</span>
+                    <span className="text-muted-foreground">-</span>
                     <input type="time" disabled={!canWrite} value={b.endTime} onChange={(e) => patchBreak(i, bIdx, { endTime: e.target.value })} className={`${CONTROL} w-28`} />
                     {canWrite ? (
                       <button type="button" onClick={() => removeBreak(i, bIdx)} className="text-muted-foreground hover:text-destructive" aria-label="Remove break">

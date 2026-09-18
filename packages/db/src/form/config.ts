@@ -27,7 +27,7 @@ export interface FormConfigForAdmin extends ResolvedForm {
   presets: { key: string; name: string; tokens: FormThemeTokens }[];
 }
 
-/** Custom (business-owned, editable) theme key — presets stay immutable. */
+/** Custom (business-owned, editable) theme key - presets stay immutable. */
 const CUSTOM_THEME_KEY = 'custom';
 
 const PRESET_META: Record<string, string> = {

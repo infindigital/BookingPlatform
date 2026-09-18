@@ -11,7 +11,7 @@ export const maxDuration = 60;
  * One-time database bootstrap (token-gated).
  *
  * Creates the schema (runs the combined migration SQL) and seeds the demo, at
- * RUNTIME — where DATABASE_URL is guaranteed present — so a deployment platform
+ * RUNTIME - where DATABASE_URL is guaranteed present - so a deployment platform
  * that can't run migrations during the build can still provision the database by
  * hitting this URL once. Idempotent: table/type "already exists" errors are
  * ignored, and the seed skips when the demo business is already present.

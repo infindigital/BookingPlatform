@@ -32,7 +32,7 @@ export async function emitBookingWebhook(
 ): Promise<void> {
   try {
     const event = bookingEventToWebhookKey(internalEvent);
-    if (!event) return; // notification-only event (reminder/follow-up) — no public webhook
+    if (!event) return; // notification-only event (reminder/follow-up) - no public webhook
 
     const targets = await activeWebhooksForEvent(businessId, event, db);
     if (targets.length === 0) return;

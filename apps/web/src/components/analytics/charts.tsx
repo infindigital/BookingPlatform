@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Hand-built inline-SVG charts — no charting dependency (cost policy). Colors
+ * Hand-built inline-SVG charts - no charting dependency (cost policy). Colors
  * come from the design tokens via `currentColor`: each element group sets a
  * Tailwind text color and the SVG shapes fill/stroke with `currentColor`, so
  * everything themes correctly in light and dark.

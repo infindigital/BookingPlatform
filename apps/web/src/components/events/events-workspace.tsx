@@ -66,7 +66,7 @@ export function EventsWorkspace({
     const e = new Date(endISO);
     const day = new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone }).format(s);
     const t = (x: Date) => new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZone }).format(x);
-    return `${day} · ${t(s)} – ${t(e)}`;
+    return `${day} · ${t(s)} - ${t(e)}`;
   }
 
   return (
@@ -84,7 +84,7 @@ export function EventsWorkspace({
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
       {rows.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border bg-card px-6 py-16 text-center">
+        <div className="rounded-none border border-dashed border-border bg-card px-6 py-16 text-center">
           <Ticket className="mx-auto mb-3 size-8 text-muted-foreground opacity-60" />
           <p className="font-medium">No events yet</p>
           <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">Create a class or workshop, set its capacity, and register attendees.</p>
@@ -95,7 +95,7 @@ export function EventsWorkspace({
             const soldOut = row.remaining <= 0 && row.capacity > 0;
             const fillPct = row.capacity > 0 ? Math.min(100, (row.registeredSeats / row.capacity) * 100) : 0;
             return (
-              <li key={row.id} className="rounded-xl border border-border bg-card p-4">
+              <li key={row.id} className="rounded-none border border-border bg-card p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">

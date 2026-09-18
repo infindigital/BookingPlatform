@@ -4,7 +4,7 @@ import { CalendarHeart } from 'lucide-react';
 export function Brand({ businessSlug }: { businessSlug?: string }) {
   return (
     <Link href="/admin" className="flex items-center gap-2.5 px-4 py-4">
-      <span className="flex size-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-[hsl(var(--aurora-2))] text-primary-foreground shadow-glow">
+      <span className="flex size-8 items-center justify-center rounded-none bg-gradient-to-br from-primary to-[hsl(var(--aurora-2))] text-primary-foreground shadow-glow">
         <CalendarHeart className="size-4" aria-hidden />
       </span>
       <span className="flex flex-col leading-tight">

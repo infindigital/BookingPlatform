@@ -54,7 +54,7 @@ describe('resolveWeeklyHours', () => {
       { dayOfWeek: 0, isClosed: true },
     ]);
     const storable = toStorableHours(week);
-    // Sunday closed (stored) + Monday open (stored); Tue–Sat default-closed are also stored as closures.
+    // Sunday closed (stored) + Monday open (stored); Tue-Sat default-closed are also stored as closures.
     expect(storable.find((d) => d.dayOfWeek === 1)).toMatchObject({ isClosed: false });
     expect(storable.find((d) => d.dayOfWeek === 0)).toMatchObject({ isClosed: true });
   });

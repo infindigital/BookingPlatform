@@ -81,7 +81,7 @@ export function DateTimePicker({
       <div className="space-y-3">
         <div className="flex gap-2 overflow-hidden">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-16 w-16 shrink-0 animate-pulse rounded-xl bg-muted" />
+            <div key={i} className="h-16 w-16 shrink-0 animate-pulse rounded-none bg-muted" />
           ))}
         </div>
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
@@ -124,7 +124,7 @@ export function DateTimePicker({
                   type="button"
                   aria-pressed={active}
                   onClick={() => setActiveDay(d.dayKey)}
-                  className={`flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-xl border text-center transition-colors ${
+                  className={`flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-none border text-center transition-colors ${
                     active
                       ? 'border-primary bg-primary text-primary-foreground'
                       : 'border-border bg-background hover:border-primary/40'

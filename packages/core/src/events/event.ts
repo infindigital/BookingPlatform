@@ -1,5 +1,5 @@
 /**
- * Event domain — pure and dependency-free. Validates event input and computes
+ * Event domain - pure and dependency-free. Validates event input and computes
  * seat capacity. The data layer enforces capacity transactionally on top of
  * these rules; this module is the single source of truth for what's valid and
  * how many seats are left.

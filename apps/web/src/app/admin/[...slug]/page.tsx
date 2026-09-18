@@ -21,7 +21,7 @@ export default async function AdminPlaceholder({
 
   return (
     <div className="mx-auto flex min-h-[50vh] max-w-md flex-col items-center justify-center text-center">
-      <div className="flex size-12 items-center justify-center rounded-xl border border-border bg-muted/40">
+      <div className="flex size-12 items-center justify-center rounded-none border border-border bg-muted/40">
         <Icon className="size-5 text-muted-foreground" />
       </div>
       <h1 className="mt-4 text-lg font-semibold tracking-tight">{label}</h1>

@@ -15,14 +15,14 @@ export function formatDuration(minutes: number): string {
   return m === 0 ? `${h} hr` : `${h} hr ${m} min`;
 }
 
-/** "HH:MM" (24h) wall-clock in the business timezone — the value we submit. */
+/** "HH:MM" (24h) wall-clock in the business timezone - the value we submit. */
 export function slotTime24(iso: string, timeZone: string): string {
   return new Intl.DateTimeFormat('en-GB', { timeZone, hour: '2-digit', minute: '2-digit', hour12: false }).format(
     new Date(iso),
   );
 }
 
-/** "9:00 AM" wall-clock in the business timezone — what we show. */
+/** "9:00 AM" wall-clock in the business timezone - what we show. */
 export function slotLabel(iso: string, timeZone: string): string {
   return new Intl.DateTimeFormat('en-US', { timeZone, hour: 'numeric', minute: '2-digit' }).format(new Date(iso));
 }

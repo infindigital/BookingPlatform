@@ -69,7 +69,7 @@ export function BusinessProfileForm({
   }
 
   return (
-    <div className="max-w-2xl space-y-5 rounded-xl border border-border bg-card p-5">
+    <div className="max-w-2xl space-y-5 rounded-none border border-border bg-card p-5">
       <div>
         <h2 className="text-base font-semibold">Business profile</h2>
         <p className="mt-0.5 text-sm text-muted-foreground">

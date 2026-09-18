@@ -14,6 +14,7 @@ import {
   type FormSettings,
   type FormStepKey,
   type FormFont,
+  type FormLayout,
 } from '@booking/core';
 import { Button } from '@booking/ui/button';
 import { BookingWizard } from '@/components/public/booking-wizard';
@@ -31,9 +32,60 @@ const FONT_OPTIONS: { label: string; value: FormFont }[] = [
   { label: 'Inter (sans)', value: 'sans' },
   { label: 'Serif', value: 'serif' },
 ];
+const LAYOUT_OPTIONS: { value: FormLayout; label: string; hint: string }[] = [
+  { value: 'classic', label: 'Classic', hint: 'Card with live summary' },
+  { value: 'minimal', label: 'Minimal', hint: 'Borderless and airy' },
+  { value: 'bold', label: 'Bold', hint: 'Big colour header' },
+  { value: 'split', label: 'Split', hint: 'Brand rail + steps' },
+];
+
+/** Tiny wireframe that previews each layout's structure. */
+function LayoutGlyph({ value }: { value: FormLayout }) {
+  const base = 'h-full w-full';
+  if (value === 'split') {
+    return (
+      <span className={`flex ${base} gap-1`}>
+        <span className="w-1/3 bg-primary" />
+        <span className="flex flex-1 flex-col gap-1 p-1">
+          <span className="h-1.5 bg-foreground/25" />
+          <span className="h-1.5 w-2/3 bg-foreground/15" />
+        </span>
+      </span>
+    );
+  }
+  if (value === 'bold') {
+    return (
+      <span className={`flex flex-col ${base} gap-1`}>
+        <span className="h-3 bg-primary" />
+        <span className="mx-1 h-1.5 bg-foreground/25" />
+        <span className="mx-1 h-1.5 w-2/3 bg-foreground/15" />
+      </span>
+    );
+  }
+  if (value === 'minimal') {
+    return (
+      <span className={`flex flex-col ${base} justify-center gap-1 px-1`}>
+        <span className="h-1.5 w-1/2 bg-foreground/25" />
+        <span className="h-1.5 bg-foreground/15" />
+        <span className="h-1.5 w-3/4 bg-foreground/15" />
+      </span>
+    );
+  }
+  // classic
+  return (
+    <span className={`flex ${base} gap-1 p-1`}>
+      <span className="flex flex-1 flex-col gap-1">
+        <span className="h-1.5 bg-foreground/25" />
+        <span className="h-1.5 w-2/3 bg-foreground/15" />
+        <span className="h-1.5 w-1/2 bg-foreground/15" />
+      </span>
+      <span className="w-1/3 border border-foreground/20" />
+    </span>
+  );
+}
 
 const CONTROL =
-  'h-9 w-full rounded-md border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring';
+  'h-9 w-full rounded-none border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring';
 
 function stepsFor(teamStep: boolean): FormStepKey[] {
   return teamStep ? DEFAULT_STEPS : ['service', 'datetime', 'details', 'confirm'];
@@ -112,7 +164,37 @@ export function FormDesigner({
     <div className="grid gap-6 lg:grid-cols-[minmax(0,22rem)_1fr]">
       {/* Controls */}
       <div className="space-y-6">
-        <section className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+        <section className="border border-border bg-card p-4 shadow-sm">
+          <h2 className="text-sm font-semibold">Layout design</h2>
+          <p className="mb-3 text-xs text-muted-foreground">Choose how the booking flow is arranged.</p>
+          <div className="grid grid-cols-2 gap-2">
+            {LAYOUT_OPTIONS.map((opt) => {
+              const active = settings.layout === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setSetting('layout', opt.value)}
+                  aria-pressed={active}
+                  className={`flex flex-col gap-2 border p-2.5 text-left transition-all hover:-translate-y-0.5 ${
+                    active ? 'border-primary ring-2 ring-primary/40' : 'border-border hover:border-primary/40'
+                  }`}
+                >
+                  <span className="flex h-12 w-full items-stretch border border-border bg-muted/40">
+                    <LayoutGlyph value={opt.value} />
+                  </span>
+                  <span className="flex items-center justify-between">
+                    <span className="text-xs font-semibold">{opt.label}</span>
+                    {active ? <Check className="size-3.5 text-primary" /> : null}
+                  </span>
+                  <span className="text-[11px] leading-tight text-muted-foreground">{opt.hint}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="border border-border bg-card p-4 shadow-sm">
           <h2 className="text-sm font-semibold">Style presets</h2>
           <p className="mb-3 text-xs text-muted-foreground">Pick a style, then fine-tune the colour, corners and font.</p>
 
@@ -126,7 +208,7 @@ export function FormDesigner({
                   onClick={() => applyPreset(p.key)}
                   aria-pressed={active}
                   title={p.name}
-                  className={`group rounded-xl border p-2 text-left transition-all hover:-translate-y-0.5 ${
+                  className={`group rounded-none border p-2 text-left transition-all hover:-translate-y-0.5 ${
                     active ? 'border-primary ring-2 ring-primary/40' : 'border-border hover:border-primary/40'
                   }`}
                 >
@@ -154,7 +236,7 @@ export function FormDesigner({
                   aria-label="Brand colour"
                   value={/^#[0-9a-fA-F]{6}$/.test(tokens.primary) ? tokens.primary : '#4f46e5'}
                   onChange={(e) => setToken({ primary: e.target.value })}
-                  className="h-9 w-12 shrink-0 cursor-pointer rounded-md border border-border bg-background p-1"
+                  className="h-9 w-12 shrink-0 cursor-pointer rounded-none border border-border bg-background p-1"
                 />
                 <input
                   aria-label="Brand colour hex"
@@ -188,7 +270,7 @@ export function FormDesigner({
           </div>
         </section>
 
-        <section className="rounded-xl border border-border bg-card p-4">
+        <section className="rounded-none border border-border bg-card p-4">
           <h2 className="text-sm font-semibold">Booking flow</h2>
           <div className="mt-3 space-y-1">
             <Toggle label="Let customers choose a team member" checked={teamStep} onChange={setTeamStep} />
@@ -262,8 +344,8 @@ export function FormDesigner({
         <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
           <Eye className="size-3.5" /> Live preview
         </div>
-        <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-3 sm:p-5" style={previewStyle}>
-          <div className="mx-auto max-w-md">
+        <div className="rounded-none border border-dashed border-border bg-muted/30 p-3 sm:p-5" style={previewStyle}>
+          <div className="mx-auto max-w-2xl">
             <BookingWizard data={previewData} slug={slug} settings={settings} steps={steps} preview />
           </div>
         </div>

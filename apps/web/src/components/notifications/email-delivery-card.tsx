@@ -32,7 +32,7 @@ export function EmailDeliveryCard({ status, defaultTo }: { status: EmailConfigSt
   }
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
+    <div className="rounded-none border border-border bg-card p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -50,7 +50,7 @@ export function EmailDeliveryCard({ status, defaultTo }: { status: EmailConfigSt
             <p className="text-xs text-muted-foreground">
               {status.configured
                 ? 'Emails are delivered through your SMTP server.'
-                : 'Using the built-in no-op transport — messages queue and log but are not delivered.'}
+                : 'Using the built-in no-op transport - messages queue and log but are not delivered.'}
             </p>
           </div>
         </div>
@@ -73,7 +73,7 @@ export function EmailDeliveryCard({ status, defaultTo }: { status: EmailConfigSt
         <p className="mt-3 rounded-md border border-dashed border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
           Set <code className="font-mono">SMTP_HOST</code>, <code className="font-mono">EMAIL_FROM</code> (and{' '}
           <code className="font-mono">SMTP_USER</code> / <code className="font-mono">SMTP_PASS</code> for authenticated
-          servers) in the server environment to enable real email. Any SMTP mailbox works — no paid service required.
+          servers) in the server environment to enable real email. Any SMTP mailbox works - no paid service required.
         </p>
       )}
 

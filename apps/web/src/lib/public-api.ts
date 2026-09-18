@@ -14,7 +14,7 @@ import { logger } from '@/lib/logger';
  * which resolves to exactly one business. CORS is derived from the website's
  * configured `domain`; a website with no domain is a fully public key (`*`).
  *
- * Everything here is process-local and dependency-free — no Redis, no broker —
+ * Everything here is process-local and dependency-free - no Redis, no broker -
  * so it runs on plain shared hosting per the cost/hosting policy.
  */
 
@@ -141,7 +141,7 @@ export function apiOk(body: unknown, ctx: PublicContext, status = 200): NextResp
 
 /**
  * Preflight handler. We don't know the key at preflight (browsers don't send
- * custom headers on OPTIONS), so we answer permissively — the actual GET/POST
+ * custom headers on OPTIONS), so we answer permissively - the actual GET/POST
  * still enforces the per-key origin rule. This lets a domain-locked key's real
  * request through the browser preflight while the request itself is validated.
  */

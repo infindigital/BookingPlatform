@@ -1,6 +1,6 @@
 /**
  * Timezone-aware day/month boundaries, computed with the built-in `Intl` APIs
- * (no date library — honours the cost/dependency policy).
+ * (no date library - honours the cost/dependency policy).
  *
  * A business operates in its own timezone, so "today" and "this month" for the
  * dashboard must be resolved against that zone, then expressed as absolute UTC

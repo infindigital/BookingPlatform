@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: 'Settings' };
 
 function supported(kind: 'timeZone' | 'currency'): string[] {
   try {
-    // Node 18+/modern browsers expose the CLDR lists via Intl — no dependency.
+    // Node 18+/modern browsers expose the CLDR lists via Intl - no dependency.
     return (Intl as unknown as { supportedValuesOf: (k: string) => string[] }).supportedValuesOf(kind);
   } catch {
     return [];

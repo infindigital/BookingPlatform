@@ -10,7 +10,7 @@ export const runtime = 'nodejs';
  * Cron entry point for draining the DB-backed notification queue.
  *
  * This is the operational counterpart to the admin "Process queue" button: an
- * external scheduler (cron, GitHub Action, uptime pinger — no Redis or hosted
+ * external scheduler (cron, GitHub Action, uptime pinger - no Redis or hosted
  * worker required) POSTs here on an interval. It is gated by a shared secret;
  * when NOTIFICATIONS_CRON_SECRET is unset the endpoint is disabled entirely, so
  * it is never anonymously invokable.

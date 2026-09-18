@@ -1,5 +1,5 @@
 /**
- * Weekly business-hours domain — pure and dependency-free.
+ * Weekly business-hours domain - pure and dependency-free.
  *
  * Business hours are stored as "HH:mm" wall-clock strings per weekday. These
  * helpers parse/validate them, normalise a raw set into a canonical 7-day week
@@ -59,7 +59,7 @@ export function isValidHHMM(value: string | null | undefined): boolean {
 /**
  * Normalise raw rows into a canonical Sunday→Saturday week for the editor.
  * Missing days default to closed; a day whose window is malformed or non-positive
- * is repaired to the default 09:00–17:00 (still respecting an explicit closed
+ * is repaired to the default 09:00-17:00 (still respecting an explicit closed
  * flag). The last row for a given day wins.
  */
 export function resolveWeeklyHours(rows: Partial<DayHours>[] | null | undefined): DayHours[] {

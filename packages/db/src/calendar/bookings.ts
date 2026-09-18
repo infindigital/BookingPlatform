@@ -6,7 +6,7 @@ import { localWallClock } from '../dashboard/timezone';
  * Calendar read model. Tenant-scoped; returns bookings within an absolute
  * instant range plus the wall-clock layout coordinates (local day + minutes
  * from midnight, in the business timezone) so the client renders a pure grid
- * without doing timezone math. Cancelled/rejected bookings are excluded — the
+ * without doing timezone math. Cancelled/rejected bookings are excluded - the
  * calendar shows what actually occupies time.
  */
 

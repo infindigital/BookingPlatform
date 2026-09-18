@@ -7,7 +7,7 @@ import { loadResolvedForm, type ResolvedForm } from '../form/config';
  * customer-facing booking page for a business, resolved by its public `slug`.
  *
  * Deliberately narrow: no customer records, no other bookings, no internal
- * notes, no credentials — just the catalogue a visitor needs to book. Every
+ * notes, no credentials - just the catalogue a visitor needs to book. Every
  * query is scoped to the resolved tenant.
  */
 

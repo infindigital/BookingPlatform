@@ -3,7 +3,7 @@ import type { PaymentMode, PaymentSettings } from './settings';
 
 /**
  * The amount a customer owes at booking time, derived from the service price and
- * the business's payment policy. Computed on the backend only — the client never
+ * the business's payment policy. Computed on the backend only - the client never
  * supplies a price or an amount due.
  */
 export interface AmountDue {
@@ -26,7 +26,7 @@ export function computeAmountDue(price: number, settings: PaymentSettings): Amou
     return { mode: 'FULL', total, amountDue: total, isDeposit: false };
   }
 
-  // DEPOSIT — a percentage of the total or a fixed amount, never above the total.
+  // DEPOSIT - a percentage of the total or a fixed amount, never above the total.
   const due =
     settings.depositType === 'PERCENT'
       ? clampMoney((total * settings.depositValue) / 100, 0, total)

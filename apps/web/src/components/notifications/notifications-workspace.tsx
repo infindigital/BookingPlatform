@@ -68,7 +68,7 @@ export function NotificationsWorkspace({
             <button
               key={t.event}
               onClick={() => openEditor(t)}
-              className="group flex items-start justify-between gap-4 rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted/40"
+              className="group flex items-start justify-between gap-4 rounded-none border border-border bg-card p-4 text-left transition-colors hover:bg-muted/40"
             >
               <div className="flex min-w-0 items-start gap-3">
                 <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">

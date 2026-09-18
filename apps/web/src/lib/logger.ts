@@ -1,5 +1,5 @@
 /**
- * Minimal structured logger — dependency-free, JSON lines in production,
+ * Minimal structured logger - dependency-free, JSON lines in production,
  * readable text in development. Respects LOG_LEVEL. Server-side only.
  *
  * Kept intentionally small in Phase 1; can be swapped for pino/OpenTelemetry

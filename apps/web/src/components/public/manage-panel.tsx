@@ -77,7 +77,7 @@ export function ManagePanel({
 
   if (!creds || !result) {
     return (
-      <div className="rounded-2xl border border-border bg-background p-6 shadow-sm sm:p-8">
+      <div className="rounded-none border border-border bg-background p-6 shadow-sm sm:p-8">
         <h1 className="text-lg font-semibold tracking-tight">{businessName}</h1>
         <p className="text-sm text-muted-foreground">Manage your appointment</p>
 
@@ -134,7 +134,7 @@ export function ManagePanel({
       </div>
 
       {result.bookings.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-border bg-background px-4 py-10 text-center text-sm text-muted-foreground">
+        <p className="rounded-none border border-dashed border-border bg-background px-4 py-10 text-center text-sm text-muted-foreground">
           You have no bookings on file.
         </p>
       ) : (
@@ -210,7 +210,7 @@ function BookingCard({
   }
 
   return (
-    <li className="rounded-xl border border-border bg-background p-4 shadow-sm">
+    <li className="rounded-none border border-border bg-background p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
           <span className="mt-1 size-2.5 shrink-0 rounded-full" style={{ background: b.serviceColor ?? 'hsl(var(--primary))' }} />

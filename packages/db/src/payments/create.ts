@@ -13,7 +13,7 @@ export interface EnsureBookingPaymentInput {
 /**
  * Create the Payment record for a freshly-created booking, per the business's
  * payment policy. The amount owed is computed on the backend from the service
- * price — the client never supplies it. When the policy requires nothing
+ * price - the client never supplies it. When the policy requires nothing
  * (NONE, or a free service), no payment row is created. Idempotent.
  */
 export async function ensurePaymentForBooking(

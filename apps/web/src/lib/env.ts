@@ -4,7 +4,7 @@ import { z } from 'zod';
  * Server-side environment validation.
  *
  * Validated once at server startup via `instrumentation.ts`. Never import this
- * into client components — these values (and, later, DATABASE_URL) must stay
+ * into client components - these values (and, later, DATABASE_URL) must stay
  * server-side only. Set SKIP_ENV_VALIDATION=1 to bypass during tooling/CI.
  *
  * Phase 1 note: DATABASE_URL is intentionally OPTIONAL here. Phase 2 (database)
@@ -28,7 +28,7 @@ const serverSchema = z.object({
   NOTIFICATIONS_CRON_SECRET: z.string().min(1).optional(),
   // Email (SMTP) transport. All optional: when SMTP_HOST + EMAIL_FROM are set the
   // real SMTP provider handles the EMAIL channel; otherwise a no-op keeps dev/demo
-  // working with no mail setup. These are server-side only — credentials never
+  // working with no mail setup. These are server-side only - credentials never
   // reach the client (cost policy: no mandatory paid email service; any SMTP works).
   SMTP_HOST: z.string().min(1).optional(),
   SMTP_PORT: z.coerce.number().int().positive().max(65535).optional(),
@@ -43,7 +43,7 @@ const serverSchema = z.object({
   // is disabled (404) so it can never be triggered anonymously.
   WEBHOOKS_CRON_SECRET: z.string().min(1).optional(),
   // Dev/test escape hatch: allow http:// and private-host webhook targets. Never
-  // set in production — outbound requests to internal hosts are an SSRF risk.
+  // set in production - outbound requests to internal hosts are an SSRF risk.
   WEBHOOKS_ALLOW_INSECURE: z.enum(['true', 'false']).optional(),
 });
 
@@ -59,7 +59,7 @@ function loadEnv(): ServerEnv {
     const issues = parsed.error.issues
       .map((i) => `  - ${i.path.join('.') || '(root)'}: ${i.message}`)
       .join('\n');
-    // Fail loud and early — a misconfigured server should not boot silently.
+    // Fail loud and early - a misconfigured server should not boot silently.
     throw new Error(`Invalid environment variables:\n${issues}`);
   }
   return parsed.data;

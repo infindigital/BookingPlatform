@@ -1,5 +1,5 @@
 /**
- * Money helpers — pure and dependency-free.
+ * Money helpers - pure and dependency-free.
  *
  * All amounts are plain decimal numbers (e.g. 49.5 = $49.50) rounded to two
  * places. We deliberately avoid a money/currency library: the platform ships no

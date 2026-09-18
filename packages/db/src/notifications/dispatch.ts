@@ -22,7 +22,7 @@ import { buildBookingContext } from './variables';
  * backoff until maxAttempts, then land in FAILED.
  *
  * This is designed to be driven by a cron / scheduled call (or the admin's
- * "Process queue" action) — it does one bounded pass and returns a summary.
+ * "Process queue" action) - it does one bounded pass and returns a summary.
  */
 
 export interface ProcessResult {

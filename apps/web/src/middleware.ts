@@ -5,7 +5,7 @@ import { securityHeadersForPath, isProtectedPath } from '@/lib/security';
 
 /**
  * Single edge middleware with two jobs:
- *  1. Gate the authenticated route groups (/admin, /employee) — unauthenticated
+ *  1. Gate the authenticated route groups (/admin, /employee) - unauthenticated
  *     requests are redirected to the login page with a return URL.
  *  2. Apply the platform's HTTP security headers to every response (see
  *     `@booking/core` security policy): MIME-sniffing, referrer, powerful-feature

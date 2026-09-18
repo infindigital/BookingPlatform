@@ -139,7 +139,7 @@ export function PaymentsWorkspace({
 
           {/* Table */}
           {rows.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border bg-card px-6 py-14 text-center">
+            <div className="rounded-none border border-dashed border-border bg-card px-6 py-14 text-center">
               <CreditCard className="mx-auto mb-3 size-8 text-muted-foreground opacity-60" />
               <p className="font-medium">No payments yet</p>
               <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
@@ -147,7 +147,7 @@ export function PaymentsWorkspace({
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-border">
+            <div className="overflow-x-auto rounded-none border border-border">
               <table className="w-full min-w-[46rem] text-sm">
                 <thead>
                   <tr className="border-b border-border bg-muted/40 text-left text-xs text-muted-foreground">
@@ -175,7 +175,7 @@ export function PaymentsWorkspace({
                       <td className="px-3 py-2.5 text-right tabular-nums">{formatMoney(r.amount, r.currency)}</td>
                       <td className="px-3 py-2.5 text-right tabular-nums">{formatMoney(r.amountPaid, r.currency)}</td>
                       <td className="px-3 py-2.5 text-right tabular-nums font-medium">{formatMoney(r.balance, r.currency)}</td>
-                      <td className="px-3 py-2.5 text-muted-foreground">{r.startISO ? dateFmt.format(new Date(r.startISO)) : '—'}</td>
+                      <td className="px-3 py-2.5 text-muted-foreground">{r.startISO ? dateFmt.format(new Date(r.startISO)) : '-'}</td>
                       <td className="px-3 py-2.5">
                         <div className="flex justify-end gap-1">
                           <Button variant="ghost" size="sm" onClick={() => setDrawer({ mode: 'charge', row: r })} disabled={r.balance <= 0}>
@@ -232,7 +232,7 @@ function SummaryCard({
         ? 'text-amber-600 dark:text-amber-400 bg-amber-500/10'
         : 'text-muted-foreground bg-muted';
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
+    <div className="rounded-none border border-border bg-card p-4">
       <div className="flex items-center gap-2">
         <span className={`flex size-8 items-center justify-center rounded-lg ${toneClass}`}>{icon}</span>
         <span className="text-sm text-muted-foreground">{label}</span>

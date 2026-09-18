@@ -38,7 +38,7 @@ export function AgendaList({
 
   if (populated.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
+      <div className="flex flex-col items-center justify-center rounded-none border border-dashed border-border py-16 text-center">
         <CalendarClock className="size-6 text-muted-foreground" />
         <p className="mt-3 text-sm font-medium">Nothing scheduled in this range</p>
         <p className="mt-0.5 text-xs text-muted-foreground">Try a different date or team member.</p>
@@ -60,7 +60,7 @@ export function AgendaList({
                 </span>
               ) : null}
             </h3>
-            <ul className="overflow-hidden rounded-xl border border-border bg-card">
+            <ul className="overflow-hidden rounded-none border border-border bg-card">
               {items.map((b) => (
                 <li key={b.id}>
                   <button

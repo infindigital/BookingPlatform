@@ -1,5 +1,5 @@
 /**
- * Next.js startup hook — runs once when the server boots.
+ * Next.js startup hook - runs once when the server boots.
  * Validates environment variables early so a misconfigured deployment fails fast.
  */
 export async function register(): Promise<void> {

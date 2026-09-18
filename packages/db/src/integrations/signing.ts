@@ -2,7 +2,7 @@ import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { signaturePayload, formatSignatureHeader } from '@booking/core';
 
 /**
- * Webhook secret + HMAC signing (data layer — needs Node crypto).
+ * Webhook secret + HMAC signing (data layer - needs Node crypto).
  *
  * Each webhook has a shared secret (stored server-side). Deliveries are signed
  * HMAC-SHA256 over `${timestamp}.${body}` (the exact string is defined in core),

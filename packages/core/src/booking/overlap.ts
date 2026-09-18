@@ -1,6 +1,6 @@
 /**
  * Pure time-interval logic used by the availability and double-booking engine.
- * No I/O, no framework — trivially unit-testable and reused by the db layer.
+ * No I/O, no framework - trivially unit-testable and reused by the db layer.
  *
  * Intervals are treated as half-open [start, end): a booking ending exactly when
  * another begins does NOT conflict (back-to-back bookings are allowed).

@@ -35,7 +35,7 @@ export const WEBHOOK_EVENTS: readonly WebhookEventMeta[] = [
 
 export const WEBHOOK_EVENT_KEYS: readonly WebhookEventKey[] = WEBHOOK_EVENTS.map((e) => e.key);
 
-/** A reserved event used only for the "send test event" ping — never subscribable. */
+/** A reserved event used only for the "send test event" ping - never subscribable. */
 export const WEBHOOK_PING_EVENT = 'ping';
 
 export function isSubscribableEvent(key: string): key is WebhookEventKey {

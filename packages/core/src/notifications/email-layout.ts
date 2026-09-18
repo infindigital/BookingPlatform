@@ -5,7 +5,7 @@
  * wrap that text in a branded, responsive HTML shell here. Everything is inline
  * (email clients strip <style> and never load external CSS/fonts/images), so this
  * produces a single self-contained document that renders in Gmail/Outlook/Apple
- * Mail without any external asset — honouring the cost policy (no CDN, no tracker).
+ * Mail without any external asset - honouring the cost policy (no CDN, no tracker).
  *
  * Kept in core so the layout is testable and the same rules back a future preview.
  */
@@ -45,11 +45,11 @@ function linkify(escaped: string): string {
 }
 
 export interface BrandedEmailInput {
-  /** Business name — the header/wordmark and signature. */
+  /** Business name - the header/wordmark and signature. */
   businessName: string;
   /** Rendered (variables already substituted) plain-text message body. */
   bodyText: string;
-  /** Optional "Manage booking" magic-link URL — renders a button + a fallback line. */
+  /** Optional "Manage booking" magic-link URL - renders a button + a fallback line. */
   manageUrl?: string | null;
   /** Optional label for the button (defaults to "Manage booking"). */
   manageLabel?: string;

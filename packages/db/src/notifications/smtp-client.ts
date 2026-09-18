@@ -120,7 +120,7 @@ class SmtpConnection {
       if (nl === -1) return null; // wait for more bytes
       const line = rest.slice(0, nl);
       if (!/^\d{3}[ -]/.test(line)) {
-        // Not an SMTP reply line — drop it defensively and stop.
+        // Not an SMTP reply line - drop it defensively and stop.
         this.buffer = rest.slice(nl + CRLF.length);
         return null;
       }
@@ -329,11 +329,11 @@ export async function sendSmtpMail(config: SmtpConfig, mail: SmtpMail): Promise<
     conn.write(message);
     const accepted = await conn.command(`${CRLF}.`, [250]);
 
-    // Best-effort QUIT — the message is already accepted at this point.
+    // Best-effort QUIT - the message is already accepted at this point.
     try {
       await conn.command('QUIT', [221]);
     } catch {
-      // ignore — server may just drop the connection
+      // ignore - server may just drop the connection
     }
     conn.socket.end();
 

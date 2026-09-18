@@ -10,7 +10,7 @@ import { EmployeeDetailDrawer, type EmployeeEditSeed } from './employee-detail-d
 import { EmployeeFormDrawer } from './employee-form-drawer';
 
 function weeklyHoursLabel(minutes: number): string {
-  if (minutes <= 0) return '—';
+  if (minutes <= 0) return '-';
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
   return m ? `${h}h ${m}m/wk` : `${h}h/wk`;
@@ -126,7 +126,7 @@ export function EmployeesWorkspace({
         </label>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-border">
+      <div className="overflow-hidden rounded-none border border-border">
         <table className="w-full text-sm">
           <thead className="bg-muted/40 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
             <tr>
@@ -173,7 +173,7 @@ export function EmployeesWorkspace({
                             </span>
                           ) : null}
                         </p>
-                        <p className="truncate text-xs text-muted-foreground">{e.title ?? e.email ?? '—'}</p>
+                        <p className="truncate text-xs text-muted-foreground">{e.title ?? e.email ?? '-'}</p>
                       </div>
                     </div>
                   </td>

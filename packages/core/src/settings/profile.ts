@@ -1,5 +1,5 @@
 /**
- * Business profile domain — pure and dependency-free.
+ * Business profile domain - pure and dependency-free.
  *
  * Validates and normalises the tenant-level settings (name, timezone, currency,
  * contact details) that the rest of the platform reads: currency drives payment

@@ -1,5 +1,5 @@
 /**
- * Analytics time-bucketing — pure and dependency-free. Operates on civil
+ * Analytics time-bucketing - pure and dependency-free. Operates on civil
  * `YYYY-MM-DD` day keys (the data layer resolves instants → local day keys in
  * the business timezone, then hands them here). Chooses a sensible granularity
  * for a range and maps each day into its bucket so a series stays readable

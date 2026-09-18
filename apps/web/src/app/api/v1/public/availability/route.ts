@@ -13,7 +13,7 @@ const DAY = /^\d{4}-\d{2}-\d{2}$/;
  * Returns bookable slots for a service (and optional team member) over a date
  * range, computed by the live availability engine (working hours − breaks −
  * time-off − holidays − blocks − existing bookings, with buffers/capacity and
- * the business's min-lead policy). The client never sees why a slot is absent —
+ * the business's min-lead policy). The client never sees why a slot is absent -
  * only the free instants and which team members can take each.
  */
 export async function GET(request: Request) {

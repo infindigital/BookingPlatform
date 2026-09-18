@@ -4,7 +4,7 @@
  * These constants are the single source of truth for the domain. The Prisma
  * schema mirrors these enum values; keep the two in sync (a test asserts parity
  * once the db package is wired). Transition validation (the full state machine)
- * lands in Phase 7 — here we define the states and which ones occupy a time slot.
+ * lands in Phase 7 - here we define the states and which ones occupy a time slot.
  */
 
 export const BOOKING_STATUSES = [

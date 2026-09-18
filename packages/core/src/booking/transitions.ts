@@ -4,7 +4,7 @@ import type { BookingStatus } from './status';
  * Booking status state machine (framework-free, the single source of truth for
  * which status changes are legal). The dashboard, calendar and bookings screen
  * all drive their controls from this, and the data layer asserts against it
- * before persisting — so no illegal transition can be written.
+ * before persisting - so no illegal transition can be written.
  */
 export const BOOKING_TRANSITIONS: Record<BookingStatus, readonly BookingStatus[]> = {
   PENDING: ['ACCEPTED', 'REJECTED', 'CANCELLED', 'RESCHEDULED'],

@@ -12,7 +12,7 @@ export const runtime = 'nodejs';
  * Creates a customer-initiated booking. Nothing from the body is trusted: the
  * business is re-resolved from the key, the service re-checked, and the slot
  * re-validated against the live availability engine before the transaction-safe
- * `createBooking` primitive (per-employee `FOR UPDATE` lock) writes it — so two
+ * `createBooking` primitive (per-employee `FOR UPDATE` lock) writes it - so two
  * visitors racing for the last slot cannot both win. Public bookings are created
  * PENDING (awaiting admin approval).
  *

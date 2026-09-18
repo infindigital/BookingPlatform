@@ -11,7 +11,7 @@ import { logger } from '@/lib/logger';
 
 /**
  * Public self-service actions for /book/[slug]/manage. Unauthenticated, but every
- * call re-verifies ownership via (email + reference) inside the data layer — the
+ * call re-verifies ownership via (email + reference) inside the data layer - the
  * client is never trusted with a customerId.
  */
 

@@ -5,7 +5,7 @@
  * on plain shared hosting with **no Redis and no broker** (cost/hosting policy).
  * This is a per-process counter keyed by an arbitrary string (typically
  * `publicKey:ip:route`). It is intentionally simple and best-effort: it resets
- * on restart and is not shared across instances — it exists to blunt accidental
+ * on restart and is not shared across instances - it exists to blunt accidental
  * loops and trivial hammering, not to be a distributed quota. A future
  * deployment can swap in a shared store behind the same `check()` shape.
  *
@@ -32,7 +32,7 @@ export interface RateLimiterOptions {
   limit: number;
   /** Window length in ms. */
   windowMs: number;
-  /** Injectable clock (defaults to Date.now) — for tests. */
+  /** Injectable clock (defaults to Date.now) - for tests. */
   now?: () => number;
   /** Cap on tracked keys to bound memory; oldest-reset keys are evicted. */
   maxKeys?: number;
@@ -73,7 +73,7 @@ export class RateLimiter {
     };
   }
 
-  /** Drop a key (e.g. on a successful auth path) — mainly for tests. */
+  /** Drop a key (e.g. on a successful auth path) - mainly for tests. */
   reset(key: string): void {
     this.buckets.delete(key);
   }

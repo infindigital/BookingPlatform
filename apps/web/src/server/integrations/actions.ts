@@ -21,7 +21,7 @@ import { logger } from '@/lib/logger';
 export interface WebhookActionResult {
   ok: boolean;
   error?: string;
-  /** Returned only on create / rotate — the plaintext secret is shown once. */
+  /** Returned only on create / rotate - the plaintext secret is shown once. */
   secret?: string;
 }
 

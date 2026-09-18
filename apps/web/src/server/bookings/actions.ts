@@ -23,7 +23,7 @@ export interface BookingActionState {
 }
 
 export interface SlotOption {
-  /** Wall-clock start in the business timezone, "HH:MM" (24h) — feeds the booking form. */
+  /** Wall-clock start in the business timezone, "HH:MM" (24h) - feeds the booking form. */
   time: string;
   /** Friendly label, e.g. "9:00 AM". */
   label: string;

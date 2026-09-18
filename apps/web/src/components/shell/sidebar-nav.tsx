@@ -29,7 +29,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
                     onClick={onNavigate}
                     aria-current={active ? 'page' : undefined}
                     className={cn(
-                      'group relative flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm transition-all',
+                      'group relative flex items-center gap-2.5 rounded-none px-3 py-2 text-sm transition-all',
                       active
                         ? 'bg-gradient-to-r from-primary/15 to-primary/5 font-semibold text-foreground shadow-sm'
                         : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground',

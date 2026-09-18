@@ -1,5 +1,5 @@
 /**
- * Location domain — pure and dependency-free. A business may run several
+ * Location domain - pure and dependency-free. A business may run several
  * locations; each can override the business timezone. Bookings and working
  * hours reference a location.
  */

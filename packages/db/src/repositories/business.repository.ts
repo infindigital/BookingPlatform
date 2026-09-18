@@ -2,7 +2,7 @@ import { prisma } from '../client';
 import type { PrismaClient } from '@prisma/client';
 
 /**
- * Business (tenant) lookup. Not businessId-scoped itself — it resolves the
+ * Business (tenant) lookup. Not businessId-scoped itself - it resolves the
  * tenant. Once you hold a business, construct the scoped repositories with its id.
  */
 export class BusinessRepository {

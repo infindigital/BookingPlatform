@@ -114,7 +114,7 @@ export class EventRepository extends BaseRepository {
     return { ok: true };
   }
 
-  /** Register a customer for one or more seats — capacity-safe under concurrency. */
+  /** Register a customer for one or more seats - capacity-safe under concurrency. */
   async register(input: RegisterInput) {
     const seats = Math.max(1, Math.floor(input.seats ?? 1));
     return this.db.$transaction(async (tx) => {

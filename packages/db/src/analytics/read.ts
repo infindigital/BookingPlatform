@@ -17,7 +17,7 @@ import { dateMidnightInstant, localWallClock } from '../dashboard/timezone';
 
 /**
  * Analytics read model. All aggregation is tenant-scoped and computed on the
- * backend from real bookings + the payment ledger — the UI never queries the DB
+ * backend from real bookings + the payment ledger - the UI never queries the DB
  * and no value is fabricated. Bookings are bucketed by their *local* day (in the
  * business timezone) so a series lines up with how the business experiences time.
  */

@@ -64,7 +64,7 @@ export function LocationsManager({ initial, timezones }: { initial: LocationView
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
       {rows.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border bg-card px-6 py-14 text-center">
+        <div className="rounded-none border border-dashed border-border bg-card px-6 py-14 text-center">
           <MapPin className="mx-auto mb-3 size-8 text-muted-foreground opacity-60" />
           <p className="font-medium">No locations yet</p>
           <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">Add your first location to organise bookings and opening hours.</p>
@@ -72,7 +72,7 @@ export function LocationsManager({ initial, timezones }: { initial: LocationView
       ) : (
         <ul className="space-y-2">
           {rows.map((row) => (
-            <li key={row.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4">
+            <li key={row.id} className="flex flex-wrap items-center justify-between gap-3 rounded-none border border-border bg-card p-4">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{row.name}</span>
@@ -163,7 +163,7 @@ function LocationEditor({
             <input value={address} onChange={(e) => setAddress(e.target.value)} className={CONTROL} placeholder="1 Main St, Suite 200" />
           </label>
           <label className="block space-y-1">
-            <span className="text-xs font-medium text-muted-foreground">Timezone (optional — inherits the business zone)</span>
+            <span className="text-xs font-medium text-muted-foreground">Timezone (optional - inherits the business zone)</span>
             <select value={timezone} onChange={(e) => setTimezone(e.target.value)} className={CONTROL}>
               <option value="">Inherit business timezone</option>
               {tzOptions.map((tz) => (

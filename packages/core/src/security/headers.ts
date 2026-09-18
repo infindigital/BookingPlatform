@@ -1,5 +1,5 @@
 /**
- * HTTP security headers — pure, framework-free, edge-safe.
+ * HTTP security headers - pure, framework-free, edge-safe.
  *
  * The web layer applies these in middleware; keeping the policy here makes it
  * unit-testable and keeps one source of truth for the platform's browser
@@ -24,7 +24,7 @@ export type FramePolicy = 'deny' | 'sameorigin' | 'embeddable';
 
 export interface SecurityHeaderOptions {
   frame: FramePolicy;
-  /** Emit HSTS (only meaningful over HTTPS — enable in production). */
+  /** Emit HSTS (only meaningful over HTTPS - enable in production). */
   hsts?: boolean;
 }
 

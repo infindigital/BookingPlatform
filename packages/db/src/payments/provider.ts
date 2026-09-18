@@ -6,7 +6,7 @@
  * exercised. How money is *collected* is abstracted here so a real gateway can
  * be registered later without touching the engine.
  *
- * The default — and the only one shipped — is the **manual / offline** provider:
+ * The default - and the only one shipped - is the **manual / offline** provider:
  * staff record cash, card-in-person, or bank-transfer payments. This honours the
  * cost policy (no mandatory paid payment gateway) while remaining a genuine,
  * complete payment system.

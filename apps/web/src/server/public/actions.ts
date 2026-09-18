@@ -10,8 +10,8 @@ import { logger } from '@/lib/logger';
 
 /**
  * Public (unauthenticated) booking server actions. These back the customer
- * booking page at /book/[slug]. They are intentionally NOT permission-gated —
- * anyone can view availability and request a booking — but they never trust the
+ * booking page at /book/[slug]. They are intentionally NOT permission-gated -
+ * anyone can view availability and request a booking - but they never trust the
  * client: the data layer re-resolves the business by slug and re-validates every
  * request. No internal ids or records are returned beyond the public shape.
  */

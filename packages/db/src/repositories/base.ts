@@ -6,7 +6,7 @@ import type { PrismaClient } from '@prisma/client';
  *
  * Every repository is constructed with a businessId and MUST include it in every
  * query's where-clause. This is the central enforcement point for tenant
- * isolation — domain/API code never issues an unscoped Prisma query. The
+ * isolation - domain/API code never issues an unscoped Prisma query. The
  * `scope()` helper merges the businessId into any where object so subclasses
  * cannot forget it.
  */

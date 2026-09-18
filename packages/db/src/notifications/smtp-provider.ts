@@ -4,8 +4,8 @@ import { sendSmtpMail, type SmtpConfig } from './smtp-client';
 /**
  * Concrete EMAIL transport: delivers a NotificationMessage over SMTP using the
  * dependency-free client. This is the real provider a client deployment registers
- * (via env) in place of the default no-op. Any SMTP mailbox works — the client's
- * Hostinger email, a Google Workspace account, a self-hosted Postfix — so there is
+ * (via env) in place of the default no-op. Any SMTP mailbox works - the client's
+ * Hostinger email, a Google Workspace account, a self-hosted Postfix - so there is
  * no mandatory paid service (cost policy).
  */
 
@@ -58,7 +58,7 @@ export interface EmailConfigStatus {
  * setup). Credentials stay server-side and are never returned to a client.
  *
  * Recognised vars:
- *   SMTP_HOST, SMTP_PORT, SMTP_SECURE ("true"/"false" — implicit TLS),
+ *   SMTP_HOST, SMTP_PORT, SMTP_SECURE ("true"/"false" - implicit TLS),
  *   SMTP_USER, SMTP_PASS, SMTP_TLS_REJECT_UNAUTHORIZED,
  *   EMAIL_FROM (required), EMAIL_FROM_NAME, EMAIL_REPLY_TO.
  */

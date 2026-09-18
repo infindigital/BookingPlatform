@@ -1,7 +1,7 @@
 /**
  * Static demo configuration placeholder (Phase 1).
  *
- * This is NOT domain data and NOT seed data — it is a small, DB-free descriptor
+ * This is NOT domain data and NOT seed data - it is a small, DB-free descriptor
  * used by the foundation shell/landing page. Real seeded demo businesses,
  * services and bookings arrive in Phase 2 (database) via Prisma seeds.
  *

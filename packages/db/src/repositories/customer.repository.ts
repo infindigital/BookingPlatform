@@ -64,7 +64,7 @@ export class CustomerRepository extends BaseRepository {
     });
   }
 
-  /** Upsert scoped by (businessId, email) — the tenant-unique key. */
+  /** Upsert scoped by (businessId, email) - the tenant-unique key. */
   upsertByEmail(
     data: Omit<Prisma.CustomerUncheckedCreateInput, 'businessId'> & { email: string },
   ) {

@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { CalendarCheck, CalendarDays, Gauge, Inbox, Plus, Wallet } from 'lucide-react';
 import { hasPermission } from '@booking/core';
 import { businessRepository, getDashboardMetrics } from '@booking/db';
-import { buttonVariants } from '@booking/ui/button';
 import { requireSession } from '@/server/auth/guard';
 import { KpiCard } from '@/components/dashboard/kpi-card';
 import { TodayTimeline } from '@/components/dashboard/today-timeline';
@@ -32,28 +31,49 @@ export default async function AdminDashboardPage({
   const { kpis } = data;
 
   const firstName = (user.name ?? '').trim().split(/\s+/)[0] || 'there';
+  const todayLabel = new Intl.DateTimeFormat('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    timeZone,
+  }).format(now);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">
-            Welcome back, <span className="text-gradient">{firstName}</span>
-          </h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">
-            Here&rsquo;s what&rsquo;s happening at {business?.name ?? 'your business'} today.
-          </p>
+    <div className="mx-auto max-w-6xl space-y-6">
+      {/* Bold hero band */}
+      <section className="relative overflow-hidden border border-border bg-gradient-to-br from-primary via-[hsl(var(--aurora-2))] to-[hsl(var(--aurora-3))] p-6 text-primary-foreground shadow-premium sm:p-8">
+        <span
+          className="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-white/10 blur-3xl"
+          aria-hidden
+        />
+        <span
+          className="pointer-events-none absolute -bottom-20 left-1/3 size-56 rounded-full bg-black/10 blur-3xl"
+          aria-hidden
+        />
+        <div className="relative flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-white/70">{todayLabel}</p>
+            <h1 className="mt-1.5 text-3xl font-extrabold tracking-tight sm:text-4xl">
+              Welcome back, {firstName}
+            </h1>
+            <p className="mt-1.5 max-w-md text-sm text-white/80">
+              Here&rsquo;s what&rsquo;s happening at {business?.name ?? 'your business'} today.
+            </p>
+          </div>
+          <Link
+            href="/admin/bookings"
+            className="inline-flex h-11 items-center gap-2 bg-white px-5 text-sm font-bold text-primary shadow-sm transition-transform hover:-translate-y-0.5"
+          >
+            <Plus className="size-4" aria-hidden />
+            New booking
+          </Link>
         </div>
-        <Link href="/admin/bookings" className={buttonVariants({ variant: 'primary', size: 'md' })}>
-          <Plus aria-hidden />
-          New booking
-        </Link>
-      </header>
+      </section>
 
       {forbidden ? (
         <p
           role="alert"
-          className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+          className="border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
         >
           You don&rsquo;t have permission to view that page.
         </p>
@@ -88,7 +108,7 @@ export default async function AdminDashboardPage({
         />
         <KpiCard
           label="Utilization"
-          value={kpis.utilization === null ? '—' : `${Math.round(kpis.utilization * 100)}%`}
+          value={kpis.utilization === null ? '-' : `${Math.round(kpis.utilization * 100)}%`}
           hint={kpis.utilization === null ? 'closed today' : 'of scheduled hours'}
           icon={Gauge}
         />

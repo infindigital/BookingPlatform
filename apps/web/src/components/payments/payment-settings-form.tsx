@@ -69,7 +69,7 @@ export function PaymentSettingsForm({
               key={m}
               type="button"
               onClick={() => setMode(m)}
-              className={`rounded-xl border p-3 text-left transition-colors ${
+              className={`rounded-none border p-3 text-left transition-colors ${
                 mode === m ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border bg-card hover:bg-muted/40'
               }`}
             >
@@ -93,7 +93,7 @@ export function PaymentSettingsForm({
             </label>
             <label className="space-y-1">
               <span className="text-xs font-medium text-muted-foreground">
-                {depositType === 'PERCENT' ? 'Percent (0–100)' : `Amount (${currency})`}
+                {depositType === 'PERCENT' ? 'Percent (0-100)' : `Amount (${currency})`}
               </span>
               <input
                 value={depositValue}

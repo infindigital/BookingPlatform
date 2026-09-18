@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 /**
- * Cron entry point for draining the DB-backed webhook delivery queue — the
+ * Cron entry point for draining the DB-backed webhook delivery queue - the
  * operational counterpart to the admin "Process deliveries" button. An external
  * scheduler POSTs here on an interval (no Redis / hosted worker). Gated by a
  * shared secret; disabled (404) when WEBHOOKS_CRON_SECRET is unset.

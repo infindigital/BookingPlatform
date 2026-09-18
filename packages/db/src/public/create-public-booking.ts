@@ -22,7 +22,7 @@ import { logger } from '../logger';
  * transaction-safe `createBooking` primitive (per-employee `FOR UPDATE` lock),
  * so two visitors racing for the same slot cannot both win.
  *
- * Public bookings are created PENDING — they await admin approval.
+ * Public bookings are created PENDING - they await admin approval.
  */
 
 export interface PublicBookingCustomer {
@@ -79,7 +79,7 @@ export async function createPublicBooking(
   if (!firstName || !email) throw new ValidationError('Please provide your name and email.');
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new ValidationError('Please provide a valid email address.');
 
-  // Length caps on untrusted public input — reject abusive/oversized payloads
+  // Length caps on untrusted public input - reject abusive/oversized payloads
   // before they reach the database (defence in depth; the API also caps body size).
   const phone = input.customer.phone?.trim() || null;
   const notes = input.notes?.trim() || null;

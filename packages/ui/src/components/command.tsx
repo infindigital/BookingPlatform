@@ -13,7 +13,7 @@ const Command = React.forwardRef<
   <CommandPrimitive
     ref={ref}
     className={cn(
-      'flex h-full w-full flex-col overflow-hidden rounded-xl bg-popover text-popover-foreground',
+      'flex h-full w-full flex-col overflow-hidden rounded-none bg-popover text-popover-foreground',
       className,
     )}
     {...props}
@@ -35,7 +35,7 @@ function CommandDialog({
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-foreground/20 backdrop-blur-sm data-[state=open]:animate-fade-in" />
         <DialogPrimitive.Content
-          className="fixed left-1/2 top-[20%] z-50 w-full max-w-lg -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-popover shadow-2xl outline-none data-[state=open]:animate-fade-in"
+          className="fixed left-1/2 top-[20%] z-50 w-full max-w-lg -translate-x-1/2 overflow-hidden rounded-none border border-border bg-popover shadow-2xl outline-none data-[state=open]:animate-fade-in"
           aria-label="Command palette"
         >
           <DialogPrimitive.Title className="sr-only">Command palette</DialogPrimitive.Title>

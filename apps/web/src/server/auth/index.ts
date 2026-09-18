@@ -14,7 +14,7 @@ const credentialsSchema = z.object({
 
 /**
  * Brute-force throttle for credential logins. In-process, dependency-free (no
- * Redis) — a best-effort guard keyed by email+IP that blocks after too many
+ * Redis) - a best-effort guard keyed by email+IP that blocks after too many
  * attempts in a short window. A successful login clears the counter, so a
  * legitimate user who mistypes a few times is never locked out for long.
  */

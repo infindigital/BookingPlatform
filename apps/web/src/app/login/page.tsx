@@ -21,7 +21,7 @@ export default function LoginPage() {
       <section className="relative hidden flex-col justify-between overflow-hidden p-12 lg:flex">
         <div className="absolute inset-0 bg-gradient-to-br from-primary via-[hsl(var(--aurora-2))] to-[hsl(var(--aurora-3))] opacity-95" />
         <div className="relative flex items-center gap-3 text-primary-foreground">
-          <span className="flex size-11 items-center justify-center rounded-2xl bg-white/15 backdrop-blur">
+          <span className="flex size-11 items-center justify-center rounded-none bg-white/15 backdrop-blur">
             <CalendarHeart className="size-6" aria-hidden />
           </span>
           <span className="text-lg font-bold tracking-tight">INFIN Booking</span>
@@ -38,7 +38,7 @@ export default function LoginPage() {
           <ul className="mt-10 space-y-5">
             {highlights.map(({ icon: Icon, title, text }) => (
               <li key={title} className="flex items-start gap-4">
-                <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/15 backdrop-blur">
+                <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-none bg-white/15 backdrop-blur">
                   <Icon className="size-5" aria-hidden />
                 </span>
                 <div>
@@ -59,13 +59,13 @@ export default function LoginPage() {
       <section className="flex items-center justify-center px-6 py-16 sm:px-12">
         <div className="w-full max-w-md">
           <div className="mb-8 flex items-center gap-3 lg:hidden">
-            <span className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-[hsl(var(--aurora-2))] text-primary-foreground shadow-glow">
+            <span className="flex size-10 items-center justify-center rounded-none bg-gradient-to-br from-primary to-[hsl(var(--aurora-2))] text-primary-foreground shadow-glow">
               <CalendarHeart className="size-5" aria-hidden />
             </span>
             <span className="text-lg font-bold tracking-tight">INFIN Booking</span>
           </div>
 
-          <div className="rounded-3xl border border-border/70 bg-card/80 p-8 shadow-premium backdrop-blur-xl sm:p-10">
+          <div className="rounded-none border border-border/70 bg-card/80 p-8 shadow-premium backdrop-blur-xl sm:p-10">
             <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
             <p className="mt-1.5 text-sm text-muted-foreground">
               Sign in to your workspace to continue.

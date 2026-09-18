@@ -4,7 +4,7 @@
  * A published `Website` may declare a `domain` (e.g. "shop.acme.com"). When it
  * does, browser requests carrying an `Origin` are allowed only from that host
  * (and its `www.` variant), on either scheme. When a website declares no domain,
- * the key is treated as fully public — any origin may embed it — which is what
+ * the key is treated as fully public - any origin may embed it - which is what
  * the demo and "paste anywhere" onboarding need.
  *
  * This is pure host comparison: no network, no allocation beyond parsing. The
@@ -57,7 +57,7 @@ export function originAllowed(origin: string | null | undefined, domain: string 
  * The value for `Access-Control-Allow-Origin`. When a domain is configured we
  * echo the specific allowed origin (never a wildcard, so it composes with
  * credentials if ever needed); when it is open we return `*`. Returns `null`
- * when the origin is present but not allowed — the caller should reject.
+ * when the origin is present but not allowed - the caller should reject.
  */
 export function resolveAllowedOrigin(
   origin: string | null | undefined,

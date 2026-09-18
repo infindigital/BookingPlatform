@@ -7,7 +7,7 @@ export const runtime = 'nodejs';
 
 /**
  * Infrastructure health probe (Phase 1). Reports service liveness and which
- * subsystems are configured — no domain data, no DB access yet.
+ * subsystems are configured - no domain data, no DB access yet.
  */
 export function GET() {
   logger.debug('Health check requested');

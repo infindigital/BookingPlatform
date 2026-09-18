@@ -62,7 +62,7 @@ export function HolidaysManager({ initial }: { initial: HolidayRow[] }) {
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
       {rows.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border bg-card px-6 py-14 text-center">
+        <div className="rounded-none border border-dashed border-border bg-card px-6 py-14 text-center">
           <CalendarOff className="mx-auto mb-3 size-8 text-muted-foreground opacity-60" />
           <p className="font-medium">No closures yet</p>
           <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">Add holidays or one-off closed days; they’re removed from availability automatically.</p>
@@ -70,7 +70,7 @@ export function HolidaysManager({ initial }: { initial: HolidayRow[] }) {
       ) : (
         <ul className="space-y-2">
           {rows.map((row) => (
-            <li key={row.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4">
+            <li key={row.id} className="flex flex-wrap items-center justify-between gap-3 rounded-none border border-border bg-card p-4">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{row.name}</span>

@@ -4,7 +4,7 @@
  * Templates are stored per business/event/channel in the database, but the
  * DEFAULT copy and the variable substitution live here so the admin editor, the
  * dispatcher and the preview all agree on the same rules. Substitution is a safe,
- * allow-listed `{{ token }}` replace — never `eval`, never arbitrary property access.
+ * allow-listed `{{ token }}` replace - never `eval`, never arbitrary property access.
  */
 
 export type NotificationEventKey =
@@ -67,35 +67,35 @@ export const TEMPLATE_VARIABLES: readonly { token: string; description: string }
 /** Default English copy for every event (EMAIL). Other channels reuse the body. */
 export const DEFAULT_TEMPLATES: Record<NotificationEventKey, NotificationTemplateContent> = {
   BOOKING_CREATED: {
-    subject: 'We received your booking — {{business.name}}',
+    subject: 'We received your booking - {{business.name}}',
     body: 'Hi {{customer.firstName}},\n\nThanks for booking {{service.name}} on {{booking.date}} at {{booking.time}}. Your request is pending confirmation.\n\nReference: {{booking.reference}}\n\n{{business.name}}',
   },
   BOOKING_ACCEPTED: {
-    subject: 'Your booking is confirmed — {{business.name}}',
+    subject: 'Your booking is confirmed - {{business.name}}',
     body: 'Hi {{customer.firstName}},\n\nYour appointment for {{service.name}} on {{booking.date}} at {{booking.time}} is confirmed with {{booking.employee}}.\n\nReference: {{booking.reference}}\n\nSee you soon,\n{{business.name}}',
   },
   BOOKING_REJECTED: {
-    subject: 'About your booking request — {{business.name}}',
+    subject: 'About your booking request - {{business.name}}',
     body: 'Hi {{customer.firstName}},\n\nUnfortunately we could not confirm your request for {{service.name}} on {{booking.date}}. Please try another time.\n\n{{business.name}}',
   },
   BOOKING_CANCELLED: {
-    subject: 'Your booking was cancelled — {{business.name}}',
+    subject: 'Your booking was cancelled - {{business.name}}',
     body: 'Hi {{customer.firstName}},\n\nYour appointment for {{service.name}} on {{booking.date}} at {{booking.time}} has been cancelled.\n\nReference: {{booking.reference}}\n\n{{business.name}}',
   },
   BOOKING_RESCHEDULED: {
-    subject: 'Your booking was rescheduled — {{business.name}}',
+    subject: 'Your booking was rescheduled - {{business.name}}',
     body: 'Hi {{customer.firstName}},\n\nYour appointment for {{service.name}} has moved to {{booking.date}} at {{booking.time}}.\n\nReference: {{booking.reference}}\n\n{{business.name}}',
   },
   BOOKING_COMPLETED: {
-    subject: 'Thanks for visiting — {{business.name}}',
+    subject: 'Thanks for visiting - {{business.name}}',
     body: 'Hi {{customer.firstName}},\n\nThank you for visiting us for {{service.name}}. We hope to see you again soon!\n\n{{business.name}}',
   },
   BOOKING_REMINDER: {
-    subject: 'Reminder: your appointment is coming up — {{business.name}}',
+    subject: 'Reminder: your appointment is coming up - {{business.name}}',
     body: 'Hi {{customer.firstName}},\n\nThis is a reminder for your {{service.name}} appointment on {{booking.date}} at {{booking.time}} with {{booking.employee}}.\n\nReference: {{booking.reference}}\n\n{{business.name}}',
   },
   BOOKING_FOLLOW_UP: {
-    subject: 'How was your visit? — {{business.name}}',
+    subject: 'How was your visit? - {{business.name}}',
     body: 'Hi {{customer.firstName}},\n\nWe hope you enjoyed your {{service.name}} appointment. We would love to see you again.\n\n{{business.name}}',
   },
 };

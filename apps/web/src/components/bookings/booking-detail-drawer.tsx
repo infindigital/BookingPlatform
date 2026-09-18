@@ -86,7 +86,7 @@ export function BookingDetailDrawer({
                   value={
                     <span>
                       {formatDay(new Date(booking.startISO), timeZone)} ·{' '}
-                      {formatTime(new Date(booking.startISO), timeZone)} –{' '}
+                      {formatTime(new Date(booking.startISO), timeZone)} -{' '}
                       {formatTime(new Date(booking.endISO), timeZone)}
                     </span>
                   }

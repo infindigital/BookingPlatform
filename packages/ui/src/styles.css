@@ -1,8 +1,8 @@
 /*
  * Premium design-system tokens (shadcn-compatible HSL variables).
- * Neutral, restrained palette — deep indigo primary, calm slate neutrals.
+ * Neutral, restrained palette - deep indigo primary, calm slate neutrals.
  * Imported by the app's globals.css so tokens exist for both app and @booking/ui.
- * Plain :root/.dark (no @layer) — this file is @import-ed before @tailwind base.
+ * Plain :root/.dark (no @layer) - this file is @import-ed before @tailwind base.
  */
 :root {
     --background: 0 0% 100%;

@@ -10,7 +10,7 @@ export const runtime = 'nodejs';
  *
  * The widget's bootstrap call: business identity, bookable catalogue
  * (categories / services / team) and the Form Designer theme + settings + steps
- * that drive branding and flow. Key-scoped, CORS-controlled, read-only — no
+ * that drive branding and flow. Key-scoped, CORS-controlled, read-only - no
  * customer records, no internal ids beyond what a visitor needs to book.
  */
 export async function GET(request: Request) {

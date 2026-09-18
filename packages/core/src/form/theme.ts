@@ -1,5 +1,5 @@
 /**
- * Form Designer — theme tokens and the pure colour math to apply them.
+ * Form Designer - theme tokens and the pure colour math to apply them.
  *
  * A business brands its booking flow with a small, safe set of tokens (a brand
  * colour, a corner radius, a font family). The customer page turns these into
@@ -46,7 +46,7 @@ export const FORM_FONT_STACKS: Record<FormFont, string> = {
 
 const HEX_RE = /^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
-/** Parse a 3- or 6-digit hex string to {r,g,b} (0–255), or null if malformed. */
+/** Parse a 3- or 6-digit hex string to {r,g,b} (0-255), or null if malformed. */
 export function parseHex(hex: string): { r: number; g: number; b: number } | null {
   if (typeof hex !== 'string') return null;
   const m = HEX_RE.exec(hex.trim());
@@ -60,7 +60,7 @@ export function parseHex(hex: string): { r: number; g: number; b: number } | nul
 }
 
 /**
- * Convert a hex colour to an HSL triple string ("H S% L%") — the exact form the
+ * Convert a hex colour to an HSL triple string ("H S% L%") - the exact form the
  * design-system CSS variables expect (they are consumed via `hsl(var(--token))`).
  * Returns null for malformed input.
  */

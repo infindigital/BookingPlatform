@@ -207,13 +207,13 @@ export function BookingsWorkspace({
 
       {/* Table */}
       {rows.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
+        <div className="flex flex-col items-center justify-center rounded-none border border-dashed border-border py-16 text-center">
           <CalendarClock className="size-6 text-muted-foreground" />
           <p className="mt-3 text-sm font-medium">No bookings match these filters</p>
           <p className="mt-0.5 text-xs text-muted-foreground">Adjust the filters or create a booking.</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="overflow-hidden rounded-none border border-border bg-card">
           <table className="w-full text-sm">
             <thead className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
@@ -247,7 +247,7 @@ export function BookingsWorkspace({
                   </td>
                   <td className="hidden px-4 py-3 sm:table-cell">{b.serviceName}</td>
                   <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">
-                    {b.employeeName ?? '—'}
+                    {b.employeeName ?? '-'}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     <span className="whitespace-nowrap">{formatDay(new Date(b.startISO), timeZone)}</span>
@@ -257,7 +257,7 @@ export function BookingsWorkspace({
                     <StatusBadge status={b.status} />
                   </td>
                   <td className="hidden px-4 py-3 text-right tabular-nums sm:table-cell">
-                    {b.priceTotal > 0 ? formatMoney(b.priceTotal, b.currency) : '—'}
+                    {b.priceTotal > 0 ? formatMoney(b.priceTotal, b.currency) : '-'}
                   </td>
                 </tr>
               ))}
@@ -270,7 +270,7 @@ export function BookingsWorkspace({
       {total > 0 ? (
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <span>
-            {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} of {total}
+            {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)} of {total}
           </span>
           <div className="flex items-center gap-2">
             <Button

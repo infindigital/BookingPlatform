@@ -45,7 +45,7 @@ function rangeLabel(days: string[], view: CalendarViewMode): string {
   const endFmt = sameMonth
     ? `${last.getUTCDate()}, ${last.getUTCFullYear()}`
     : new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric', year: 'numeric' }).format(last);
-  return `${startFmt} – ${endFmt}`;
+  return `${startFmt} - ${endFmt}`;
 }
 
 export function CalendarView({

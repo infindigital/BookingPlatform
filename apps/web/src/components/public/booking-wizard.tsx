@@ -177,7 +177,7 @@ export function BookingWizard({
   if (confirmation?.ok || previewDone) {
     const c = confirmation?.ok ? confirmation.confirmation : null;
     return (
-      <div className="mx-auto max-w-xl rounded-3xl border border-border bg-card p-8 shadow-premium sm:p-10">
+      <div className="mx-auto max-w-xl rounded-none border border-border bg-card p-8 shadow-premium sm:p-10">
         <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-success/10 text-success">
           <CalendarCheck className="size-8" />
         </div>
@@ -190,7 +190,7 @@ export function BookingWizard({
           <p className="mt-2 text-center text-sm text-muted-foreground">{settings.confirmationMessage}</p>
         ) : null}
 
-        <dl className="mt-6 space-y-3 rounded-xl border border-border bg-muted/30 p-4 text-sm">
+        <dl className="mt-6 space-y-3 rounded-none border border-border bg-muted/30 p-4 text-sm">
           {c ? <Row label="Reference" value={c.reference} mono /> : null}
           <Row label="Service" value={c?.serviceName ?? service?.name ?? ''} />
           {(c?.employeeName ?? chosenStaff?.name) ? <Row label="With" value={c?.employeeName ?? chosenStaff!.name} /> : null}
@@ -222,27 +222,20 @@ export function BookingWizard({
   }
 
   // ---- Wizard ----
-  return (
-    <div className={preview ? '' : 'grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]'}>
-      <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-premium">
-      <div className="relative border-b border-border p-6 sm:p-8">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-primary/10 to-transparent" aria-hidden />
-        <div className="relative">
-          <p className="text-xs font-semibold uppercase tracking-wider text-primary">Book an appointment</p>
-          <h1 className="mt-1.5 text-2xl font-bold tracking-tight sm:text-3xl">{business.name}</h1>
-          <Stepper flow={flow} current={stepIdx} />
-        </div>
-      </div>
+  const layout = settings.layout ?? 'classic';
+  const stepTitle =
+    stepKey === 'service'
+      ? 'Choose a service'
+      : stepKey === 'team'
+        ? 'Choose your team member'
+        : stepKey === 'time'
+          ? 'Pick a date & time'
+          : stepKey === 'details'
+            ? 'Your details'
+            : 'Review & confirm';
 
-      <div className="min-h-[24rem] p-6 sm:p-8">
-        <h2 className="mb-5 text-lg font-semibold tracking-tight">
-          {stepKey === 'service' && 'Choose a service'}
-          {stepKey === 'team' && 'Choose your team member'}
-          {stepKey === 'time' && 'Pick a date & time'}
-          {stepKey === 'details' && 'Your details'}
-          {stepKey === 'review' && 'Review & confirm'}
-        </h2>
-
+  const bodyCore = (
+    <>
         {stepKey === 'service' && (
           <div className="space-y-5">
             {servicesByCategory.map((group) => (
@@ -259,7 +252,7 @@ export function BookingWizard({
                         type="button"
                         onClick={() => pickService(s.id)}
                         aria-pressed={active}
-                        className={`flex w-full items-center gap-3 rounded-xl border p-4 text-left transition-colors ${
+                        className={`flex w-full items-center gap-3 rounded-none border p-4 text-left transition-colors ${
                           active ? 'border-primary ring-1 ring-primary' : 'border-border hover:border-primary/40'
                         }`}
                       >
@@ -324,7 +317,7 @@ export function BookingWizard({
         {stepKey === 'details' && <DetailsForm value={details} onChange={setDetails} requirePhone={settings.requirePhone} />}
 
         {stepKey === 'review' && service && slot && (
-          <dl className="space-y-3 rounded-xl border border-border bg-muted/30 p-4 text-sm">
+          <dl className="space-y-3 rounded-none border border-border bg-muted/30 p-4 text-sm">
             <Row label="Service" value={service.name} />
             {showTeamStep ? <Row label="With" value={chosenStaff ? chosenStaff.name : 'Any available team member'} /> : null}
             <Row label="When" value={confirmationWhen(slot.startISO, timeZone)} />
@@ -342,52 +335,149 @@ export function BookingWizard({
         )}
 
         {error ? (
-          <p role="alert" className="mt-4 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+          <p role="alert" className="mt-4 border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
             {error}
           </p>
         ) : null}
-      </div>
+    </>
+  );
 
-      <div className="flex items-center justify-between gap-3 border-t border-border p-5 sm:px-8">
-        {stepIdx > 0 ? (
-          <Button variant="ghost" size="lg" onClick={back} disabled={pending}>
-            <ArrowLeft /> Back
-          </Button>
-        ) : (
-          <span />
-        )}
-        {stepKey !== 'review' ? (
-          <Button size="lg" className="shadow-glow" onClick={next} disabled={!canContinue()}>
-            Continue <ArrowRight />
-          </Button>
-        ) : (
-          <Button size="lg" className="shadow-glow" onClick={confirm} disabled={pending} aria-busy={pending}>
-            {pending ? 'Confirming…' : 'Confirm booking'} <Check />
-          </Button>
-        )}
-      </div>
-      </div>
+  const body = (
+    <>
+      <h2 className="mb-5 text-lg font-semibold tracking-tight">{stepTitle}</h2>
+      {bodyCore}
+    </>
+  );
 
-      {/* Live booking summary (desktop only, hidden in the designer preview) */}
-      {preview ? null : (
-      <aside className="hidden h-fit rounded-3xl border border-border bg-card/70 p-6 backdrop-blur lg:sticky lg:top-8 lg:block">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Your booking</p>
-        <div className="mt-4 space-y-3.5 text-sm">
-          <SummaryRow label="Service" value={service?.name} />
-          {showTeamStep ? (
-            <SummaryRow label="Team" value={chosenStaff?.name ?? (serviceId ? 'Any available' : undefined)} />
-          ) : null}
-          <SummaryRow label="When" value={slot ? confirmationWhen(slot.startISO, timeZone) : undefined} />
-          <SummaryRow label="Duration" value={service ? formatDuration(service.durationMinutes) : undefined} />
-        </div>
-        {settings.showPrices && service ? (
-          <div className="mt-5 flex items-center justify-between border-t border-border pt-4 text-lg font-bold">
-            <span>Total</span>
-            <span>{formatMoney(service.price, business.currency)}</span>
-          </div>
-        ) : null}
-      </aside>
+  const footer = (
+    <>
+      {stepIdx > 0 ? (
+        <Button variant="ghost" size="lg" onClick={back} disabled={pending}>
+          <ArrowLeft /> Back
+        </Button>
+      ) : (
+        <span />
       )}
+      {stepKey !== 'review' ? (
+        <Button size="lg" className="shadow-glow" onClick={next} disabled={!canContinue()}>
+          Continue <ArrowRight />
+        </Button>
+      ) : (
+        <Button size="lg" className="shadow-glow" onClick={confirm} disabled={pending} aria-busy={pending}>
+          {pending ? 'Confirming…' : 'Confirm booking'} <Check />
+        </Button>
+      )}
+    </>
+  );
+
+  const summaryAside = preview ? null : (
+    <aside className="hidden h-fit border border-border bg-card/70 p-6 backdrop-blur lg:sticky lg:top-8 lg:block">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Your booking</p>
+      <div className="mt-4 space-y-3.5 text-sm">
+        <SummaryRow label="Service" value={service?.name} />
+        {showTeamStep ? (
+          <SummaryRow label="Team" value={chosenStaff?.name ?? (serviceId ? 'Any available' : undefined)} />
+        ) : null}
+        <SummaryRow label="When" value={slot ? confirmationWhen(slot.startISO, timeZone) : undefined} />
+        <SummaryRow label="Duration" value={service ? formatDuration(service.durationMinutes) : undefined} />
+      </div>
+      {settings.showPrices && service ? (
+        <div className="mt-5 flex items-center justify-between border-t border-border pt-4 text-lg font-bold">
+          <span>Total</span>
+          <span>{formatMoney(service.price, business.currency)}</span>
+        </div>
+      ) : null}
+    </aside>
+  );
+
+  // ---- MINIMAL: borderless, airy, single column ----
+  if (layout === 'minimal') {
+    return (
+      <div className={preview ? '' : 'mx-auto max-w-2xl'}>
+        <div className="mb-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Book an appointment</p>
+          <h1 className="mt-1 text-3xl font-extrabold tracking-tight sm:text-4xl">{business.name}</h1>
+          <Stepper flow={flow} current={stepIdx} />
+        </div>
+        <div className="min-h-[22rem]">{body}</div>
+        <div className="mt-8 flex items-center justify-between gap-3 border-t border-border pt-6">{footer}</div>
+      </div>
+    );
+  }
+
+  // ---- BOLD: large solid gradient header, strong type ----
+  if (layout === 'bold') {
+    return (
+      <div className={preview ? '' : 'mx-auto max-w-3xl'}>
+        <div className="overflow-hidden border border-border shadow-premium">
+          <div className="bg-gradient-to-br from-primary via-[hsl(var(--aurora-2))] to-[hsl(var(--aurora-3))] p-6 text-primary-foreground sm:p-9">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/70">Book an appointment</p>
+            <h1 className="mt-1 text-3xl font-extrabold tracking-tight sm:text-5xl">{business.name}</h1>
+            <div className="mt-5 flex items-center gap-3">
+              <span className="flex size-9 items-center justify-center bg-white/20 text-sm font-extrabold tabular-nums">
+                {Math.min(stepIdx + 1, flow.length)}
+              </span>
+              <span className="text-sm font-bold uppercase tracking-wide">{stepTitle}</span>
+              <span className="ml-auto text-xs font-semibold text-white/70">
+                Step {Math.min(stepIdx + 1, flow.length)} of {flow.length}
+              </span>
+            </div>
+          </div>
+          <div className="min-h-[22rem] bg-card p-6 sm:p-9">{bodyCore}</div>
+          <div className="flex items-center justify-between gap-3 border-t border-border bg-card p-5 sm:px-9">{footer}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // ---- SPLIT: brand rail on the left, steps on the right ----
+  if (layout === 'split') {
+    return (
+      <div className="grid overflow-hidden border border-border shadow-premium lg:grid-cols-[17rem_1fr]">
+        <div className="relative hidden flex-col justify-between bg-gradient-to-br from-primary via-[hsl(var(--aurora-2))] to-[hsl(var(--aurora-3))] p-7 text-primary-foreground lg:flex">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/70">Book with</p>
+            <h1 className="mt-1 text-2xl font-extrabold leading-tight">{business.name}</h1>
+          </div>
+          <ol className="space-y-2.5">
+            {flow.map((key, i) => (
+              <li key={key} className="flex items-center gap-3">
+                <span
+                  className={`flex size-6 items-center justify-center text-xs font-bold ${
+                    i < stepIdx ? 'bg-white text-primary' : i === stepIdx ? 'bg-white/25' : 'bg-white/10 text-white/60'
+                  }`}
+                >
+                  {i < stepIdx ? <Check className="size-3.5" /> : i + 1}
+                </span>
+                <span className={i === stepIdx ? 'font-bold' : 'text-white/70'}>{STEP_LABEL[key]}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+        <div className="bg-card">
+          <div className="min-h-[24rem] p-6 sm:p-8">{body}</div>
+          <div className="flex items-center justify-between gap-3 border-t border-border p-5 sm:px-8">{footer}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // ---- CLASSIC (default): card + live summary aside ----
+  return (
+    <div className={preview ? '' : 'grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]'}>
+      <div className="overflow-hidden border border-border bg-card shadow-premium">
+        <div className="relative border-b border-border p-6 sm:p-8">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-primary/10 to-transparent" aria-hidden />
+          <div className="relative">
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">Book an appointment</p>
+            <h1 className="mt-1.5 text-2xl font-bold tracking-tight sm:text-3xl">{business.name}</h1>
+            <Stepper flow={flow} current={stepIdx} />
+          </div>
+        </div>
+        <div className="min-h-[24rem] p-6 sm:p-8">{body}</div>
+        <div className="flex items-center justify-between gap-3 border-t border-border p-5 sm:px-8">{footer}</div>
+      </div>
+      {summaryAside}
     </div>
   );
 }
@@ -442,7 +532,7 @@ function StaffOption({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`flex w-full items-center gap-3 rounded-xl border p-3.5 text-left transition-colors ${
+      className={`flex w-full items-center gap-3 rounded-none border p-3.5 text-left transition-colors ${
         active ? 'border-primary ring-1 ring-primary' : 'border-border hover:border-primary/40'
       }`}
     >

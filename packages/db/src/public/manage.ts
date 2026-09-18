@@ -10,12 +10,12 @@ import { handleBookingEvent } from '../notifications/enqueue';
 import { referenceFor } from './reference';
 
 /**
- * Customer self-service (public) — look up and manage your OWN bookings.
+ * Customer self-service (public) - look up and manage your OWN bookings.
  *
  * Ownership is proven by (email + booking reference): a valid pair means the
  * person holds a real confirmation, which is not enumerable. EVERY operation
  * re-verifies that pair server-side and confirms the target booking belongs to
- * the resolved customer — the client is never trusted.
+ * the resolved customer - the client is never trusted.
  */
 
 export interface ManageBookingRow {

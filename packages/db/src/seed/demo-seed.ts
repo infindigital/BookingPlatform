@@ -3,7 +3,7 @@ import { createBooking } from '../booking/create-booking';
 import { hashPassword } from '../auth/password';
 
 /**
- * Demo seed — a single demo business with isolated, realistic data. Importable so
+ * Demo seed - a single demo business with isolated, realistic data. Importable so
  * it can run from the CLI (`prisma/seed.ts`) or a one-time runtime bootstrap.
  * Idempotent by default: skips when the demo business already exists (pass
  * `{ force: true }` to rebuild its data cleanly).
@@ -43,7 +43,7 @@ function nextWeekdayAt(weekday: number, hour: number): Date {
   return d;
 }
 
-/** Today at hour:minute UTC — used so the demo dashboard has live "today" data. */
+/** Today at hour:minute UTC - used so the demo dashboard has live "today" data. */
 function todayAt(hour: number, minute = 0): Date {
   const d = new Date();
   d.setUTCHours(hour, minute, 0, 0);
@@ -88,7 +88,7 @@ export async function seedDemo(db: PrismaClient, opts: { force?: boolean } = {})
   await db.formConfiguration.deleteMany({ where: { businessId } });
   await db.formTheme.deleteMany({ where: { businessId } });
 
-  // 2. Website (widget entry point) — domain-less "paste anywhere" public key.
+  // 2. Website (widget entry point) - domain-less "paste anywhere" public key.
   await db.website.upsert({
     where: { publicKey: PUBLIC_KEY },
     update: { businessId, domain: null },
@@ -135,7 +135,7 @@ export async function seedDemo(db: PrismaClient, opts: { force?: boolean } = {})
     create: { userId: admin.id, roleId: adminRole.id },
   });
 
-  // 5. Location + business hours (Mon–Fri 09:00–17:00).
+  // 5. Location + business hours (Mon-Fri 09:00-17:00).
   const location = await db.location.create({ data: { businessId, name: 'Downtown Studio', address: '1 Market St' } });
   for (let day = 1; day <= 5; day++) {
     await db.businessHours.create({
@@ -225,7 +225,7 @@ export async function seedDemo(db: PrismaClient, opts: { force?: boolean } = {})
     await createBooking({ businessId, customerId: p.customerId, serviceId: p.serviceId, employeeId: p.employeeId, locationId: location.id, startAt: p.at, endAt: new Date(p.at.getTime() + p.duration * 60000), priceTotal: p.price, status: 'COMPLETED', source: 'widget' }, db);
   }
   await db.customerNote.create({
-    data: { businessId, customerId: mia.id, authorUserId: admin.id, body: 'VIP — prefers Emma and morning appointments.' },
+    data: { businessId, customerId: mia.id, authorUserId: admin.id, body: 'VIP - prefers Emma and morning appointments.' },
   });
 
   // 11. Form themes (5 presets) + default configuration.

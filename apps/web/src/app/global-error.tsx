@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Top-level error boundary — catches errors in the root layout itself.
+ * Top-level error boundary - catches errors in the root layout itself.
  * Must render its own <html>/<body> because it replaces the whole tree.
  */
 export default function GlobalError({

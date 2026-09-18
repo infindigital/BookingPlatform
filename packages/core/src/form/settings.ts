@@ -1,5 +1,5 @@
 /**
- * Form Designer — booking-flow settings and step configuration.
+ * Form Designer - booking-flow settings and step configuration.
  *
  * These control policy and presentation of the customer booking flow: how far
  * ahead visitors can book, the minimum lead time, which optional details are
@@ -7,10 +7,14 @@
  * database and always return a safe, clamped value.
  */
 
+/** Visual layout design for the public booking flow. */
+export const FORM_LAYOUTS = ['classic', 'minimal', 'bold', 'split'] as const;
+export type FormLayout = (typeof FORM_LAYOUTS)[number];
+
 export interface FormSettings {
-  /** Availability window shown to visitors, in days (1–60). */
+  /** Availability window shown to visitors, in days (1-60). */
   daysAhead: number;
-  /** Minimum lead time before a slot can be booked, in minutes (0–43200). */
+  /** Minimum lead time before a slot can be booked, in minutes (0-43200). */
   minLeadMinutes: number;
   /** Show service prices in the flow. */
   showPrices: boolean;
@@ -20,6 +24,8 @@ export interface FormSettings {
   allowAnyEmployee: boolean;
   /** Optional custom line shown on the confirmation screen. */
   confirmationMessage: string;
+  /** Visual layout design of the booking flow. */
+  layout: FormLayout;
 }
 
 export const DEFAULT_FORM_SETTINGS: FormSettings = {
@@ -29,6 +35,7 @@ export const DEFAULT_FORM_SETTINGS: FormSettings = {
   requirePhone: false,
   allowAnyEmployee: true,
   confirmationMessage: '',
+  layout: 'classic',
 };
 
 export const FORM_STEP_KEYS = ['service', 'employee', 'datetime', 'details', 'confirm'] as const;
@@ -58,6 +65,9 @@ export function resolveFormSettings(raw: unknown): FormSettings {
     allowAnyEmployee: asBool(s.allowAnyEmployee, DEFAULT_FORM_SETTINGS.allowAnyEmployee),
     confirmationMessage:
       typeof s.confirmationMessage === 'string' ? s.confirmationMessage.slice(0, 280) : DEFAULT_FORM_SETTINGS.confirmationMessage,
+    layout: (FORM_LAYOUTS as readonly string[]).includes(s.layout as string)
+      ? (s.layout as FormLayout)
+      : DEFAULT_FORM_SETTINGS.layout,
   };
 }
 

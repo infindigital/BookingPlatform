@@ -139,7 +139,7 @@ export function TemplateEditorDrawer({
               </div>
 
               {/* Live preview */}
-              <div className="rounded-xl border border-border bg-muted/20 p-4">
+              <div className="rounded-none border border-border bg-muted/20 p-4">
                 <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <Eye className="size-3.5" /> Preview
                 </p>

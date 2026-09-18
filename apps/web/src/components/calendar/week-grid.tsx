@@ -54,7 +54,7 @@ export function WeekGrid({
   }, [bookings]);
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-border bg-card">
+    <div className="overflow-x-auto rounded-none border border-border bg-card">
       <div className="min-w-[640px]">
         {/* Header row */}
         <div

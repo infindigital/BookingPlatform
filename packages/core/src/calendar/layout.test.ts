@@ -19,7 +19,7 @@ describe('assignLanes', () => {
   });
 
   it('reuses a freed lane after an interval ends (three staggered → 2 lanes)', () => {
-    // a: 9–10, b: 9:30–10:30 (overlaps a), c: 10–11 (overlaps b, not a).
+    // a: 9-10, b: 9:30-10:30 (overlaps a), c: 10-11 (overlaps b, not a).
     const placed = assignLanes([iv(540, 600, 'a'), iv(570, 630, 'b'), iv(600, 660, 'c')]);
     const byId = Object.fromEntries(placed.map((p) => [p.item.id, p]));
     // All in one transitive cluster → 2 lanes wide.

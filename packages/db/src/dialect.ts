@@ -7,13 +7,13 @@
  * are hand-written SQL, and the two supported dialects differ in exactly two
  * ways that matter here:
  *
- *   - identifier quoting — PostgreSQL uses "Ident", MySQL/MariaDB use `Ident`;
- *   - positional placeholders — PostgreSQL uses $1/$2, MySQL/MariaDB use ?.
+ *   - identifier quoting - PostgreSQL uses "Ident", MySQL/MariaDB use `Ident`;
+ *   - positional placeholders - PostgreSQL uses $1/$2, MySQL/MariaDB use ?.
  *
  * `SELECT … FOR UPDATE` itself is supported by PostgreSQL, MySQL (InnoDB) and
  * MariaDB, so the same lock strategy is portable once quoting is correct.
  * The dialect is derived from `DATABASE_URL`, so switching a client to MySQL is
- * purely a connection-string + Prisma `provider` change — no code edits.
+ * purely a connection-string + Prisma `provider` change - no code edits.
  */
 export type SqlDialect = 'postgresql' | 'mysql';
 
@@ -23,7 +23,7 @@ export function detectDialect(url: string | undefined = process.env.DATABASE_URL
 }
 
 let cached: SqlDialect | null = null;
-/** The active dialect (cached — a process targets a single database). */
+/** The active dialect (cached - a process targets a single database). */
 export function dialect(): SqlDialect {
   if (cached === null) cached = detectDialect();
   return cached;

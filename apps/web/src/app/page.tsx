@@ -23,7 +23,7 @@ export default function HomePage() {
         </span>
 
         <div className="mt-8 flex items-center justify-center gap-3">
-          <span className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-[hsl(var(--aurora-2))] text-primary-foreground shadow-glow">
+          <span className="flex size-12 items-center justify-center rounded-none bg-gradient-to-br from-primary to-[hsl(var(--aurora-2))] text-primary-foreground shadow-glow">
             <CalendarHeart className="size-6" aria-hidden />
           </span>
         </div>

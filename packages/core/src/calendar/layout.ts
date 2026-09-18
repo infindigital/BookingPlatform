@@ -54,8 +54,8 @@ export function assignLanes<T extends LaneInterval>(items: T[]): Placed<T>[] {
 }
 
 /**
- * Visible [startHour, endHour] window: the business day (default 8–19) expanded
- * to include every booking, clamped to 0–24 and padded by an hour.
+ * Visible [startHour, endHour] window: the business day (default 8-19) expanded
+ * to include every booking, clamped to 0-24 and padded by an hour.
  */
 export function hourWindow(
   items: LaneInterval[],

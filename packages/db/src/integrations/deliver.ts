@@ -10,7 +10,7 @@ import { signatureHeaderValue } from './signing';
  * The one place that actually performs an outbound HTTP request. Uses the
  * built-in fetch (no dependency), a hard timeout, and re-checks the SSRF policy
  * at send time (URLs are validated on save too, but hosts can change). Never
- * throws for an HTTP error — it returns a structured result the dispatcher logs.
+ * throws for an HTTP error - it returns a structured result the dispatcher logs.
  */
 
 export interface DeliveryOutcome {

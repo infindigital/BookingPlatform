@@ -101,7 +101,7 @@ export function IntegrationsWorkspace({
 
       {tab === 'endpoints' ? (
         webhooks.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border bg-card px-6 py-14 text-center">
+          <div className="rounded-none border border-dashed border-border bg-card px-6 py-14 text-center">
             <Webhook className="mx-auto mb-3 size-8 text-muted-foreground opacity-60" />
             <p className="font-medium">No endpoints yet</p>
             <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
@@ -114,7 +114,7 @@ export function IntegrationsWorkspace({
         ) : (
           <div className="grid gap-2.5">
             {webhooks.map((w) => (
-              <div key={w.id} className="rounded-xl border border-border bg-card p-4">
+              <div key={w.id} className="rounded-none border border-border bg-card p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="flex min-w-0 items-start gap-3">
                     <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -139,7 +139,7 @@ export function IntegrationsWorkspace({
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-1">
-                    <Button variant="ghost" size="sm" onClick={() => act(() => sendWebhookPingAction({ id: w.id }), 'Test event sent — check the Deliveries tab.')} disabled={pending}>
+                    <Button variant="ghost" size="sm" onClick={() => act(() => sendWebhookPingAction({ id: w.id }), 'Test event sent - check the Deliveries tab.')} disabled={pending}>
                       <Send /> Test
                     </Button>
                     <Button variant="ghost" size="icon" aria-label="Edit" onClick={() => openEdit(w)} disabled={pending}>
@@ -176,9 +176,9 @@ function SecretBanner({ secret, onDismiss }: { secret: string; onDismiss: () => 
     });
   }
   return (
-    <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
+    <div className="rounded-none border border-emerald-500/30 bg-emerald-500/5 p-4">
       <p className="flex items-center gap-1.5 text-sm font-medium text-emerald-700 dark:text-emerald-400">
-        <ShieldCheck className="size-4" /> Signing secret — copy it now, it won’t be shown again
+        <ShieldCheck className="size-4" /> Signing secret - copy it now, it won’t be shown again
       </p>
       <p className="mt-1 text-xs text-muted-foreground">
         Verify deliveries by computing <code className="font-mono">HMAC-SHA256</code> of{' '}

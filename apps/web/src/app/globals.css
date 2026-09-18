@@ -16,7 +16,7 @@
     --font-mono:
       ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, Monaco, Consolas, monospace;
 
-    /* Aurora Indigo accent stops — used by gradient/aurora utilities. */
+    /* Aurora Indigo accent stops - used by gradient/aurora utilities. */
     --aurora-1: 243 90% 62%;
     --aurora-2: 268 85% 63%;
     --aurora-3: 199 90% 56%;

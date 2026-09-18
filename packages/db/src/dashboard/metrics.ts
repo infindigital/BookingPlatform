@@ -4,7 +4,7 @@ import { localDayRange, localMonthRange, localWeekday, minutesBetween } from './
 
 /**
  * Dashboard read model. All aggregation lives in the data layer and is scoped to
- * a single `businessId` (tenant isolation) — the UI never issues its own queries.
+ * a single `businessId` (tenant isolation) - the UI never issues its own queries.
  * Everything is derived from real seeded/created data; no values are fabricated.
  */
 

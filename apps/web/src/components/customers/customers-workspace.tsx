@@ -112,7 +112,7 @@ export function CustomersWorkspace({
       </form>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-xl border border-border">
+      <div className="overflow-hidden rounded-none border border-border">
         <table className="w-full text-sm">
           <thead className="bg-muted/40 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
             <tr>
@@ -149,7 +149,7 @@ export function CustomersWorkspace({
                       </div>
                     </div>
                   </td>
-                  <td className="hidden px-4 py-3 text-muted-foreground sm:table-cell">{c.phone ?? '—'}</td>
+                  <td className="hidden px-4 py-3 text-muted-foreground sm:table-cell">{c.phone ?? '-'}</td>
                   <td className="px-4 py-3">
                     <span className="font-medium">{c.bookingsCount}</span>
                     {c.upcomingCount > 0 ? (
@@ -159,7 +159,7 @@ export function CustomersWorkspace({
                     ) : null}
                   </td>
                   <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">
-                    {c.lastVisitISO ? formatRelative(new Date(c.lastVisitISO)) : '—'}
+                    {c.lastVisitISO ? formatRelative(new Date(c.lastVisitISO)) : '-'}
                   </td>
                   <td className="px-4 py-3 text-right font-medium">{formatMoney(c.totalSpent, c.currency)}</td>
                 </tr>
@@ -173,7 +173,7 @@ export function CustomersWorkspace({
       {total > pageSize ? (
         <div className="flex items-center justify-between">
           <p className="text-xs text-muted-foreground">
-            {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} of {total}
+            {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)} of {total}
           </p>
           <div className="flex items-center gap-1">
             <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => go({ page: page - 1 })}>

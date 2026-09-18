@@ -12,7 +12,7 @@ export interface BookingTransition {
  * Transition a booking using the core state machine as the single guard.
  * Tenant-scoped and transactional: the current status is read and validated
  * against `canTransition` before the write, so no illegal or self transition can
- * be persisted (concurrent double-decisions collapse — the second sees the new
+ * be persisted (concurrent double-decisions collapse - the second sees the new
  * status and is rejected).
  *
  * Phase 12/13: enqueue a NotificationJob for the state change where marked.

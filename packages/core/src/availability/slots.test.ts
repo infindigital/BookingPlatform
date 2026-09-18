@@ -36,9 +36,9 @@ describe('generateSlots', () => {
       bufferBeforeMs: 15,
       bufferAfterMs: 15,
     });
-    // 9:00 ends 10:00, +15 buffer → 10:15 overlaps busy(10:00–10:30)? padded end 10:15 > 10:00 start → overlaps. Excluded.
+    // 9:00 ends 10:00, +15 buffer → 10:15 overlaps busy(10:00-10:30)? padded end 10:15 > 10:00 start → overlaps. Excluded.
     // 10:30 padded start 10:15 < busy end 10:30 → overlaps. Excluded.
-    // 11:00 padded [10:45,12:15] — but window end 12:00, slot 11:00+60=12:00 fits; padded end beyond window is fine (buffer past close).
+    // 11:00 padded [10:45,12:15] - but window end 12:00, slot 11:00+60=12:00 fits; padded end beyond window is fine (buffer past close).
     expect(slots).toEqual([11 * H]);
   });
 
