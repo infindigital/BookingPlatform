@@ -82,11 +82,14 @@ async function main() {
   await prisma.formConfiguration.deleteMany({ where: { businessId } });
   await prisma.formTheme.deleteMany({ where: { businessId } });
 
-  // 2. Website (widget entry point).
+  // 2. Website (widget entry point). The demo key is intentionally domain-less,
+  // i.e. a fully public "paste anywhere" embed key — so the universal widget can
+  // be dropped onto any host page. Locking a key to a domain (CORS) is an opt-in
+  // a business configures per website; the public API enforces it when set.
   await prisma.website.upsert({
     where: { publicKey: PUBLIC_KEY },
-    update: { businessId },
-    create: { businessId, name: 'Aurora Website', domain: 'aurora.example', publicKey: PUBLIC_KEY },
+    update: { businessId, domain: null },
+    create: { businessId, name: 'Aurora Website', domain: null, publicKey: PUBLIC_KEY },
   });
 
   // 3. Permissions (global) + roles.

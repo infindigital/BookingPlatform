@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:," />
+  <title>Booking Widget — Embed Demo</title>
+  <style>
+    :root { color-scheme: light dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      color: #0f172a;
+      background: #f1f5f9;
+      -webkit-font-smoothing: antialiased;
+    }
+    .host-nav {
+      background: #0f172a; color: #fff; padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .host-nav .brand { font-weight: 700; letter-spacing: -.01em; }
+    .host-nav .links a { color: #cbd5e1; text-decoration: none; margin-left: 18px; font-size: 14px; }
+    .hero { max-width: 960px; margin: 0 auto; padding: 40px 24px 8px; }
+    .hero h1 { font-size: 30px; letter-spacing: -.02em; margin: 0 0 8px; }
+    .hero p { color: #475569; font-size: 16px; max-width: 620px; margin: 0 0 18px; }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 12px 24px 60px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; }
+    .panel { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 22px; min-width: 0; }
+    .panel h2 { margin: 0 0 4px; font-size: 16px; }
+    .panel p.note { margin: 0 0 16px; color: #64748b; font-size: 13px; }
+    code { background: #f1f5f9; padding: 2px 6px; border-radius: 6px; font-size: 12.5px; }
+    .snippet { background: #0f172a; color: #e2e8f0; border-radius: 12px; padding: 14px 16px; font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; overflow-x: auto; white-space: pre; max-width: 100%; }
+    @media (prefers-color-scheme: dark) {
+      body { background: #0b1120; color: #e2e8f0; }
+      .panel { background: #111827; border-color: #1f2937; }
+      .hero p { color: #94a3b8; }
+      code { background: #1f2937; }
+    }
+  </style>
+</head>
+<body>
+  <header class="host-nav">
+    <div class="brand">Acme Salon</div>
+    <div class="links"><a href="#">Services</a><a href="#">About</a><a href="#" id="nav-book">Book</a></div>
+  </header>
+
+  <section class="hero">
+    <h1>A demo host site</h1>
+    <p>
+      This page belongs to a fictional third-party business. The booking experience below
+      is the universal widget — one <code>&lt;script&gt;</code> tag plus a target element —
+      running entirely against the public API. Nothing here knows about the database.
+    </p>
+  </section>
+
+  <div class="wrap">
+    <div class="panel">
+      <h2>Inline embed</h2>
+      <p class="note">A <code>&lt;div data-booking-key&gt;</code> renders the full flow in place.</p>
+      <div class="snippet">&lt;script src="/widget.js" defer&gt;&lt;/script&gt;
+&lt;div data-booking-key="pk_demo_booking_123"&gt;&lt;/div&gt;</div>
+      <div style="margin-top:18px" data-booking-key="pk_demo_booking_123"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Popup button</h2>
+      <p class="note">A launcher button opens the same flow in a modal overlay.</p>
+      <div class="snippet">&lt;div data-booking-key="pk_demo_booking_123"
+     data-booking-mode="popup" data-booking-label="Book an appointment"&gt;&lt;/div&gt;</div>
+      <div style="margin-top:18px" data-booking-key="pk_demo_booking_123"
+           data-booking-mode="popup" data-booking-label="Book an appointment"></div>
+    </div>
+  </div>
+
+  <!-- In production this is your booking host, e.g. https://booking.yourdomain.com/widget.js -->
+  <script src="/widget.js" defer></script>
+  <script>
+    // Wire the nav "Book" link to the programmatic modal API.
+    document.getElementById('nav-book').addEventListener('click', function (e) {
+      e.preventDefault();
+      if (window.BookingWidget) window.BookingWidget.open({ publicKey: 'pk_demo_booking_123' });
+    });
+  </script>
+</body>
+</html>

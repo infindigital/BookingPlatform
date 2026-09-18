@@ -92,6 +92,7 @@ export {
   type PublicBookingConfirmation,
 } from './public/create-public-booking';
 export { referenceFor } from './public/reference';
+export { resolveWebsiteByPublicKey, type ResolvedWebsite } from './public/website';
 export {
   lookupCustomerBookings,
   cancelOwnBooking,
