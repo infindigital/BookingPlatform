@@ -8,6 +8,7 @@ import {
   prisma,
   repositoriesFor,
   wallTimeToInstant,
+  getAvailability,
 } from '@booking/db';
 import { DomainError, actionByKey } from '@booking/core';
 import { requirePermission } from '@/server/auth/guard';
@@ -16,6 +17,54 @@ import { logger } from '@/lib/logger';
 export interface BookingActionState {
   ok: boolean;
   error?: string;
+}
+
+export interface SlotOption {
+  /** Wall-clock start in the business timezone, "HH:MM" (24h) — feeds the booking form. */
+  time: string;
+  /** Friendly label, e.g. "9:00 AM". */
+  label: string;
+  employeeIds: string[];
+}
+
+/**
+ * Availability-driven slot list for the admin booking form. Resolves the real
+ * bookable start times for a service (optionally a specific employee) on a day.
+ */
+export async function loadAvailableSlots(input: {
+  serviceId: string;
+  employeeId: string;
+  dayKey: string;
+}): Promise<{ slots: SlotOption[] }> {
+  const session = await requirePermission('booking.read');
+  const businessId = session.user.businessId;
+  if (!input.serviceId || !/^\d{4}-\d{2}-\d{2}$/.test(input.dayKey)) return { slots: [] };
+
+  const business = await prisma.business.findUnique({
+    where: { id: businessId },
+    select: { timezone: true },
+  });
+  const timeZone = business?.timezone || 'UTC';
+
+  const result = await getAvailability(businessId, {
+    serviceId: input.serviceId,
+    employeeId: input.employeeId && input.employeeId !== 'none' ? input.employeeId : null,
+    fromDayKey: input.dayKey,
+    toDayKey: input.dayKey,
+    timeZone,
+    now: new Date(),
+  });
+
+  const day = result.days[0];
+  const time24 = new Intl.DateTimeFormat('en-GB', { timeZone, hour: '2-digit', minute: '2-digit', hour12: false });
+  const label12 = new Intl.DateTimeFormat('en-US', { timeZone, hour: 'numeric', minute: '2-digit' });
+
+  return {
+    slots: (day?.slots ?? []).map((s) => {
+      const d = new Date(s.startISO);
+      return { time: time24.format(d), label: label12.format(d), employeeIds: s.employeeIds };
+    }),
+  };
 }
 
 function refresh(): void {
@@ -173,7 +222,14 @@ export async function createBookingAction(
   const timeZone = business?.timezone || 'UTC';
   const startAt = wallTimeToInstant(date, minutes, timeZone);
   const endAt = new Date(startAt.getTime() + service.durationMinutes * 60_000);
-  const employeeId = employeeChoice && employeeChoice !== 'none' ? employeeChoice : null;
+  // Explicit choice wins; otherwise auto-assign one of the free employees the
+  // availability engine reported for the picked slot ("Any available").
+  const slotEmployeeIds = String(formData.get('slotEmployeeIds') ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const employeeId =
+    employeeChoice && employeeChoice !== 'none' ? employeeChoice : (slotEmployeeIds[0] ?? null);
 
   try {
     const booking = await repos.bookings.create({

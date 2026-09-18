@@ -182,8 +182,12 @@ async function main() {
   });
   for (const emp of [emma, noah]) {
     for (let day = 1; day <= 5; day++) {
-      await prisma.employeeWorkingHours.create({
+      const hours = await prisma.employeeWorkingHours.create({
         data: { businessId, employeeId: emp.id, locationId: location.id, dayOfWeek: day, startTime: '09:00', endTime: '17:00' },
+      });
+      // A daily lunch break — the availability engine splits the day around it.
+      await prisma.break.create({
+        data: { businessId, employeeWorkingHoursId: hours.id, startTime: '12:00', endTime: '13:00', label: 'Lunch' },
       });
     }
   }

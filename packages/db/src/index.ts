@@ -33,6 +33,13 @@ export {
   type CalendarQuery,
 } from './calendar/bookings';
 export { localWallClock, dateMidnightInstant, wallTimeToInstant } from './dashboard/timezone';
+export {
+  getAvailability,
+  type AvailabilityParams,
+  type AvailabilityResult,
+  type AvailabilityDay,
+  type AvailabilitySlot,
+} from './availability/availability';
 export { hashPassword, verifyPassword } from './auth/password';
 export { findUserForAuth, type AuthUser } from './auth/lookup';
 export { writeAudit, type AuditInput } from './audit';
