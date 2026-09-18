@@ -7,5 +7,6 @@ export * from './notifications/index';
 export * from './integrations/index';
 export * from './payments/index';
 export * from './settings/index';
+export * from './analytics/index';
 export * from './auth/permissions';
 export * from './errors';

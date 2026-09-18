@@ -19,6 +19,17 @@ export const BOOKING_STATUSES = [
 
 export type BookingStatus = (typeof BOOKING_STATUSES)[number];
 
+/** Human-readable labels for each booking status. */
+export const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
+  PENDING: 'Pending',
+  ACCEPTED: 'Confirmed',
+  REJECTED: 'Rejected',
+  CANCELLED: 'Cancelled',
+  RESCHEDULED: 'Rescheduled',
+  COMPLETED: 'Completed',
+  NO_SHOW: 'No-show',
+};
+
 export const PAYMENT_STATUSES = [
   'UNPAID',
   'PENDING',
