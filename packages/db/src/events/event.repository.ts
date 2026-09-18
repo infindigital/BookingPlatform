@@ -10,6 +10,7 @@ import {
   type EventRegistrationStatus,
 } from '@booking/core';
 import { BaseRepository } from '../repositories/base';
+import { forUpdateByIdAndBusiness } from '../dialect';
 
 export interface RegisterInput {
   eventId: string;
@@ -118,7 +119,11 @@ export class EventRepository extends BaseRepository {
     const seats = Math.max(1, Math.floor(input.seats ?? 1));
     return this.db.$transaction(async (tx) => {
       // Serialise concurrent registrations for this event (portable row lock).
-      const locked = await tx.$queryRaw<LockedEventRow[]>`SELECT id, capacity, status FROM "Event" WHERE id = ${input.eventId} AND "businessId" = ${this.businessId} FOR UPDATE`;
+      const locked = await tx.$queryRawUnsafe<LockedEventRow[]>(
+        forUpdateByIdAndBusiness('Event', 'id, capacity, status'),
+        input.eventId,
+        this.businessId,
+      );
       const evt = locked[0];
       if (!evt) throw new ValidationError('Event not found.');
       if (evt.status === 'CANCELLED' || evt.status === 'COMPLETED') {
@@ -156,7 +161,11 @@ export class EventRepository extends BaseRepository {
 
     if (occupiesSeat(status) && !occupiesSeat(reg.status)) {
       return this.db.$transaction(async (tx) => {
-        const locked = await tx.$queryRaw<LockedEventRow[]>`SELECT id, capacity, status FROM "Event" WHERE id = ${reg.eventId} AND "businessId" = ${this.businessId} FOR UPDATE`;
+        const locked = await tx.$queryRawUnsafe<LockedEventRow[]>(
+          forUpdateByIdAndBusiness('Event', 'id, capacity, status'),
+          reg.eventId,
+          this.businessId,
+        );
         const evt = locked[0];
         if (!evt) throw new ValidationError('Event not found.');
         const others = await tx.eventRegistration.findMany({

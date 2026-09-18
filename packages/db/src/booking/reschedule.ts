@@ -2,6 +2,7 @@ import { Prisma, type PrismaClient } from '@prisma/client';
 import { BookingConflictError, ValidationError, isValidInterval, isReschedulable, SLOT_OCCUPYING_STATUSES } from '@booking/core';
 import type { BookingStatus } from '@prisma/client';
 import { prisma } from '../client';
+import { forUpdateByIdAndBusiness } from '../dialect';
 
 export interface RescheduleInput {
   startAt: Date;
@@ -51,7 +52,7 @@ export async function rescheduleBooking(
       input.employeeId === undefined ? booking.employeeId : input.employeeId;
 
     if (targetEmployeeId) {
-      await tx.$queryRaw`SELECT id FROM "Employee" WHERE id = ${targetEmployeeId} AND "businessId" = ${businessId} FOR UPDATE`;
+      await tx.$queryRawUnsafe(forUpdateByIdAndBusiness('Employee'), targetEmployeeId, businessId);
 
       const conflicts = await tx.booking.findMany({
         where: {

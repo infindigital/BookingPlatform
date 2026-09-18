@@ -2,6 +2,7 @@ import { Prisma, type BookingStatus, type PrismaClient } from '@prisma/client';
 import { BookingConflictError, ValidationError, isValidInterval } from '@booking/core';
 import { SLOT_OCCUPYING_STATUSES } from '@booking/core';
 import { prisma } from '../client';
+import { forUpdateByIdAndBusiness } from '../dialect';
 
 export interface CreateBookingInput {
   businessId: string;
@@ -46,8 +47,8 @@ export async function createBooking(
 
   return db.$transaction(async (tx: TxClient) => {
     if (input.employeeId) {
-      // Serialise concurrent bookings for this employee.
-      await tx.$queryRaw`SELECT id FROM "Employee" WHERE id = ${input.employeeId} AND "businessId" = ${input.businessId} FOR UPDATE`;
+      // Serialise concurrent bookings for this employee (portable row lock).
+      await tx.$queryRawUnsafe(forUpdateByIdAndBusiness('Employee'), input.employeeId, input.businessId);
 
       const conflicts = await tx.booking.findMany({
         where: {
