@@ -1,5 +1,6 @@
 export { prisma } from './client';
 export { detectDialect, dialect, quoteIdent, placeholder, forUpdateByIdAndBusiness, type SqlDialect } from './dialect';
+export { seedDemo, type SeedSummary } from './seed/demo-seed';
 export * from './repositories/index';
 export { createBooking, type CreateBookingInput } from './booking/create-booking';
 export { setBookingStatus, transitionBooking, type BookingTransition } from './booking/transition';
