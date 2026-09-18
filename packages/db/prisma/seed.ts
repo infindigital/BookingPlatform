@@ -260,6 +260,32 @@ async function main() {
     prisma,
   );
 
+  // Past, completed bookings so the Customers CRM shows real history + lifetime value.
+  const daysAgoAt = (days: number, hour: number) => {
+    const d = new Date();
+    d.setUTCDate(d.getUTCDate() - days);
+    d.setUTCHours(hour, 0, 0, 0);
+    return d;
+  };
+  const past: { customerId: string; serviceId: string; employeeId: string; price: number; duration: number; at: Date }[] = [
+    { customerId: mia.id, serviceId: haircut.id, employeeId: emma.id, price: 120, duration: 60, at: daysAgoAt(30, 10) },
+    { customerId: mia.id, serviceId: styling.id, employeeId: noah.id, price: 60, duration: 30, at: daysAgoAt(60, 13) },
+    { customerId: liam.id, serviceId: styling.id, employeeId: emma.id, price: 60, duration: 30, at: daysAgoAt(20, 15) },
+  ];
+  for (const p of past) {
+    await createBooking(
+      {
+        businessId, customerId: p.customerId, serviceId: p.serviceId, employeeId: p.employeeId, locationId: location.id,
+        startAt: p.at, endAt: new Date(p.at.getTime() + p.duration * 60000),
+        priceTotal: p.price, status: 'COMPLETED', source: 'widget',
+      },
+      prisma,
+    );
+  }
+  await prisma.customerNote.create({
+    data: { businessId, customerId: mia.id, authorUserId: admin.id, body: 'VIP — prefers Emma and morning appointments.' },
+  });
+
   // 10. Notification templates (email) for each booking event.
   for (const event of NOTIFICATION_EVENTS) {
     await prisma.notificationTemplate.create({

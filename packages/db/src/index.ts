@@ -18,6 +18,19 @@ export {
   type FormCustomer,
 } from './bookings/form';
 export {
+  getCustomersList,
+  type CustomerListRow,
+  type CustomersListFilters,
+  type CustomersListResult,
+} from './customers/list';
+export {
+  getCustomerDetail,
+  type CustomerDetail,
+  type CustomerBookingRow,
+  type CustomerNoteRow,
+  type CustomerStats,
+} from './customers/detail';
+export {
   getDashboardMetrics,
   type DashboardData,
   type DashboardKpis,
