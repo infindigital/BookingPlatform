@@ -100,6 +100,7 @@ export {
   type ManageBookingRow,
 } from './public/manage';
 export * from './notifications/index';
+export * from './integrations/index';
 export { hashPassword, verifyPassword } from './auth/password';
 export { findUserForAuth, type AuthUser } from './auth/lookup';
 export { writeAudit, type AuditInput } from './audit';
@@ -116,4 +117,7 @@ export type {
   NotificationChannel,
   NotificationJobStatus,
   NotificationLogStatus,
+  Webhook,
+  WebhookDelivery,
+  WebhookDeliveryStatus,
 } from '@prisma/client';

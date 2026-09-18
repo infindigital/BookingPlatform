@@ -4,5 +4,6 @@ export * from './availability/index';
 export * from './form/index';
 export * from './employee/index';
 export * from './notifications/index';
+export * from './integrations/index';
 export * from './auth/permissions';
 export * from './errors';

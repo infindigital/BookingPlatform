@@ -2,6 +2,7 @@ import type { NotificationChannel, NotificationEvent, PrismaClient } from '@pris
 import { reminderScheduledAt } from '@booking/core';
 import { prisma } from '../client';
 import { logger } from '../logger';
+import { emitBookingWebhook } from '../integrations/emit';
 
 /**
  * Enqueue side of the DB-backed notification queue.
@@ -116,4 +117,6 @@ export async function handleBookingEvent(
   if (SCHEDULES_REMINDER.includes(event)) await scheduleBookingReminder(businessId, bookingId, db);
   if (CANCELS_REMINDER.includes(event)) await cancelBookingReminders(businessId, bookingId, db);
   if (event === 'BOOKING_RESCHEDULED') await scheduleBookingReminder(businessId, bookingId, db);
+  // Fan the same event out to any subscribed outbound webhooks (best-effort).
+  await emitBookingWebhook(businessId, bookingId, event, db);
 }

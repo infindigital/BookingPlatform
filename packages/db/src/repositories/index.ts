@@ -5,6 +5,7 @@ import { CustomerRepository } from './customer.repository';
 import { BookingRepository } from './booking.repository';
 import { BusinessRepository } from './business.repository';
 import { EmployeeRepository } from './employee.repository';
+import { WebhookRepository } from '../integrations/webhook.repository';
 
 export { BaseRepository } from './base';
 export { ServiceRepository } from './service.repository';
@@ -17,6 +18,7 @@ export {
   type ServiceAssignmentInput,
   type WorkingWindowInput,
 } from './employee.repository';
+export { WebhookRepository, type WebhookInput } from '../integrations/webhook.repository';
 
 /**
  * Build the set of business-scoped repositories for a resolved tenant.
@@ -29,6 +31,7 @@ export function repositoriesFor(businessId: string, db: PrismaClient = prisma) {
     customers: new CustomerRepository(businessId, db),
     bookings: new BookingRepository(businessId, db),
     employees: new EmployeeRepository(businessId, db),
+    webhooks: new WebhookRepository(businessId, db),
   };
 }
 

@@ -39,6 +39,12 @@ const serverSchema = z.object({
   EMAIL_FROM: z.string().email().optional(),
   EMAIL_FROM_NAME: z.string().optional(),
   EMAIL_REPLY_TO: z.string().email().optional(),
+  // Shared secret for the webhook-delivery cron endpoint. When unset, the endpoint
+  // is disabled (404) so it can never be triggered anonymously.
+  WEBHOOKS_CRON_SECRET: z.string().min(1).optional(),
+  // Dev/test escape hatch: allow http:// and private-host webhook targets. Never
+  // set in production — outbound requests to internal hosts are an SSRF risk.
+  WEBHOOKS_ALLOW_INSECURE: z.enum(['true', 'false']).optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverSchema>;
