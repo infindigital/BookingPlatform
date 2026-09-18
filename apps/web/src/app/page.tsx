@@ -2,70 +2,65 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Button, buttonVariants } from '@booking/ui/button';
+import { ArrowRight, CalendarHeart, Sparkles } from 'lucide-react';
+import { buttonVariants } from '@booking/ui/button';
 import { demoConfig } from '@/config/demo';
-
-const foundationChecklist = [
-  'Monorepo · pnpm workspaces + Turborepo',
-  'Next.js · App Router · TypeScript',
-  'Tailwind + shared design-system tokens',
-  'Environment validation + structured logging',
-  'Error, loading & not-found boundaries',
-];
 
 export default function HomePage() {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-3xl flex-col justify-center px-6 py-16">
+    <main className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-6 py-20">
+      <div className="aurora-field" aria-hidden />
+
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        className="mx-auto flex max-w-3xl flex-col items-center text-center"
       >
-        <span className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground">
-          <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden />
-          Phase {demoConfig.phase} · Foundation ready
+        <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/5 px-4 py-1.5 text-xs font-semibold tracking-wide text-primary backdrop-blur">
+          <Sparkles className="size-3.5" aria-hidden />
+          Premium booking platform
         </span>
 
-        <h1 className="mt-6 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
-          {demoConfig.productName}
+        <div className="mt-8 flex items-center justify-center gap-3">
+          <span className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-[hsl(var(--aurora-2))] text-primary-foreground shadow-glow">
+            <CalendarHeart className="size-6" aria-hidden />
+          </span>
+        </div>
+
+        <h1 className="mt-6 text-balance text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-7xl">
+          <span className="text-gradient">INFIN</span> Booking
         </h1>
-        <p className="mt-3 max-w-xl text-pretty text-lg text-muted-foreground">
-          {demoConfig.tagline} The application shell, tooling and design-system foundation
-          are in place — domain features arrive in the phases ahead.
+
+        <p className="mt-5 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground sm:text-xl">
+          {demoConfig.tagline}
         </p>
 
-        <ul className="mt-8 space-y-2.5">
-          {foundationChecklist.map((item) => (
-            <li key={item} className="flex items-center gap-3 text-sm">
-              <svg
-                viewBox="0 0 20 20"
-                className="size-4 shrink-0 text-primary"
-                fill="currentColor"
-                aria-hidden
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L3.3 9.7a1 1 0 1 1 1.4-1.4l3.8 3.8 6.8-6.8a1 1 0 0 1 1.4 0Z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span className="text-foreground/90">{item}</span>
-            </li>
-          ))}
-        </ul>
-
-        <div className="mt-10 flex flex-wrap items-center gap-3">
-          <Link href="/admin" className={buttonVariants({ variant: 'primary' })}>
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+          <Link
+            href="/book/demo-business"
+            className={`${buttonVariants({ variant: 'primary', size: 'lg' })} group gap-2 shadow-glow`}
+          >
+            Try the booking flow
+            <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+          </Link>
+          <Link
+            href="/admin"
+            className={`${buttonVariants({ variant: 'outline', size: 'lg' })} glass`}
+          >
             Open dashboard
           </Link>
-          <Link href="/book/demo-business" className={buttonVariants({ variant: 'outline' })}>
-            Try the booking flow
-          </Link>
-          <Button variant="ghost" onClick={() => window.open('/api/health', '_blank')}>
-            System health
-          </Button>
         </div>
       </motion.div>
+
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5, duration: 0.6 }}
+        className="absolute bottom-8 text-xs text-muted-foreground/70"
+      >
+        {demoConfig.productName}
+      </motion.p>
     </main>
   );
 }

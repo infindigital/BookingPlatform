@@ -20,8 +20,8 @@ export interface DemoConfig {
 }
 
 export const demoConfig: DemoConfig = {
-  productName: 'Universal Premium Booking',
-  tagline: 'A standalone, embeddable booking engine.',
+  productName: 'INFIN Booking',
+  tagline: 'Where modern businesses take bookings. Elegant, fast, and ready to embed anywhere.',
   demoBusinessSlug: 'demo-business',
   supportedProviders: {
     databases: ['postgresql', 'mysql'],

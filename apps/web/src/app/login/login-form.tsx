@@ -12,7 +12,7 @@ export function LoginForm() {
   const params = useSearchParams();
   const callbackUrl = params.get('callbackUrl') ?? '/admin';
 
-  const [email, setEmail] = useState('admin@aurora.example');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -32,43 +32,51 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4" noValidate>
-      <div className="space-y-1.5">
+    <form onSubmit={onSubmit} className="space-y-5" noValidate>
+      <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input
           id="email"
           type="email"
           autoComplete="username"
+          placeholder="you@company.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          className="h-11"
           required
         />
       </div>
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         <Label htmlFor="password">Password</Label>
         <Input
           id="password"
           type="password"
           autoComplete="current-password"
+          placeholder="••••••••"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          className="h-11"
           required
         />
       </div>
 
       {error ? (
-        <p role="alert" className="text-sm text-destructive">
+        <p
+          role="alert"
+          className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+        >
           {error}
         </p>
       ) : null}
 
-      <Button type="submit" className="w-full" disabled={loading}>
+      <Button
+        type="submit"
+        size="lg"
+        className="w-full shadow-glow"
+        disabled={loading}
+      >
         {loading ? 'Signing in…' : 'Sign in'}
       </Button>
-
-      <p className="pt-2 text-center text-xs text-muted-foreground">
-        Demo: admin@aurora.example / password123
-      </p>
     </form>
   );
 }

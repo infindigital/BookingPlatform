@@ -1,26 +1,84 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
+import { CalendarHeart, ShieldCheck, Sparkles, Zap } from 'lucide-react';
+import { demoConfig } from '@/config/demo';
 import { LoginForm } from './login-form';
 
 export const metadata: Metadata = { title: 'Sign in' };
 
+const highlights = [
+  { icon: Zap, title: 'Lightning-fast', text: 'Clients book in seconds, from any device.' },
+  { icon: ShieldCheck, title: 'Secure by design', text: 'Role-based access and hardened sessions.' },
+  { icon: Sparkles, title: 'Fully brandable', text: 'Make every booking page unmistakably yours.' },
+];
+
 export default function LoginPage() {
   return (
-    <main className="flex min-h-dvh items-center justify-center px-6 py-16">
-      <div className="w-full max-w-sm">
-        <div className="mb-8">
-          <div className="mb-3 flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <span className="text-sm font-semibold">A</span>
-          </div>
-          <h1 className="text-xl font-semibold tracking-tight">Sign in to your workspace</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Enter your credentials to access the dashboard.
-          </p>
+    <main className="relative grid min-h-dvh lg:grid-cols-2">
+      <div className="aurora-field aurora-field-soft" aria-hidden />
+
+      {/* Brand / marketing panel */}
+      <section className="relative hidden flex-col justify-between overflow-hidden p-12 lg:flex">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary via-[hsl(var(--aurora-2))] to-[hsl(var(--aurora-3))] opacity-95" />
+        <div className="relative flex items-center gap-3 text-primary-foreground">
+          <span className="flex size-11 items-center justify-center rounded-2xl bg-white/15 backdrop-blur">
+            <CalendarHeart className="size-6" aria-hidden />
+          </span>
+          <span className="text-lg font-bold tracking-tight">INFIN Booking</span>
         </div>
-        <Suspense>
-          <LoginForm />
-        </Suspense>
-      </div>
+
+        <div className="relative max-w-md text-primary-foreground">
+          <h2 className="text-balance text-4xl font-extrabold leading-tight">
+            Bookings your brand deserves.
+          </h2>
+          <p className="mt-4 text-pretty text-base text-white/80">
+            Manage appointments, staff and revenue from one beautifully simple workspace.
+          </p>
+
+          <ul className="mt-10 space-y-5">
+            {highlights.map(({ icon: Icon, title, text }) => (
+              <li key={title} className="flex items-start gap-4">
+                <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/15 backdrop-blur">
+                  <Icon className="size-5" aria-hidden />
+                </span>
+                <div>
+                  <p className="font-semibold">{title}</p>
+                  <p className="text-sm text-white/75">{text}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <p className="relative text-sm text-white/60">
+          © {new Date().getFullYear()} {demoConfig.productName}
+        </p>
+      </section>
+
+      {/* Form panel */}
+      <section className="flex items-center justify-center px-6 py-16 sm:px-12">
+        <div className="w-full max-w-md">
+          <div className="mb-8 flex items-center gap-3 lg:hidden">
+            <span className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-[hsl(var(--aurora-2))] text-primary-foreground shadow-glow">
+              <CalendarHeart className="size-5" aria-hidden />
+            </span>
+            <span className="text-lg font-bold tracking-tight">INFIN Booking</span>
+          </div>
+
+          <div className="rounded-3xl border border-border/70 bg-card/80 p-8 shadow-premium backdrop-blur-xl sm:p-10">
+            <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
+            <p className="mt-1.5 text-sm text-muted-foreground">
+              Sign in to your workspace to continue.
+            </p>
+
+            <div className="mt-8">
+              <Suspense>
+                <LoginForm />
+              </Suspense>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
