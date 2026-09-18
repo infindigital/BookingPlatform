@@ -1,5 +1,6 @@
 import type { PrismaClient } from '@prisma/client';
 import { prisma } from '../client';
+import { loadResolvedForm, type ResolvedForm } from '../form/config';
 
 /**
  * Public booking read model. Returns only what is safe to expose on the
@@ -48,6 +49,8 @@ export interface PublicBookingData {
   categories: PublicServiceCategory[];
   services: PublicService[];
   employees: PublicEmployee[];
+  /** Resolved Form Designer configuration: theme tokens, settings and steps. */
+  form: ResolvedForm;
 }
 
 export async function getPublicBookingData(
@@ -63,7 +66,7 @@ export async function getPublicBookingData(
   if (!business) return null;
   const businessId = business.id;
 
-  const [categories, services, employees] = await Promise.all([
+  const [categories, services, employees, form] = await Promise.all([
     db.serviceCategory.findMany({
       where: { businessId },
       orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
@@ -93,10 +96,12 @@ export async function getPublicBookingData(
         services: { select: { serviceId: true } },
       },
     }),
+    loadResolvedForm(businessId, db),
   ]);
 
   return {
     business,
+    form,
     categories,
     services: services.map((s) => ({
       id: s.id,

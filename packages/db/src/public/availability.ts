@@ -1,6 +1,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { prisma } from '../client';
 import { getAvailability, type AvailabilityResult } from '../availability/availability';
+import { loadResolvedForm } from '../form/config';
 
 /**
  * Public availability lookup, resolved by business `slug`. Thin wrapper over the
@@ -29,6 +30,10 @@ export async function getPublicAvailability(
   });
   if (!business) return null;
 
+  // Default the min-lead policy to the business's own setting; an explicit
+  // caller value still wins.
+  const { settings } = await loadResolvedForm(business.id, db);
+
   return getAvailability(
     business.id,
     {
@@ -39,7 +44,7 @@ export async function getPublicAvailability(
       timeZone: business.timezone || 'UTC',
       now: params.now,
       stepMinutes: params.stepMinutes,
-      minLeadMinutes: params.minLeadMinutes,
+      minLeadMinutes: params.minLeadMinutes ?? settings.minLeadMinutes,
     },
     db,
   );

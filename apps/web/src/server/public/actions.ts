@@ -45,7 +45,7 @@ export async function fetchPublicAvailability(input: {
     fromDayKey: input.fromDayKey,
     toDayKey: input.toDayKey,
     now: new Date(),
-    minLeadMinutes: 60, // no same-minute bookings for public visitors
+    // min-lead comes from the business's Form Designer settings (server-side).
   });
   if (!result) return { days: [] };
 

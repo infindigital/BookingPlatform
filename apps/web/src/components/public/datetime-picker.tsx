@@ -5,8 +5,6 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { fetchPublicAvailability, type PublicDaySlots } from '@/server/public/actions';
 import { dayParts, slotLabel, slotTime24 } from './format';
 
-const DAYS_AHEAD = 14;
-
 function addDayKey(dayKey: string, n: number): string {
   const [y, m, d] = dayKey.split('-').map(Number);
   const dt = new Date(Date.UTC(y ?? 1970, (m ?? 1) - 1, d ?? 1));
@@ -26,6 +24,7 @@ export function DateTimePicker({
   employeeId,
   timeZone,
   todayKey,
+  daysAhead = 14,
   selected,
   onSelect,
 }: {
@@ -34,9 +33,11 @@ export function DateTimePicker({
   employeeId: string | null;
   timeZone: string;
   todayKey: string;
+  daysAhead?: number;
   selected: SelectedSlot | null;
   onSelect: (slot: SelectedSlot | null) => void;
 }) {
+  const DAYS_AHEAD = daysAhead;
   const [days, setDays] = useState<PublicDaySlots[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeDay, setActiveDay] = useState<string>(selected ? selected.startISO.slice(0, 10) : todayKey);
@@ -66,7 +67,7 @@ export function DateTimePicker({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug, serviceId, employeeId]);
+  }, [slug, serviceId, employeeId, daysAhead]);
 
   const daysWithOpenings = useMemo(() => days.filter((d) => d.slots.length > 0), [days]);
   const activeSlots = useMemo(() => days.find((d) => d.dayKey === activeDay)?.slots ?? [], [days, activeDay]);

@@ -4,6 +4,7 @@ import { prisma } from '../client';
 import { repositoriesFor } from '../repositories/index';
 import { wallTimeToInstant } from '../dashboard/timezone';
 import { getAvailability } from '../availability/availability';
+import { loadResolvedForm } from '../form/config';
 import { writeAudit } from '../audit';
 
 /**
@@ -99,7 +100,9 @@ export async function createPublicBooking(
   const startAt = wallTimeToInstant(input.dayKey, minutes, timeZone);
   const endAt = new Date(startAt.getTime() + service.durationMinutes * 60_000);
 
-  // Re-validate the requested slot against the live availability engine.
+  // Re-validate the requested slot against the live availability engine, applying
+  // the business's own min-lead policy so a tampered client cannot book inside it.
+  const { settings } = await loadResolvedForm(businessId, db);
   const availability = await getAvailability(
     businessId,
     {
@@ -109,6 +112,7 @@ export async function createPublicBooking(
       toDayKey: input.dayKey,
       timeZone,
       now: new Date(),
+      minLeadMinutes: settings.minLeadMinutes,
     },
     db,
   );

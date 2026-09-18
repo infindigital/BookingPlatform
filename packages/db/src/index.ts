@@ -41,6 +41,14 @@ export {
   type AvailabilitySlot,
 } from './availability/availability';
 export {
+  getFormConfig,
+  saveFormDesign,
+  loadResolvedForm,
+  type ResolvedForm,
+  type FormConfigForAdmin,
+  type SaveFormDesignInput,
+} from './form/config';
+export {
   getPublicBookingData,
   type PublicBookingData,
   type PublicBusiness,

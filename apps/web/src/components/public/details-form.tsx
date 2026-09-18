@@ -14,9 +14,11 @@ const CONTROL =
 export function DetailsForm({
   value,
   onChange,
+  requirePhone = false,
 }: {
   value: CustomerDetails;
   onChange: (next: CustomerDetails) => void;
+  requirePhone?: boolean;
 }) {
   const set = (patch: Partial<CustomerDetails>) => onChange({ ...value, ...patch });
 
@@ -55,13 +57,14 @@ export function DetailsForm({
         />
       </label>
       <label className="block space-y-1">
-        <span className="text-xs font-medium text-muted-foreground">Phone</span>
+        <span className="text-xs font-medium text-muted-foreground">Phone{requirePhone ? ' *' : ''}</span>
         <input
           type="tel"
           className={CONTROL}
           value={value.phone}
           onChange={(e) => set({ phone: e.target.value })}
           autoComplete="tel"
+          required={requirePhone}
         />
       </label>
       <label className="block space-y-1">
