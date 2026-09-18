@@ -18,9 +18,12 @@ const nextConfig = {
   // The Prisma query-engine (`libquery_engine-*.so.node`) is loaded at runtime
   // via a computed path, so Next's static file-tracer misses it and the
   // serverless bundle ships without it ("could not locate the Query Engine").
-  // Force it (and the generated client) into every API route's bundle.
+  // Force it (and the generated client) into EVERY server route's bundle — the
+  // `/**` glob covers pages (`/admin`, `/book/[slug]`) as well as `/api/*`
+  // routes; a narrower key like `/api/**` would leave server-component pages
+  // without the engine and they'd throw at render time.
   outputFileTracingIncludes: {
-    '/api/**': [
+    '/**': [
       '../../node_modules/.pnpm/@prisma+client*/node_modules/.prisma/client/**',
       '../../node_modules/.pnpm/@prisma+client*/node_modules/@prisma/client/**',
       '../../node_modules/.prisma/client/**',
