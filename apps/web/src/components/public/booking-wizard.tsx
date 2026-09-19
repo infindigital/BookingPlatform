@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState, useTransition } from 'react';
-import { ArrowLeft, ArrowRight, Check, Clock, User, CalendarCheck } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Clock, User, CalendarCheck, MapPin } from 'lucide-react';
 import type { PublicBookingData } from '@booking/db';
 import {
   hasTeamStep,
@@ -16,10 +16,11 @@ import { DateTimePicker, type SelectedSlot } from './datetime-picker';
 import { DetailsForm, type CustomerDetails } from './details-form';
 import { formatMoney, formatDuration, confirmationWhen } from './format';
 
-type FlowStep = 'service' | 'team' | 'time' | 'details' | 'review';
+type FlowStep = 'service' | 'team' | 'location' | 'time' | 'details' | 'review';
 const STEP_LABEL: Record<FlowStep, string> = {
   service: 'Service',
   team: 'Team',
+  location: 'Location',
   time: 'Time',
   details: 'Details',
   review: 'Review',
@@ -31,6 +32,13 @@ function todayInTz(timeZone: string): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(
     new Date(),
   );
+}
+
+/** Compact one-line address for a location card: "123 Main St · Kansas City, MO 64134". */
+function locationSummary(loc: PublicBookingData['locations'][number]): string {
+  const cityState = [loc.city, loc.state].filter(Boolean).join(', ');
+  const locality = [cityState, loc.postalCode].filter(Boolean).join(' ').trim();
+  return [loc.address, locality].filter(Boolean).join(' · ');
 }
 
 export function BookingWizard({
@@ -47,7 +55,7 @@ export function BookingWizard({
   steps?: FormStepKey[];
   preview?: boolean;
 }) {
-  const { business, categories, services, employees } = data;
+  const { business, categories, services, employees, locations } = data;
   const timeZone = business.timezone;
   const todayKey = useMemo(() => todayInTz(timeZone), [timeZone]);
 
@@ -55,18 +63,28 @@ export function BookingWizard({
   const configuredSteps = stepsProp ?? data.form?.steps ?? DEFAULT_STEPS;
   const showTeamStep = hasTeamStep(configuredSteps);
 
+  // A lone fixed (non-mobile) location is auto-selected and never shown as a
+  // step; anything else (multiple locations, or a mobile one that needs an
+  // address) gets an explicit Location step. No locations at all = unchanged.
+  const onlyLocation = locations.length === 1 ? locations[0] : undefined;
+  const singleAutoLocation = onlyLocation && onlyLocation.mode !== 'MOBILE' ? onlyLocation : null;
+  const showLocationStep = locations.length > 0 && !singleAutoLocation;
+
   const flow = useMemo<FlowStep[]>(() => {
     const s: FlowStep[] = ['service'];
     if (showTeamStep) s.push('team');
+    if (showLocationStep) s.push('location');
     s.push('time', 'details', 'review');
     return s;
-  }, [showTeamStep]);
+  }, [showTeamStep, showLocationStep]);
 
   const [stepIdx, setStepIdx] = useState(0);
   const stepKey = flow[Math.min(stepIdx, flow.length - 1)] ?? 'service';
 
   const [serviceId, setServiceId] = useState<string | null>(null);
   const [employeeId, setEmployeeId] = useState<string | null>(null); // null = any available
+  const [locationId, setLocationId] = useState<string | null>(singleAutoLocation?.id ?? null);
+  const [customerAddress, setCustomerAddress] = useState('');
   const [slot, setSlot] = useState<SelectedSlot | null>(null);
   const [details, setDetails] = useState<CustomerDetails>({ firstName: '', lastName: '', email: '', phone: '', notes: '' });
 
@@ -81,6 +99,17 @@ export function BookingWizard({
     [employees, serviceId],
   );
   const chosenStaff = employeeId ? employees.find((e) => e.id === employeeId) ?? null : null;
+  const chosenLocation = useMemo(() => locations.find((l) => l.id === locationId) ?? null, [locations, locationId]);
+
+  // Locations valid for the current service (and chosen team member), honouring
+  // the "no assignment rows = available everywhere" default.
+  const selectableLocations = useMemo(() => {
+    return locations.filter((loc) => {
+      const serviceOk = !service || service.locationIds.length === 0 || service.locationIds.includes(loc.id);
+      const staffOk = !chosenStaff || chosenStaff.locationIds.length === 0 || chosenStaff.locationIds.includes(loc.id);
+      return serviceOk && staffOk;
+    });
+  }, [locations, service, chosenStaff]);
 
   const servicesByCategory = useMemo(() => {
     const groups: { id: string | null; name: string; services: typeof services }[] = [];
@@ -99,6 +128,9 @@ export function BookingWizard({
         return !!serviceId;
       case 'team':
         return settings.allowAnyEmployee || employeeId !== null;
+      case 'location':
+        if (!locationId) return false;
+        return chosenLocation?.mode !== 'MOBILE' || customerAddress.trim().length > 0;
       case 'time':
         return !!slot;
       case 'details':
@@ -115,10 +147,12 @@ export function BookingWizard({
   function pickService(id: string) {
     setServiceId(id);
     setEmployeeId(null);
+    setLocationId(singleAutoLocation?.id ?? null);
     setSlot(null);
   }
   function pickStaff(id: string | null) {
     setEmployeeId(id);
+    setLocationId(singleAutoLocation?.id ?? null);
     setSlot(null);
   }
   function next() {
@@ -142,6 +176,7 @@ export function BookingWizard({
         slug,
         serviceId: service.id,
         employeeId,
+        locationId,
         dayKey: slot.startISO.slice(0, 10),
         time: slot.time,
         firstName: details.firstName,
@@ -149,6 +184,7 @@ export function BookingWizard({
         email: details.email,
         phone: details.phone,
         notes: details.notes,
+        customerAddress: chosenLocation?.mode === 'MOBILE' ? customerAddress : null,
       });
       if (result.ok) {
         setConfirmation(result);
@@ -167,6 +203,8 @@ export function BookingWizard({
     setPreviewDone(false);
     setServiceId(null);
     setEmployeeId(null);
+    setLocationId(singleAutoLocation?.id ?? null);
+    setCustomerAddress('');
     setSlot(null);
     setDetails({ firstName: '', lastName: '', email: '', phone: '', notes: '' });
     setError(null);
@@ -194,6 +232,9 @@ export function BookingWizard({
           {c ? <Row label="Reference" value={c.reference} mono /> : null}
           <Row label="Service" value={c?.serviceName ?? service?.name ?? ''} />
           {(c?.employeeName ?? chosenStaff?.name) ? <Row label="With" value={c?.employeeName ?? chosenStaff!.name} /> : null}
+          {(c?.locationName ?? chosenLocation?.name) ? (
+            <Row label="Location" value={c?.locationName ?? chosenLocation!.name} />
+          ) : null}
           {slot ? <Row label="When" value={confirmationWhen(c?.startISO ?? slot.startISO, timeZone)} /> : null}
           {settings.showPrices && service ? <Row label="Price" value={formatMoney(service.price, business.currency)} /> : null}
           {c && c.amountDue > 0 ? (
@@ -223,16 +264,15 @@ export function BookingWizard({
 
   // ---- Wizard ----
   const layout = settings.layout ?? 'classic';
-  const stepTitle =
-    stepKey === 'service'
-      ? 'Choose a service'
-      : stepKey === 'team'
-        ? 'Choose your team member'
-        : stepKey === 'time'
-          ? 'Pick a date & time'
-          : stepKey === 'details'
-            ? 'Your details'
-            : 'Review & confirm';
+  const STEP_TITLE: Record<FlowStep, string> = {
+    service: 'Choose a service',
+    team: 'Choose your team member',
+    location: 'Choose a location',
+    time: 'Pick a date & time',
+    details: 'Your details',
+    review: 'Review & confirm',
+  };
+  const stepTitle = STEP_TITLE[stepKey];
 
   const bodyCore = (
     <>
@@ -312,11 +352,64 @@ export function BookingWizard({
           </div>
         )}
 
+        {stepKey === 'location' && (
+          <div className="space-y-2">
+            {selectableLocations.length === 0 ? (
+              <p className="pt-1 text-sm text-muted-foreground">
+                No locations are available for this selection. Please choose a different service or team member.
+              </p>
+            ) : (
+              selectableLocations.map((loc) => {
+                const active = loc.id === locationId;
+                const summary = locationSummary(loc);
+                return (
+                  <button
+                    key={loc.id}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => setLocationId(active ? null : loc.id)}
+                    className={`flex w-full items-start gap-3 rounded-none border p-3.5 text-left transition-colors ${
+                      active ? 'border-primary ring-1 ring-primary' : 'border-border hover:border-primary/40'
+                    }`}
+                  >
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                      <MapPin className="size-4" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-medium">{loc.name}</span>
+                      {summary ? <span className="block text-xs text-muted-foreground">{summary}</span> : null}
+                      {loc.mode === 'MOBILE' ? (
+                        <span className="mt-0.5 block text-xs font-medium text-primary">We come to you</span>
+                      ) : null}
+                    </span>
+                    {active ? <Check className="size-4 shrink-0 text-primary" /> : null}
+                  </button>
+                );
+              })
+            )}
+
+            {chosenLocation?.mode === 'MOBILE' ? (
+              <label className="mt-3 block space-y-1">
+                <span className="text-xs font-medium text-muted-foreground">Your address *</span>
+                <textarea
+                  value={customerAddress}
+                  onChange={(e) => setCustomerAddress(e.target.value)}
+                  rows={2}
+                  maxLength={300}
+                  className="w-full rounded-none border border-border bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  placeholder="Street address we should come to"
+                />
+              </label>
+            ) : null}
+          </div>
+        )}
+
         {stepKey === 'time' && service && (
           <DateTimePicker
             slug={slug}
             serviceId={service.id}
             employeeId={employeeId}
+            locationId={locationId}
             timeZone={timeZone}
             todayKey={todayKey}
             daysAhead={settings.daysAhead}
@@ -331,6 +424,10 @@ export function BookingWizard({
           <dl className="space-y-3 rounded-none border border-border bg-muted/30 p-4 text-sm">
             <Row label="Service" value={service.name} />
             {showTeamStep ? <Row label="With" value={chosenStaff ? chosenStaff.name : 'Any available team member'} /> : null}
+            {chosenLocation ? <Row label="Location" value={chosenLocation.name} /> : null}
+            {chosenLocation?.mode === 'MOBILE' && customerAddress.trim() ? (
+              <Row label="Address" value={customerAddress.trim()} />
+            ) : null}
             <Row label="When" value={confirmationWhen(slot.startISO, timeZone)} />
             <Row label="Duration" value={formatDuration(service.durationMinutes)} />
             <Row label="Name" value={`${details.firstName} ${details.lastName}`.trim()} />
@@ -389,6 +486,7 @@ export function BookingWizard({
         {showTeamStep ? (
           <SummaryRow label="Team" value={chosenStaff?.name ?? (serviceId ? 'Any available' : undefined)} />
         ) : null}
+        {showLocationStep ? <SummaryRow label="Location" value={chosenLocation?.name} /> : null}
         <SummaryRow label="When" value={slot ? confirmationWhen(slot.startISO, timeZone) : undefined} />
         <SummaryRow label="Duration" value={service ? formatDuration(service.durationMinutes) : undefined} />
       </div>

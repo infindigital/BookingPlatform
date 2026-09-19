@@ -110,6 +110,12 @@
     return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);
   }
 
+  function locationSummary(loc) {
+    var cityState = [loc.city, loc.state].filter(Boolean).join(', ');
+    var locality = [cityState, loc.postalCode].filter(Boolean).join(' ').trim();
+    return [loc.address, locality].filter(Boolean).join(' · ');
+  }
+
   // ------------------------------- styles -----------------------------------
   function styleText() {
     return [
@@ -223,9 +229,10 @@
     }
     return {
       config: function () { return req('/config'); },
-      availability: function (serviceId, employeeId, from, to) {
+      availability: function (serviceId, employeeId, locationId, from, to) {
         var q = '?serviceId=' + encodeURIComponent(serviceId) + '&from=' + from + '&to=' + to;
         if (employeeId) q += '&employeeId=' + encodeURIComponent(employeeId);
+        if (locationId) q += '&locationId=' + encodeURIComponent(locationId);
         return req('/availability' + q);
       },
       book: function (payload) { return req('/bookings', { method: 'POST', body: payload }); }
@@ -251,6 +258,8 @@
       step: 'service',
       serviceId: this.options.serviceId || null,
       employeeId: null, // null = any available
+      locationId: null, // null = unspecified / single implicit location
+      customerAddress: '', // required for a MOBILE location
       dayKey: null,
       startISO: null,
       slotEmployeeIds: [],
@@ -289,6 +298,9 @@
         self.state.serviceId = null;
       }
       if (!self.state.serviceId && cfg.services.length === 1) self.state.serviceId = cfg.services[0].id;
+      // Auto-select a lone fixed (non-mobile) location so it needs no step.
+      var locs = cfg.locations || [];
+      if (locs.length === 1 && locs[0].mode !== 'MOBILE') self.state.locationId = locs[0].id;
       self.state.status = 'ready';
       if (self.state.serviceId) self.goToTime();
       else self.render();
@@ -314,11 +326,56 @@
       configured.indexOf('employee') !== -1 &&
       cfg && cfg.settings && cfg.settings.allowAnyEmployee !== false &&
       employeesForService.length > 0;
+    var locs = this.locations();
+    var singleLocation = locs.length === 1 && locs[0].mode !== 'MOBILE' ? locs[0] : null;
+    var showLocation = locs.length > 0 && !singleLocation;
     var flow = ['service'];
     if (showEmployee) flow.push('employee');
+    if (showLocation) flow.push('location');
     flow.push('datetime', 'details', 'review');
     // If a service is preselected via options, the service step is skipped visually.
-    return { flow: flow, showEmployee: showEmployee, svc: svc };
+    return { flow: flow, showEmployee: showEmployee, showLocation: showLocation, singleLocation: singleLocation, svc: svc };
+  };
+
+  Widget.prototype.stepAfter = function (current) {
+    var flow = this.steps().flow;
+    return flow[flow.indexOf(current) + 1] || 'review';
+  };
+
+  Widget.prototype.stepBefore = function (current) {
+    var flow = this.steps().flow;
+    var i = flow.indexOf(current);
+    var prev = i > 0 ? flow[i - 1] : null;
+    if (prev === 'service' && this.options.serviceId) return null;
+    return prev;
+  };
+
+  Widget.prototype.locations = function () {
+    var cfg = this.state.config;
+    return (cfg && cfg.locations) || [];
+  };
+
+  Widget.prototype.selectedLocation = function () {
+    var self = this;
+    var found = null;
+    this.locations().forEach(function (l) { if (l.id === self.state.locationId) found = l; });
+    return found;
+  };
+
+  // Locations valid for the current service (and chosen team member), honouring
+  // the "no assignment rows = available everywhere" default.
+  Widget.prototype.selectableLocations = function () {
+    var self = this;
+    var svc = this.selectedService();
+    var emp = null;
+    if (this.state.employeeId) {
+      this.state.config.employees.forEach(function (e) { if (e.id === self.state.employeeId) emp = e; });
+    }
+    return this.locations().filter(function (loc) {
+      var svcOk = !svc || !svc.locationIds || svc.locationIds.length === 0 || svc.locationIds.indexOf(loc.id) !== -1;
+      var empOk = !emp || !emp.locationIds || emp.locationIds.length === 0 || emp.locationIds.indexOf(loc.id) !== -1;
+      return svcOk && empOk;
+    });
   };
 
   Widget.prototype.selectedService = function () {
@@ -350,7 +407,8 @@
     this.state.dayKey = null;
     this.state.startISO = null;
     var s = this.steps();
-    this.state.step = s.showEmployee ? 'employee' : 'datetime';
+    if (s.singleLocation) this.state.locationId = s.singleLocation.id;
+    this.state.step = this.stepAfter('service');
     this.render();
   };
 
@@ -361,7 +419,7 @@
     if (this.state.daySlots[dayKey]) { this.render(); return; }
     this.state.loadingSlots = true;
     this.render();
-    this.api.availability(this.state.serviceId, this.state.employeeId, dayKey, dayKey)
+    this.api.availability(this.state.serviceId, this.state.employeeId, this.state.locationId, dayKey, dayKey)
       .then(function (res) {
         var day = (res.days || []).filter(function (d) { return d.dayKey === dayKey; })[0];
         self.state.daySlots[dayKey] = (day && day.slots) || [];
@@ -383,16 +441,19 @@
     var time = new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false }).format(start);
     var dayKey = dayKeyOf(start, tz);
     this.set({ submitting: true, error: null });
+    var loc = this.selectedLocation();
     this.api.book({
       serviceId: this.state.serviceId,
       employeeId: this.state.employeeId,
+      locationId: this.state.locationId,
       dayKey: dayKey,
       time: time,
       firstName: d.firstName.trim(),
       lastName: d.lastName.trim(),
       email: d.email.trim(),
       phone: d.phone.trim(),
-      notes: d.notes.trim()
+      notes: d.notes.trim(),
+      customerAddress: loc && loc.mode === 'MOBILE' ? (this.state.customerAddress || '').trim() : null
     }).then(function (res) {
       self.set({ submitting: false, confirmation: res.booking, step: 'done' });
     }).catch(function (err) {
@@ -437,6 +498,7 @@
 
     if (s.step === 'service') this.renderService();
     else if (s.step === 'employee') this.renderEmployee();
+    else if (s.step === 'location') this.renderLocation();
     else if (s.step === 'datetime') this.renderDateTime();
     else if (s.step === 'details') this.renderDetails();
     else if (s.step === 'review') this.renderReview();
@@ -465,7 +527,7 @@
       var card = el('button', {
         class: 'bw-card' + (self.state.serviceId === svc.id ? ' sel' : ''),
         type: 'button',
-        onclick: function () { self.state.serviceId = svc.id; self.state.employeeId = null; self.state.daySlots = {}; self.goToTime(); }
+        onclick: function () { self.state.serviceId = svc.id; self.state.employeeId = null; self.state.locationId = null; self.state.customerAddress = ''; self.state.daySlots = {}; self.goToTime(); }
       }, [
         el('div', { class: 'bw-card-main' }, [
           el('div', { class: 'bw-card-name', text: svc.name }),
@@ -488,10 +550,12 @@
 
     function choose(id) {
       self.state.employeeId = id;
+      self.state.locationId = null;
+      self.state.customerAddress = '';
       self.state.daySlots = {};
       self.state.dayKey = null;
       self.state.startISO = null;
-      self.set({ step: 'datetime' });
+      self.set({ step: self.stepAfter('employee') });
     }
     list.appendChild(el('button', {
       class: 'bw-card' + (self.state.employeeId == null ? ' sel' : ''), type: 'button',
@@ -508,7 +572,60 @@
       ])]));
     });
     this.root.appendChild(list);
-    this.root.appendChild(this.nav('service', null));
+    this.root.appendChild(this.nav(this.stepBefore('employee'), null));
+  };
+
+  Widget.prototype.renderLocation = function () {
+    var self = this;
+    this.root.appendChild(el('h2', { class: 'bw-title', text: 'Choose a location' }));
+    this.root.appendChild(el('p', { class: 'bw-sub', text: 'Where should this appointment take place?' }));
+
+    var locs = this.selectableLocations();
+    if (!locs.length) {
+      this.root.appendChild(el('div', { class: 'bw-empty', text: 'No locations available for this selection.' }));
+      this.root.appendChild(this.nav(this.stepBefore('location'), null));
+      return;
+    }
+
+    var list = el('div', { class: 'bw-list' });
+    locs.forEach(function (loc) {
+      var summary = locationSummary(loc);
+      list.appendChild(el('button', {
+        class: 'bw-card' + (self.state.locationId === loc.id ? ' sel' : ''), type: 'button',
+        onclick: function () {
+          self.state.locationId = loc.id;
+          self.state.daySlots = {};
+          self.state.dayKey = null;
+          self.state.startISO = null;
+          if (loc.mode === 'MOBILE') self.render(); // stay to collect the address
+          else self.set({ step: self.stepAfter('location') });
+        }
+      }, [el('div', { class: 'bw-card-main' }, [
+        el('div', { class: 'bw-card-name', text: loc.name }),
+        summary ? el('div', { class: 'bw-card-desc', text: summary }) : null,
+        loc.mode === 'MOBILE' ? el('div', { class: 'bw-card-desc', text: 'We come to you' }) : null
+      ])]));
+    });
+    this.root.appendChild(list);
+
+    var chosen = this.selectedLocation();
+    if (chosen && chosen.mode === 'MOBILE') {
+      var input = el('textarea', { class: 'bw-textarea', rows: '2', placeholder: 'Street address we should come to' });
+      input.value = this.state.customerAddress;
+      input.addEventListener('input', function () {
+        self.state.customerAddress = input.value;
+        if (self._locNext) self._locNext.disabled = !self.state.customerAddress.trim();
+      });
+      this.root.appendChild(el('div', { class: 'bw-field', style: 'margin-top:10px;' }, [
+        el('label', { class: 'bw-label', text: 'Your address *' }), input
+      ]));
+      var nav = this.nav(this.stepBefore('location'), function () { self.set({ step: self.stepAfter('location') }); }, 'Continue');
+      this._locNext = nav.querySelector('.bw-btn-primary');
+      this.root.appendChild(nav);
+      this._locNext.disabled = !this.state.customerAddress.trim();
+    } else {
+      this.root.appendChild(this.nav(this.stepBefore('location'), null));
+    }
   };
 
   Widget.prototype.renderDateTime = function () {
@@ -551,8 +668,7 @@
         this.root.appendChild(grid);
       }
     }
-    var back = this.steps().showEmployee ? 'employee' : (this.options.serviceId ? null : 'service');
-    this.root.appendChild(this.nav(back, null));
+    this.root.appendChild(this.nav(this.stepBefore('datetime'), null));
   };
 
   Widget.prototype.renderDetails = function () {
@@ -618,14 +734,17 @@
     this.root.appendChild(el('h2', { class: 'bw-title', text: 'Review & confirm' }));
     this.root.appendChild(el('p', { class: 'bw-sub', text: 'Please check everything looks right.' }));
 
+    var loc = this.selectedLocation();
     var rows = [
       ['Service', svc ? svc.name : ''],
       ['Date', fmtDayLong(dayKeyOf(new Date(this.state.startISO), tz), tz)],
       ['Time', fmtTime(this.state.startISO, tz) + ' (' + tz + ')'],
-      ['Team member', emp || 'Any available'],
-      ['Name', (d.firstName + ' ' + d.lastName).trim()],
-      ['Email', d.email.trim()]
+      ['Team member', emp || 'Any available']
     ];
+    if (loc) rows.push(['Location', loc.name]);
+    if (loc && loc.mode === 'MOBILE' && this.state.customerAddress.trim()) rows.push(['Address', this.state.customerAddress.trim()]);
+    rows.push(['Name', (d.firstName + ' ' + d.lastName).trim()]);
+    rows.push(['Email', d.email.trim()]);
     if (d.phone.trim()) rows.push(['Phone', d.phone.trim()]);
     if (svc && (!cfg.settings || cfg.settings.showPrices !== false)) {
       rows.push(['Price', svc.price > 0 ? money(svc.price, cfg.business.currency) : 'Free']);
@@ -651,10 +770,14 @@
     var msg = (cfg.settings && cfg.settings.confirmationMessage) ||
       'Thanks, ' + (this.state.details.firstName || 'there') + '! Your booking is pending confirmation.';
     wrap.appendChild(el('p', { class: 'bw-sub', text: msg }));
-    wrap.appendChild(el('div', { class: 'bw-summary', style: 'text-align:left;margin-top:6px;' }, [
+    var summary = el('div', { class: 'bw-summary', style: 'text-align:left;margin-top:6px;' }, [
       el('div', {}, [el('span', { class: 'k', text: c.serviceName }), el('span', { class: 'v', text: fmtTime(c.startISO, tz) })]),
       el('div', {}, [el('span', { class: 'k', text: fmtDayLong(dayKeyOf(new Date(c.startISO), tz), tz) }), el('span', { class: 'v', text: c.employeeName || 'Any available' })])
-    ]));
+    ]);
+    if (c.locationName) {
+      summary.appendChild(el('div', {}, [el('span', { class: 'k', text: 'Location' }), el('span', { class: 'v', text: c.locationName })]));
+    }
+    wrap.appendChild(summary);
     wrap.appendChild(el('div', { class: 'bw-ref', text: c.reference }));
     if (c.amountDue > 0) {
       wrap.appendChild(el('p', { class: 'bw-sub', style: 'margin-top:12px;', text: 'Amount due: ' + money(c.amountDue, c.currency) }));

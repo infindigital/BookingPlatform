@@ -22,6 +22,7 @@ export function DateTimePicker({
   slug,
   serviceId,
   employeeId,
+  locationId = null,
   timeZone,
   todayKey,
   daysAhead = 14,
@@ -31,6 +32,7 @@ export function DateTimePicker({
   slug: string;
   serviceId: string;
   employeeId: string | null;
+  locationId?: string | null;
   timeZone: string;
   todayKey: string;
   daysAhead?: number;
@@ -49,7 +51,7 @@ export function DateTimePicker({
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetchPublicAvailability({ slug, serviceId, employeeId, fromDayKey, toDayKey })
+    fetchPublicAvailability({ slug, serviceId, employeeId, locationId, fromDayKey, toDayKey })
       .then((res) => {
         if (cancelled) return;
         setDays(res.days);
@@ -67,7 +69,7 @@ export function DateTimePicker({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug, serviceId, employeeId, daysAhead]);
+  }, [slug, serviceId, employeeId, locationId, daysAhead]);
 
   const daysWithOpenings = useMemo(() => days.filter((d) => d.slots.length > 0), [days]);
   const activeSlots = useMemo(() => days.find((d) => d.dayKey === activeDay)?.slots ?? [], [days, activeDay]);
