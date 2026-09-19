@@ -1,7 +1,8 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
-import { CalendarHeart, ShieldCheck, Sparkles, Zap } from 'lucide-react';
+import { ShieldCheck, Sparkles, Zap } from 'lucide-react';
 import { demoConfig } from '@/config/demo';
+import { Logo } from '@/components/shell/logo';
 import { LoginForm } from './login-form';
 
 export const metadata: Metadata = { title: 'Sign in' };
@@ -20,11 +21,10 @@ export default function LoginPage() {
       {/* Brand / marketing panel */}
       <section className="relative hidden flex-col justify-between overflow-hidden p-12 lg:flex">
         <div className="absolute inset-0 bg-gradient-to-br from-primary via-[hsl(var(--aurora-2))] to-[hsl(var(--aurora-3))] opacity-95" />
-        <div className="relative flex items-center gap-3 text-primary-foreground">
-          <span className="flex size-11 items-center justify-center rounded-none bg-white/15 backdrop-blur">
-            <CalendarHeart className="size-6" aria-hidden />
+        <div className="relative flex items-center">
+          <span className="inline-flex rounded-none bg-black p-3">
+            <Logo className="h-9 w-auto" priority />
           </span>
-          <span className="text-lg font-bold tracking-tight">INFIN Booking</span>
         </div>
 
         <div className="relative max-w-md text-primary-foreground">
@@ -58,11 +58,8 @@ export default function LoginPage() {
       {/* Form panel */}
       <section className="flex items-center justify-center px-6 py-16 sm:px-12">
         <div className="w-full max-w-md">
-          <div className="mb-8 flex items-center gap-3 lg:hidden">
-            <span className="flex size-10 items-center justify-center rounded-none bg-gradient-to-br from-primary to-[hsl(var(--aurora-2))] text-primary-foreground shadow-glow">
-              <CalendarHeart className="size-5" aria-hidden />
-            </span>
-            <span className="text-lg font-bold tracking-tight">INFIN Booking</span>
+          <div className="mb-8 flex items-center lg:hidden">
+            <Logo className="h-8 w-auto" priority />
           </div>
 
           <div className="rounded-none border border-border/70 bg-card/80 p-8 shadow-premium backdrop-blur-xl sm:p-10">

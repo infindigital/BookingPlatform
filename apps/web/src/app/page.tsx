@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, CalendarHeart, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { buttonVariants } from '@booking/ui/button';
 import { demoConfig } from '@/config/demo';
+import { Logo } from '@/components/shell/logo';
 
 export default function HomePage() {
   return (
@@ -22,14 +23,10 @@ export default function HomePage() {
           Premium booking platform
         </span>
 
-        <div className="mt-8 flex items-center justify-center gap-3">
-          <span className="flex size-12 items-center justify-center rounded-none bg-gradient-to-br from-primary to-[hsl(var(--aurora-2))] text-primary-foreground shadow-glow">
-            <CalendarHeart className="size-6" aria-hidden />
+        <h1 className="mt-8">
+          <span className="inline-flex rounded-none bg-black p-4 shadow-glow">
+            <Logo className="h-14 w-auto sm:h-20" priority />
           </span>
-        </div>
-
-        <h1 className="mt-6 text-balance text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-7xl">
-          <span className="text-gradient">INFIN</span> Booking
         </h1>
 
         <p className="mt-5 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground sm:text-xl">

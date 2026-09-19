@@ -20,7 +20,7 @@ export interface DemoConfig {
 }
 
 export const demoConfig: DemoConfig = {
-  productName: 'INFIN Booking',
+  productName: 'Midwest Identity Services',
   tagline: 'Where modern businesses take bookings. Elegant, fast, and ready to embed anywhere.',
   demoBusinessSlug: 'demo-business',
   supportedProviders: {
