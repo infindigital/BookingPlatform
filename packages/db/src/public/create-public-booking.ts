@@ -36,12 +36,15 @@ export interface CreatePublicBookingInput {
   slug: string;
   serviceId: string;
   employeeId?: string | null;
+  locationId?: string | null;
   /** Local calendar day in the business timezone, "YYYY-MM-DD". */
   dayKey: string;
   /** Local wall-clock start in the business timezone, "HH:MM" (24h). */
   time: string;
   customer: PublicBookingCustomer;
   notes?: string | null;
+  /** Customer's own address, required for a MOBILE ("we come to you") location. */
+  customerAddress?: string | null;
 }
 
 export interface PublicBookingConfirmation {
@@ -52,6 +55,7 @@ export interface PublicBookingConfirmation {
   endISO: string;
   serviceName: string;
   employeeName: string | null;
+  locationName: string | null;
   businessName: string;
   timezone: string;
   currency: string;
@@ -83,12 +87,14 @@ export async function createPublicBooking(
   // before they reach the database (defence in depth; the API also caps body size).
   const phone = input.customer.phone?.trim() || null;
   const notes = input.notes?.trim() || null;
+  const customerAddress = input.customerAddress?.trim() || null;
   if (
     firstName.length > 100 ||
     lastName.length > 100 ||
     email.length > 200 ||
     (phone && phone.length > 40) ||
-    (notes && notes.length > 2000)
+    (notes && notes.length > 2000) ||
+    (customerAddress && customerAddress.length > 300)
   ) {
     throw new ValidationError('One of the fields is too long. Please shorten your details.');
   }
@@ -112,6 +118,23 @@ export async function createPublicBooking(
   });
   if (!service) throw new ValidationError('That service is no longer available.');
 
+  // Resolve and validate the requested location, when one was chosen. The
+  // availability engine below also gates service/staff by this location, so an
+  // invalid service+location combination will simply yield no bookable slot.
+  let location: { id: string; name: string; mode: string } | null = null;
+  if (input.locationId) {
+    const found = await db.location.findFirst({
+      where: { id: input.locationId, businessId, isActive: true },
+      select: { id: true, name: true, mode: true },
+    });
+    if (!found) throw new ValidationError('That location is no longer available.');
+    location = found;
+    // A mobile ("we come to you") location needs the customer's own address.
+    if (found.mode === 'MOBILE' && !customerAddress) {
+      throw new ValidationError('Please provide the address we should come to.');
+    }
+  }
+
   const startAt = wallTimeToInstant(input.dayKey, minutes, timeZone);
   const endAt = new Date(startAt.getTime() + service.durationMinutes * 60_000);
 
@@ -123,6 +146,7 @@ export async function createPublicBooking(
     {
       serviceId: service.id,
       employeeId: input.employeeId ?? null,
+      locationId: location?.id ?? null,
       fromDayKey: input.dayKey,
       toDayKey: input.dayKey,
       timeZone,
@@ -160,6 +184,7 @@ export async function createPublicBooking(
     customerId: customer.id,
     serviceId: service.id,
     employeeId,
+    locationId: location?.id ?? null,
     startAt,
     endAt,
     timezone: timeZone,
@@ -168,6 +193,7 @@ export async function createPublicBooking(
     status: 'PENDING',
     source: 'public',
     notes,
+    customerAddress,
   });
 
   const employee = employeeId
@@ -208,6 +234,7 @@ export async function createPublicBooking(
     endISO: endAt.toISOString(),
     serviceName: service.name,
     employeeName: employee ? `${employee.firstName} ${employee.lastName}`.trim() : null,
+    locationName: location?.name ?? null,
     businessName: business.name,
     timezone: timeZone,
     currency: business.currency,

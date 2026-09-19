@@ -30,6 +30,7 @@ export async function fetchPublicAvailability(input: {
   slug: string;
   serviceId: string;
   employeeId: string | null;
+  locationId?: string | null;
   fromDayKey: string;
   toDayKey: string;
 }): Promise<{ days: PublicDaySlots[] }> {
@@ -42,6 +43,7 @@ export async function fetchPublicAvailability(input: {
     slug: input.slug,
     serviceId: input.serviceId,
     employeeId: input.employeeId,
+    locationId: input.locationId ?? null,
     fromDayKey: input.fromDayKey,
     toDayKey: input.toDayKey,
     now: new Date(),
@@ -65,6 +67,7 @@ export async function submitPublicBooking(input: {
   slug: string;
   serviceId: string;
   employeeId: string | null;
+  locationId?: string | null;
   dayKey: string;
   time: string;
   firstName: string;
@@ -72,12 +75,14 @@ export async function submitPublicBooking(input: {
   email: string;
   phone: string;
   notes: string;
+  customerAddress?: string | null;
 }): Promise<PublicBookingResult> {
   try {
     const confirmation = await createPublicBooking({
       slug: input.slug,
       serviceId: input.serviceId,
       employeeId: input.employeeId,
+      locationId: input.locationId ?? null,
       dayKey: input.dayKey,
       time: input.time,
       customer: {
@@ -87,6 +92,7 @@ export async function submitPublicBooking(input: {
         phone: input.phone,
       },
       notes: input.notes,
+      customerAddress: input.customerAddress ?? null,
     });
     return { ok: true, confirmation };
   } catch (error) {

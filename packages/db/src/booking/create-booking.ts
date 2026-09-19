@@ -16,6 +16,7 @@ export interface CreateBookingInput {
   priceTotal?: Prisma.Decimal | number | string;
   currency?: string;
   notes?: string | null;
+  customerAddress?: string | null;
   source?: string | null;
   status?: BookingStatus;
 }
@@ -80,6 +81,7 @@ export async function createBooking(
         priceTotal: input.priceTotal ?? 0,
         currency: input.currency ?? 'USD',
         notes: input.notes ?? null,
+        customerAddress: input.customerAddress ?? null,
         source: input.source ?? null,
       },
       select: { id: true },

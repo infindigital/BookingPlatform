@@ -24,6 +24,7 @@ export async function GET(request: Request) {
 
   const serviceId = url.searchParams.get('serviceId') ?? '';
   const employeeId = url.searchParams.get('employeeId');
+  const locationId = url.searchParams.get('locationId');
   const from = url.searchParams.get('from') ?? '';
   const to = url.searchParams.get('to') ?? '';
 
@@ -38,6 +39,7 @@ export async function GET(request: Request) {
       slug: ctx.website.slug,
       serviceId,
       employeeId: employeeId || null,
+      locationId: locationId || null,
       fromDayKey: from,
       toDayKey: to,
       now: new Date(),

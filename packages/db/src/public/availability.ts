@@ -13,6 +13,7 @@ export interface PublicAvailabilityParams {
   slug: string;
   serviceId: string;
   employeeId?: string | null;
+  locationId?: string | null;
   fromDayKey: string;
   toDayKey: string;
   now?: Date;
@@ -39,6 +40,7 @@ export async function getPublicAvailability(
     {
       serviceId: params.serviceId,
       employeeId: params.employeeId ?? null,
+      locationId: params.locationId ?? null,
       fromDayKey: params.fromDayKey,
       toDayKey: params.toDayKey,
       timeZone: business.timezone || 'UTC',

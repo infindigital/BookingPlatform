@@ -16,7 +16,7 @@ export const runtime = 'nodejs';
  * visitors racing for the last slot cannot both win. Public bookings are created
  * PENDING (awaiting admin approval).
  *
- * Body: { serviceId, employeeId?, dayKey, time, firstName, lastName, email, phone?, notes? }
+ * Body: { serviceId, employeeId?, locationId?, dayKey, time, firstName, lastName, email, phone?, notes?, customerAddress? }
  */
 export async function POST(request: Request) {
   const url = new URL(request.url);
@@ -58,6 +58,7 @@ export async function POST(request: Request) {
       slug: ctx.website.slug,
       serviceId,
       employeeId: str(body.employeeId) || null,
+      locationId: str(body.locationId) || null,
       dayKey: str(body.dayKey),
       time: str(body.time),
       customer: {
@@ -67,6 +68,7 @@ export async function POST(request: Request) {
         phone: str(body.phone) || null,
       },
       notes: str(body.notes) || null,
+      customerAddress: str(body.customerAddress) || null,
     });
     return apiOk({ booking: confirmation }, ctx, 201);
   } catch (error) {

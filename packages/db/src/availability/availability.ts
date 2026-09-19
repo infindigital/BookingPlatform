@@ -38,6 +38,13 @@ export interface AvailabilityResult {
 export interface AvailabilityParams {
   serviceId: string;
   employeeId?: string | null;
+  /**
+   * When set, availability is gated to this location: the service must be
+   * offered here (or offered everywhere) and only staff assigned here (or
+   * assigned nowhere) are considered. Absence of any assignment row keeps the
+   * backward-compatible "available everywhere" behaviour.
+   */
+  locationId?: string | null;
   fromDayKey: string;
   toDayKey: string;
   timeZone: string;
@@ -90,13 +97,46 @@ export async function getAvailability(
   };
   if (!service) return empty;
 
+  // Location gating (backward-compatible): a service with explicit
+  // ServiceLocation rows is only bookable at those locations; a service with no
+  // rows is offered everywhere.
+  if (params.locationId) {
+    const serviceLocationCount = await db.serviceLocation.count({
+      where: { businessId, serviceId: params.serviceId },
+    });
+    if (serviceLocationCount > 0) {
+      const offeredHere = await db.serviceLocation.count({
+        where: { businessId, serviceId: params.serviceId, locationId: params.locationId },
+      });
+      if (offeredHere === 0) return empty;
+    }
+  }
+
   // Eligible, active employees who offer this service.
   const offering = await db.employeeService.findMany({
     where: { businessId, serviceId: params.serviceId, ...(params.employeeId ? { employeeId: params.employeeId } : {}) },
     select: { employeeId: true },
   });
-  const offeringIds = offering.map((o) => o.employeeId);
+  let offeringIds = offering.map((o) => o.employeeId);
   if (offeringIds.length === 0) return empty;
+
+  // Narrow to staff who work at this location. An employee with explicit
+  // EmployeeLocation rows only counts at those locations; one with no rows works
+  // everywhere (backward-compatible default).
+  if (params.locationId) {
+    const empLocs = await db.employeeLocation.findMany({
+      where: { businessId, employeeId: { in: offeringIds } },
+      select: { employeeId: true, locationId: true },
+    });
+    const hasAnyAssignment = new Set<string>();
+    const assignedHere = new Set<string>();
+    for (const el of empLocs) {
+      hasAnyAssignment.add(el.employeeId);
+      if (el.locationId === params.locationId) assignedHere.add(el.employeeId);
+    }
+    offeringIds = offeringIds.filter((id) => !hasAnyAssignment.has(id) || assignedHere.has(id));
+    if (offeringIds.length === 0) return empty;
+  }
   const activeEmployees = await db.employee.findMany({
     where: { businessId, isActive: true, id: { in: offeringIds } },
     select: { id: true },
@@ -107,7 +147,7 @@ export async function getAvailability(
   const rangeStart = dateMidnightInstant(params.fromDayKey, timeZone);
   const rangeEnd = dateMidnightInstant(addDays(params.toDayKey, 1), timeZone);
 
-  const [workingHours, bookings, timeOff, blocked, holidays, businessHoursRows] = await Promise.all([
+  const [workingHours, bookings, timeOff, blocked, holidays, businessHoursRowsForLocation] = await Promise.all([
     db.employeeWorkingHours.findMany({
       where: { businessId, employeeId: { in: employeeIds } },
       select: { employeeId: true, dayOfWeek: true, startTime: true, endTime: true, breaks: { select: { startTime: true, endTime: true } } },
@@ -132,10 +172,20 @@ export async function getAvailability(
     }),
     db.holiday.findMany({ where: { businessId }, select: { date: true, recurringYearly: true } }),
     db.businessHours.findMany({
-      where: { businessId, locationId: null },
+      where: { businessId, locationId: params.locationId ?? null },
       select: { dayOfWeek: true, openTime: true, closeTime: true, isClosed: true },
     }),
   ]);
+
+  // When a location was requested but has no opening hours of its own, fall back
+  // to the business-wide rows so per-location config is optional.
+  const businessHoursRows =
+    params.locationId && businessHoursRowsForLocation.length === 0
+      ? await db.businessHours.findMany({
+          where: { businessId, locationId: null },
+          select: { dayOfWeek: true, openTime: true, closeTime: true, isClosed: true },
+        })
+      : businessHoursRowsForLocation;
 
   // Business-wide opening hours act as an outer boundary on every employee's
   // bookable windows. When no rows are configured the constraint is inert, so

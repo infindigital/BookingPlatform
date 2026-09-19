@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client';
+import type { LocationMode, PrismaClient } from '@prisma/client';
 import { prisma } from '../client';
 import { loadResolvedForm, type ResolvedForm } from '../form/config';
 
@@ -35,6 +35,8 @@ export interface PublicService {
   durationMinutes: number;
   price: number;
   color: string | null;
+  /** Locations this service is offered at (empty = every location). */
+  locationIds: string[];
 }
 
 export interface PublicEmployee {
@@ -42,6 +44,24 @@ export interface PublicEmployee {
   name: string;
   title: string | null;
   serviceIds: string[];
+  /** Locations this employee works at (empty = every location). */
+  locationIds: string[];
+}
+
+export interface PublicLocation {
+  id: string;
+  name: string;
+  mode: LocationMode;
+  address: string | null;
+  addressLine2: string | null;
+  city: string | null;
+  state: string | null;
+  postalCode: string | null;
+  country: string | null;
+  mapUrl: string | null;
+  phone: string | null;
+  instructions: string | null;
+  isDefault: boolean;
 }
 
 export interface PublicBookingData {
@@ -49,6 +69,8 @@ export interface PublicBookingData {
   categories: PublicServiceCategory[];
   services: PublicService[];
   employees: PublicEmployee[];
+  /** Active bookable locations (empty when the business runs a single implicit site). */
+  locations: PublicLocation[];
   /** Resolved Form Designer configuration: theme tokens, settings and steps. */
   form: ResolvedForm;
 }
@@ -66,7 +88,7 @@ export async function getPublicBookingData(
   if (!business) return null;
   const businessId = business.id;
 
-  const [categories, services, employees, form] = await Promise.all([
+  const [categories, services, employees, locations, form] = await Promise.all([
     db.serviceCategory.findMany({
       where: { businessId },
       orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
@@ -83,6 +105,7 @@ export async function getPublicBookingData(
         durationMinutes: true,
         price: true,
         color: true,
+        locations: { select: { locationId: true } },
       },
     }),
     db.employee.findMany({
@@ -94,6 +117,26 @@ export async function getPublicBookingData(
         lastName: true,
         title: true,
         services: { select: { serviceId: true } },
+        locations: { select: { locationId: true } },
+      },
+    }),
+    db.location.findMany({
+      where: { businessId, isActive: true },
+      orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
+      select: {
+        id: true,
+        name: true,
+        mode: true,
+        address: true,
+        addressLine2: true,
+        city: true,
+        state: true,
+        postalCode: true,
+        country: true,
+        mapUrl: true,
+        phone: true,
+        instructions: true,
+        isDefault: true,
       },
     }),
     loadResolvedForm(businessId, db),
@@ -111,12 +154,15 @@ export async function getPublicBookingData(
       durationMinutes: s.durationMinutes,
       price: Number(s.price),
       color: s.color,
+      locationIds: s.locations.map((sl) => sl.locationId),
     })),
     employees: employees.map((e) => ({
       id: e.id,
       name: `${e.firstName} ${e.lastName}`.trim(),
       title: e.title,
       serviceIds: e.services.map((es) => es.serviceId),
+      locationIds: e.locations.map((el) => el.locationId),
     })),
+    locations,
   };
 }

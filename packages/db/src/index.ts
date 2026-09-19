@@ -99,6 +99,7 @@ export {
   type PublicServiceCategory,
   type PublicService,
   type PublicEmployee,
+  type PublicLocation,
 } from './public/booking-data';
 export { getPublicAvailability, type PublicAvailabilityParams } from './public/availability';
 export {
