@@ -9,8 +9,11 @@ import { Logo } from '@/components/shell/logo';
 
 export default function HomePage() {
   return (
-    <main className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-6 py-20">
-      <div className="aurora-field" aria-hidden />
+    <main
+      className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-6 py-20 text-white"
+      style={{ backgroundColor: '#0F4368' }}
+    >
+      <div className="aurora-field opacity-40" aria-hidden />
 
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -18,7 +21,7 @@ export default function HomePage() {
         transition={{ duration: 0.5, ease: 'easeOut' }}
         className="mx-auto flex max-w-3xl flex-col items-center text-center"
       >
-        <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/5 px-4 py-1.5 text-xs font-semibold tracking-wide text-primary backdrop-blur">
+        <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-xs font-semibold tracking-wide text-white backdrop-blur">
           <Sparkles className="size-3.5" aria-hidden />
           Premium booking platform
         </span>
@@ -29,7 +32,7 @@ export default function HomePage() {
           </span>
         </h1>
 
-        <p className="mt-5 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground sm:text-xl">
+        <p className="mt-5 max-w-xl text-pretty text-lg leading-relaxed text-white/80 sm:text-xl">
           {demoConfig.tagline}
         </p>
 
@@ -54,7 +57,7 @@ export default function HomePage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.6 }}
-        className="absolute bottom-8 text-xs text-muted-foreground/70"
+        className="absolute bottom-8 text-xs text-white/60"
       >
         {demoConfig.productName}
       </motion.p>
