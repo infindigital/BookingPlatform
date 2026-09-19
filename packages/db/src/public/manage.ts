@@ -32,6 +32,10 @@ export interface ManageBookingRow {
   durationMinutes: number;
   priceTotal: number;
   currency: string;
+  locationName: string | null;
+  locationMode: string | null;
+  locationAddress: string | null;
+  customerAddress: string | null;
   isUpcoming: boolean;
   canCancel: boolean;
   canReschedule: boolean;
@@ -113,8 +117,20 @@ export async function lookupCustomerBookings(
       status: true,
       priceTotal: true,
       currency: true,
+      customerAddress: true,
       service: { select: { name: true, color: true } },
       employee: { select: { firstName: true, lastName: true } },
+      location: {
+        select: {
+          name: true,
+          mode: true,
+          address: true,
+          addressLine2: true,
+          city: true,
+          state: true,
+          postalCode: true,
+        },
+      },
     },
   });
 
@@ -135,6 +151,21 @@ export async function lookupCustomerBookings(
       durationMinutes: Math.round((b.endAt.getTime() - b.startAt.getTime()) / 60_000),
       priceTotal: Number(b.priceTotal),
       currency: b.currency,
+      locationName: b.location?.name ?? null,
+      locationMode: b.location?.mode ?? null,
+      locationAddress: b.location
+        ? [
+            b.location.address,
+            b.location.addressLine2,
+            [[b.location.city, b.location.state].filter(Boolean).join(', '), b.location.postalCode]
+              .filter(Boolean)
+              .join(' ')
+              .trim(),
+          ]
+            .filter(Boolean)
+            .join(', ') || null
+        : null,
+      customerAddress: b.customerAddress ?? null,
       isUpcoming,
       canCancel: isUpcoming && canTransition(b.status, 'CANCELLED'),
       canReschedule: isUpcoming && isReschedulable(b.status),

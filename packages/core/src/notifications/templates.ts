@@ -62,6 +62,10 @@ export const TEMPLATE_VARIABLES: readonly { token: string; description: string }
   { token: 'booking.employee', description: 'Assigned team member' },
   { token: 'booking.price', description: 'Total price' },
   { token: 'booking.manageUrl', description: 'Link to view / reschedule / cancel' },
+  { token: 'booking.location', description: 'Location name' },
+  { token: 'booking.address', description: 'Location address (or the customer’s address for mobile visits)' },
+  { token: 'booking.mapUrl', description: 'Map / directions link for the location' },
+  { token: 'booking.customerAddress', description: "Customer's address for a mobile visit" },
 ];
 
 /** Default English copy for every event (EMAIL). Other channels reuse the body. */

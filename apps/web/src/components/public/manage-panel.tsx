@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
-import { CalendarClock, Clock, ArrowLeft, CalendarX2 } from 'lucide-react';
+import { CalendarClock, Clock, ArrowLeft, CalendarX2, MapPin, Home } from 'lucide-react';
 import type { ManageLookupResult, ManageBookingRow } from '@booking/db';
 import { Button } from '@booking/ui/button';
 import { StatusBadge } from '@/components/dashboard/status-badge';
@@ -224,6 +224,21 @@ function BookingCard({
               <Clock className="size-3.5" /> {formatDuration(b.durationMinutes)}
               {b.employeeName ? ` · ${b.employeeName}` : ''} · {formatMoney(b.priceTotal, b.currency)}
             </p>
+            {b.locationName ? (
+              <p className="mt-0.5 flex items-start gap-2 text-xs text-muted-foreground">
+                <MapPin className="mt-0.5 size-3.5 shrink-0" />
+                <span>
+                  {b.locationName}
+                  {b.locationMode !== 'MOBILE' && b.locationAddress ? ` · ${b.locationAddress}` : ''}
+                </span>
+              </p>
+            ) : null}
+            {b.customerAddress ? (
+              <p className="mt-0.5 flex items-start gap-2 text-xs text-muted-foreground">
+                <Home className="mt-0.5 size-3.5 shrink-0" />
+                <span>{b.customerAddress}</span>
+              </p>
+            ) : null}
             <p className="mt-1 font-mono text-xs text-muted-foreground">Ref {b.reference}</p>
           </div>
         </div>

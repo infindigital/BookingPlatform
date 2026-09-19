@@ -56,10 +56,24 @@ export async function buildBookingContext(
       priceTotal: true,
       currency: true,
       timezone: true,
+      customerAddress: true,
       customer: { select: { firstName: true, lastName: true, email: true, phone: true } },
       service: { select: { name: true } },
       employee: { select: { firstName: true, lastName: true } },
       business: { select: { name: true, timezone: true, slug: true } },
+      location: {
+        select: {
+          name: true,
+          mode: true,
+          address: true,
+          addressLine2: true,
+          city: true,
+          state: true,
+          postalCode: true,
+          country: true,
+          mapUrl: true,
+        },
+      },
     },
   });
   if (!booking) return null;
@@ -82,6 +96,22 @@ export async function buildBookingContext(
   const recipientEmail = booking.customer.email ?? null;
   const manageUrl = manageUrlFor(booking.business.slug, recipientEmail, reference);
 
+  // Location: for a mobile ("we come to you") location the relevant address is
+  // the customer's own; otherwise it is the venue's full address.
+  const loc = booking.location;
+  const customerAddress = booking.customerAddress?.trim() ?? '';
+  const venueAddress = loc
+    ? [
+        loc.address,
+        [[loc.city, loc.state].filter(Boolean).join(', '), loc.postalCode].filter(Boolean).join(' ').trim(),
+      ]
+        .filter(Boolean)
+        .join(', ')
+    : '';
+  const locationName = loc?.name ?? '';
+  const address = loc?.mode === 'MOBILE' ? customerAddress : venueAddress;
+  const mapUrl = loc?.mode === 'MOBILE' ? '' : loc?.mapUrl ?? '';
+
   const vars: Record<string, string> = {
     'customer.firstName': firstName,
     'customer.lastName': lastName,
@@ -94,6 +124,10 @@ export async function buildBookingContext(
     'booking.employee': employeeName,
     'booking.price': price,
     'booking.manageUrl': manageUrl ?? '',
+    'booking.location': locationName,
+    'booking.address': address,
+    'booking.mapUrl': mapUrl,
+    'booking.customerAddress': customerAddress,
   };
 
   return {

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { CalendarClock, DollarSign, MapPin, Scissors, Tag, User, UserCog, X } from 'lucide-react';
+import { CalendarClock, DollarSign, Home, MapPin, Scissors, Tag, User, UserCog, X } from 'lucide-react';
 import type { BookingListRow, BookingFormData } from '@booking/db';
 import { availableActions, isReschedulable } from '@booking/core';
 import { Sheet, SheetContent, SheetClose, SheetTitle, SheetDescription } from '@booking/ui/sheet';
@@ -105,7 +105,33 @@ export function BookingDetailDrawer({
                 />
                 <Row icon={Scissors} label="Service" value={booking.serviceName} />
                 <Row icon={UserCog} label="Team member" value={booking.employeeName ?? 'Unassigned'} />
-                {booking.locationName ? <Row icon={MapPin} label="Location" value={booking.locationName} /> : null}
+                {booking.locationName ? (
+                  <Row
+                    icon={MapPin}
+                    label="Location"
+                    value={
+                      <div>
+                        <p className="font-medium">{booking.locationName}</p>
+                        {booking.locationAddress ? (
+                          <p className="text-xs text-muted-foreground">{booking.locationAddress}</p>
+                        ) : null}
+                        {booking.locationMapUrl ? (
+                          <a
+                            href={booking.locationMapUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs font-medium text-primary underline-offset-4 hover:underline"
+                          >
+                            View map
+                          </a>
+                        ) : null}
+                      </div>
+                    }
+                  />
+                ) : null}
+                {booking.customerAddress ? (
+                  <Row icon={Home} label="Customer address" value={booking.customerAddress} />
+                ) : null}
                 <Row
                   icon={DollarSign}
                   label="Total"

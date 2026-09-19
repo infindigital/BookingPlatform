@@ -14,6 +14,11 @@ export interface BookingListRow {
   employeeId: string | null;
   employeeName: string | null;
   locationName: string | null;
+  locationMode: string | null;
+  locationAddress: string | null;
+  locationMapUrl: string | null;
+  /** Customer-supplied address for a mobile ("we come to you") booking. */
+  customerAddress: string | null;
   priceTotal: number;
   currency: string;
   source: string | null;
@@ -83,7 +88,18 @@ export async function getBookingsList(
         customer: { select: { firstName: true, lastName: true, email: true } },
         service: { select: { name: true, color: true } },
         employee: { select: { firstName: true, lastName: true } },
-        location: { select: { name: true } },
+        location: {
+          select: {
+            name: true,
+            mode: true,
+            address: true,
+            addressLine2: true,
+            city: true,
+            state: true,
+            postalCode: true,
+            mapUrl: true,
+          },
+        },
       },
     }),
     db.booking.count({ where }),
@@ -112,6 +128,21 @@ export async function getBookingsList(
       employeeId: b.employeeId,
       employeeName: b.employee ? `${b.employee.firstName} ${b.employee.lastName}`.trim() : null,
       locationName: b.location?.name ?? null,
+      locationMode: b.location?.mode ?? null,
+      locationAddress: b.location
+        ? [
+            b.location.address,
+            b.location.addressLine2,
+            [[b.location.city, b.location.state].filter(Boolean).join(', '), b.location.postalCode]
+              .filter(Boolean)
+              .join(' ')
+              .trim(),
+          ]
+            .filter(Boolean)
+            .join(', ') || null
+        : null,
+      locationMapUrl: b.location?.mapUrl ?? null,
+      customerAddress: b.customerAddress ?? null,
       priceTotal: Number(b.priceTotal.toString()),
       currency: b.currency,
       source: b.source,

@@ -250,6 +250,13 @@ export function BookingWizard({
           {(c?.locationName ?? chosenLocation?.name) ? (
             <Row label="Location" value={c?.locationName ?? chosenLocation!.name} />
           ) : null}
+          {chosenLocation && chosenLocation.mode !== 'MOBILE' && locationSummary(chosenLocation) ? (
+            <Row label="Address" value={locationSummary(chosenLocation)} />
+          ) : null}
+          {chosenLocation?.mode === 'MOBILE' && customerAddress.trim() ? (
+            <Row label="We come to" value={customerAddress.trim()} />
+          ) : null}
+          {chosenLocation?.instructions ? <Row label="Instructions" value={chosenLocation.instructions} /> : null}
           {slot ? <Row label="When" value={confirmationWhen(c?.startISO ?? slot.startISO, timeZone)} /> : null}
           {settings.showPrices && service ? <Row label="Price" value={formatMoney(service.price, business.currency)} /> : null}
           {c && c.amountDue > 0 ? (
