@@ -104,4 +104,78 @@ export class LocationRepository extends BaseRepository {
   count() {
     return this.db.location.count({ where: this.scope() });
   }
+
+  // ---- Location notices ---------------------------------------------------
+  // Editable banners shown in the booking flow. A null locationId means the
+  // notice is business-wide (shown for every location); otherwise it is scoped
+  // to that one location. Optional start/end bound when it is live.
+
+  /** Every notice for this tenant, newest first, for the admin workspace. */
+  listNotices() {
+    return this.db.locationNotice.findMany({
+      where: this.scope(),
+      orderBy: [{ isActive: 'desc' }, { updatedAt: 'desc' }],
+    });
+  }
+
+  getNotice(id: string) {
+    return this.db.locationNotice.findFirst({ where: this.scope({ id }) });
+  }
+
+  /** Confirm a location id belongs to this tenant, or throw. Null is allowed (business-wide). */
+  private async assertNoticeLocation(locationId: string | null): Promise<void> {
+    if (!locationId) return;
+    const owned = await this.db.location.findFirst({ where: this.scope({ id: locationId }), select: { id: true } });
+    if (!owned) throw new Error('Location not found in this business.');
+  }
+
+  async createNotice(data: NoticeInput) {
+    await this.assertNoticeLocation(data.locationId ?? null);
+    return this.db.locationNotice.create({
+      data: {
+        businessId: this.businessId,
+        locationId: data.locationId ?? null,
+        title: data.title ?? null,
+        message: data.message,
+        level: data.level ?? null,
+        startsAt: data.startsAt ?? null,
+        endsAt: data.endsAt ?? null,
+        isActive: data.isActive ?? true,
+      },
+    });
+  }
+
+  async updateNotice(id: string, data: NoticeInput) {
+    await this.assertNoticeLocation(data.locationId ?? null);
+    // updateMany with a scoped where guarantees we never touch another tenant's row.
+    return this.db.locationNotice.updateMany({
+      where: this.scope({ id }),
+      data: {
+        locationId: data.locationId ?? null,
+        title: data.title ?? null,
+        message: data.message,
+        level: data.level ?? null,
+        startsAt: data.startsAt ?? null,
+        endsAt: data.endsAt ?? null,
+        isActive: data.isActive ?? true,
+      },
+    });
+  }
+
+  deleteNotice(id: string) {
+    return this.db.locationNotice.deleteMany({ where: this.scope({ id }) });
+  }
+}
+
+/** Fields for creating or updating a location notice. */
+export interface NoticeInput {
+  /** Null -> business-wide; otherwise scoped to this location. */
+  locationId?: string | null;
+  title?: string | null;
+  message: string;
+  /** 'info' | 'warning' | 'critical' (free-form string in the schema). */
+  level?: string | null;
+  startsAt?: Date | null;
+  endsAt?: Date | null;
+  isActive?: boolean;
 }

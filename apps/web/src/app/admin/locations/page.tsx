@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getLocationsOverview } from '@booking/db';
 import { requirePermission } from '@/server/auth/guard';
 import { LocationsWorkspace } from '@/components/locations/locations-workspace';
+import { LocationNotices } from '@/components/locations/location-notices';
 
 export const metadata: Metadata = { title: 'Locations' };
 
@@ -18,11 +19,17 @@ export default async function LocationsPage() {
   const overview = await getLocationsOverview(session.user.businessId);
 
   return (
-    <LocationsWorkspace
-      locations={overview.locations}
-      timezones={supportedTimezones()}
-      services={overview.services}
-      employees={overview.employees}
-    />
+    <div className="space-y-10">
+      <LocationsWorkspace
+        locations={overview.locations}
+        timezones={supportedTimezones()}
+        services={overview.services}
+        employees={overview.employees}
+      />
+      <LocationNotices
+        notices={overview.notices}
+        locations={overview.locations.map((l) => ({ id: l.id, name: l.name }))}
+      />
+    </div>
   );
 }

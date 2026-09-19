@@ -13,7 +13,7 @@ import { EventRepository } from '../events/event.repository';
 
 export { BaseRepository } from './base';
 export { ServiceRepository } from './service.repository';
-export { LocationRepository } from './location.repository';
+export { LocationRepository, type NoticeInput } from './location.repository';
 export { CustomerRepository } from './customer.repository';
 export { BookingRepository } from './booking.repository';
 export { BusinessRepository } from './business.repository';

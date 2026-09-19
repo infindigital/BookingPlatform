@@ -64,6 +64,20 @@ export interface PublicLocation {
   isDefault: boolean;
 }
 
+/**
+ * A customer-facing notice/banner. A null locationId means it is business-wide
+ * (shown for every location); otherwise it is scoped to that one location.
+ * Only notices that are active and within their optional time window are
+ * returned.
+ */
+export interface PublicNotice {
+  id: string;
+  locationId: string | null;
+  title: string | null;
+  message: string;
+  level: string | null;
+}
+
 export interface PublicBookingData {
   business: PublicBusiness;
   categories: PublicServiceCategory[];
@@ -71,6 +85,8 @@ export interface PublicBookingData {
   employees: PublicEmployee[];
   /** Active bookable locations (empty when the business runs a single implicit site). */
   locations: PublicLocation[];
+  /** Active notices to surface in the booking flow (business-wide + location-scoped). */
+  notices: PublicNotice[];
   /** Resolved Form Designer configuration: theme tokens, settings and steps. */
   form: ResolvedForm;
 }
@@ -88,7 +104,8 @@ export async function getPublicBookingData(
   if (!business) return null;
   const businessId = business.id;
 
-  const [categories, services, employees, locations, form] = await Promise.all([
+  const now = new Date();
+  const [categories, services, employees, locations, notices, form] = await Promise.all([
     db.serviceCategory.findMany({
       where: { businessId },
       orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
@@ -139,6 +156,18 @@ export async function getPublicBookingData(
         isDefault: true,
       },
     }),
+    db.locationNotice.findMany({
+      where: {
+        businessId,
+        isActive: true,
+        AND: [
+          { OR: [{ startsAt: null }, { startsAt: { lte: now } }] },
+          { OR: [{ endsAt: null }, { endsAt: { gte: now } }] },
+        ],
+      },
+      orderBy: [{ createdAt: 'asc' }],
+      select: { id: true, locationId: true, title: true, message: true, level: true },
+    }),
     loadResolvedForm(businessId, db),
   ]);
 
@@ -164,5 +193,6 @@ export async function getPublicBookingData(
       locationIds: e.locations.map((el) => el.locationId),
     })),
     locations,
+    notices,
   };
 }

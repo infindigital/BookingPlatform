@@ -36,6 +36,7 @@ export async function GET(request: Request) {
         services: data.services,
         employees: data.employees,
         locations: data.locations,
+        notices: data.notices,
         theme: data.form.theme,
         settings: data.form.settings,
         steps: data.form.steps,

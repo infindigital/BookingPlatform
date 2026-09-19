@@ -48,10 +48,26 @@ export interface AssignableEmployee {
   isActive: boolean;
 }
 
+/** An editable notice/banner shown in the booking flow. */
+export interface NoticeRow {
+  id: string;
+  /** Null -> business-wide; otherwise scoped to this location. */
+  locationId: string | null;
+  /** Location name for display, or null when business-wide. */
+  locationName: string | null;
+  title: string | null;
+  message: string;
+  level: string | null;
+  startsAt: string | null;
+  endsAt: string | null;
+  isActive: boolean;
+}
+
 export interface LocationsOverview {
   locations: LocationRow[];
   services: AssignableService[];
   employees: AssignableEmployee[];
+  notices: NoticeRow[];
 }
 
 export async function getLocationsOverview(
@@ -60,7 +76,7 @@ export async function getLocationsOverview(
 ): Promise<LocationsOverview> {
   if (!businessId) throw new Error('getLocationsOverview requires a businessId.');
 
-  const [locations, services, employees] = await Promise.all([
+  const [locations, services, employees, notices] = await Promise.all([
     db.location.findMany({
       where: { businessId },
       orderBy: [{ isDefault: 'desc' }, { isActive: 'desc' }, { name: 'asc' }],
@@ -79,6 +95,11 @@ export async function getLocationsOverview(
       where: { businessId },
       orderBy: [{ isActive: 'desc' }, { firstName: 'asc' }, { lastName: 'asc' }],
       select: { id: true, firstName: true, lastName: true, isActive: true },
+    }),
+    db.locationNotice.findMany({
+      where: { businessId },
+      orderBy: [{ isActive: 'desc' }, { updatedAt: 'desc' }],
+      include: { location: { select: { name: true } } },
     }),
   ]);
 
@@ -109,6 +130,17 @@ export async function getLocationsOverview(
       id: e.id,
       name: `${e.firstName} ${e.lastName}`.trim(),
       isActive: e.isActive,
+    })),
+    notices: notices.map((n) => ({
+      id: n.id,
+      locationId: n.locationId,
+      locationName: n.location?.name ?? null,
+      title: n.title,
+      message: n.message,
+      level: n.level,
+      startsAt: n.startsAt ? n.startsAt.toISOString() : null,
+      endsAt: n.endsAt ? n.endsAt.toISOString() : null,
+      isActive: n.isActive,
     })),
   };
 }

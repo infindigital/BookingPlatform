@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo, useState, useTransition } from 'react';
-import { ArrowLeft, ArrowRight, Check, Clock, User, CalendarCheck, MapPin } from 'lucide-react';
-import type { PublicBookingData } from '@booking/db';
+import { ArrowLeft, ArrowRight, Check, Clock, User, CalendarCheck, MapPin, Info, AlertTriangle, AlertOctagon } from 'lucide-react';
+import type { PublicBookingData, PublicNotice } from '@booking/db';
 import {
   hasTeamStep,
   DEFAULT_FORM_SETTINGS,
@@ -55,7 +55,7 @@ export function BookingWizard({
   steps?: FormStepKey[];
   preview?: boolean;
 }) {
-  const { business, categories, services, employees, locations } = data;
+  const { business, categories, services, employees, locations, notices = [] } = data;
   const timeZone = business.timezone;
   const todayKey = useMemo(() => todayInTz(timeZone), [timeZone]);
 
@@ -100,6 +100,13 @@ export function BookingWizard({
   );
   const chosenStaff = employeeId ? employees.find((e) => e.id === employeeId) ?? null : null;
   const chosenLocation = useMemo(() => locations.find((l) => l.id === locationId) ?? null, [locations, locationId]);
+
+  // Business-wide notices (locationId null) always show; location-scoped notices
+  // show once their location is the chosen one.
+  const applicableNotices = useMemo(
+    () => notices.filter((n) => n.locationId === null || n.locationId === locationId),
+    [notices, locationId],
+  );
 
   // Locations valid for the current service (and chosen team member), honouring
   // the "no assignment rows = available everywhere" default.
@@ -228,6 +235,14 @@ export function BookingWizard({
           <p className="mt-2 text-center text-sm text-muted-foreground">{settings.confirmationMessage}</p>
         ) : null}
 
+        {applicableNotices.length > 0 ? (
+          <div className="mt-6 space-y-2">
+            {applicableNotices.map((n) => (
+              <NoticeBanner key={n.id} notice={n} />
+            ))}
+          </div>
+        ) : null}
+
         <dl className="mt-6 space-y-3 rounded-none border border-border bg-muted/30 p-4 text-sm">
           {c ? <Row label="Reference" value={c.reference} mono /> : null}
           <Row label="Service" value={c?.serviceName ?? service?.name ?? ''} />
@@ -276,6 +291,14 @@ export function BookingWizard({
 
   const bodyCore = (
     <>
+        {applicableNotices.length > 0 ? (
+          <div className="mb-5 space-y-2">
+            {applicableNotices.map((n) => (
+              <NoticeBanner key={n.id} notice={n} />
+            ))}
+          </div>
+        ) : null}
+
         {stepKey === 'service' && (
           <div className="space-y-5">
             {servicesByCategory.map((group) => (
@@ -823,6 +846,26 @@ function StaffOption({
       </span>
       {active ? <Check className="size-4 shrink-0 text-primary" /> : null}
     </button>
+  );
+}
+
+const NOTICE_STYLES: Record<string, { border: string; Icon: typeof Info }> = {
+  info: { border: 'border-primary/40 bg-primary/5 text-foreground', Icon: Info },
+  warning: { border: 'border-amber-500/50 bg-amber-500/10 text-foreground', Icon: AlertTriangle },
+  critical: { border: 'border-destructive/50 bg-destructive/5 text-foreground', Icon: AlertOctagon },
+};
+
+function NoticeBanner({ notice }: { notice: PublicNotice }) {
+  const style = NOTICE_STYLES[notice.level ?? 'info'] ?? NOTICE_STYLES.info!;
+  const Icon = style.Icon;
+  return (
+    <div className={`flex items-start gap-3 rounded-none border p-3.5 text-sm ${style.border}`} role="note">
+      <Icon className="mt-0.5 size-4 shrink-0" aria-hidden />
+      <div className="min-w-0">
+        {notice.title ? <p className="font-semibold">{notice.title}</p> : null}
+        <p className="whitespace-pre-line text-muted-foreground">{notice.message}</p>
+      </div>
+    </div>
   );
 }
 

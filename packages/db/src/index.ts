@@ -83,6 +83,7 @@ export {
   type LocationRow,
   type AssignableService,
   type AssignableEmployee,
+  type NoticeRow,
 } from './services/locations-overview';
 export {
   getFormConfig,
@@ -100,6 +101,7 @@ export {
   type PublicService,
   type PublicEmployee,
   type PublicLocation,
+  type PublicNotice,
 } from './public/booking-data';
 export { getPublicAvailability, type PublicAvailabilityParams } from './public/availability';
 export {

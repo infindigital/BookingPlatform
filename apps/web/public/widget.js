@@ -184,6 +184,14 @@
       '.bw-error{border:1px solid color-mix(in srgb,var(--bw-danger) 40%,transparent);background:color-mix(in srgb,var(--bw-danger) 8%,transparent);',
       '  color:var(--bw-danger);border-radius:var(--bw-radius);padding:9px 12px;font-size:13px;margin-bottom:12px;}',
       '.bw-empty{color:var(--bw-muted);font-size:13px;text-align:center;padding:22px 0;}',
+      '.bw-notices{margin-bottom:14px;display:flex;flex-direction:column;gap:8px;}',
+      '.bw-notice{border:1px solid color-mix(in srgb,var(--bw-primary) 40%,transparent);',
+      '  background:color-mix(in srgb,var(--bw-primary) 6%,transparent);border-radius:var(--bw-radius);',
+      '  padding:10px 12px;font-size:13px;color:var(--bw-fg);}',
+      '.bw-notice.warn{border-color:color-mix(in srgb,#d97706 55%,transparent);background:color-mix(in srgb,#d97706 10%,transparent);}',
+      '.bw-notice.crit{border-color:color-mix(in srgb,var(--bw-danger) 55%,transparent);background:color-mix(in srgb,var(--bw-danger) 8%,transparent);}',
+      '.bw-notice-title{font-weight:600;margin-bottom:2px;}',
+      '.bw-notice-msg{color:var(--bw-muted);white-space:pre-line;}',
       '.bw-center{text-align:center;padding:26px 10px;}',
       '.bw-check{width:52px;height:52px;border-radius:999px;background:color-mix(in srgb,var(--bw-primary) 12%,transparent);',
       '  color:var(--bw-primary);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:26px;}',
@@ -378,6 +386,30 @@
     });
   };
 
+  // Business-wide notices (locationId null) always apply; location-scoped
+  // notices apply once their location is the chosen one.
+  Widget.prototype.applicableNotices = function () {
+    var cfg = this.state.config;
+    var self = this;
+    var all = (cfg && cfg.notices) || [];
+    return all.filter(function (n) { return n.locationId == null || n.locationId === self.state.locationId; });
+  };
+
+  // Render active notice banners into the current view (all steps).
+  Widget.prototype.mountNotices = function () {
+    var list = this.applicableNotices();
+    if (!list.length) return;
+    var wrap = el('div', { class: 'bw-notices' });
+    list.forEach(function (n) {
+      var cls = 'bw-notice' + (n.level === 'critical' ? ' crit' : n.level === 'warning' ? ' warn' : '');
+      wrap.appendChild(el('div', { class: cls }, [
+        n.title ? el('div', { class: 'bw-notice-title', text: n.title }) : null,
+        el('div', { class: 'bw-notice-msg', text: n.message })
+      ]));
+    });
+    this.root.appendChild(wrap);
+  };
+
   Widget.prototype.selectedService = function () {
     var cfg = this.state.config;
     if (!cfg || !this.state.serviceId) return null;
@@ -495,6 +527,8 @@
     }
 
     if (s.error && s.step !== 'done') this.root.appendChild(el('div', { class: 'bw-error', text: s.error }));
+
+    this.mountNotices();
 
     if (s.step === 'service') this.renderService();
     else if (s.step === 'employee') this.renderEmployee();
