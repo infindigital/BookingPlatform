@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { getNotificationTemplates, getNotificationActivity, emailConfigStatus, businessRepository } from '@booking/db';
+import { getNotificationTemplates, getNotificationActivity, emailConfigStatus, businessRepository, repositoriesFor } from '@booking/db';
 import { requirePermission } from '@/server/auth/guard';
 import { NotificationsWorkspace } from '@/components/notifications/notifications-workspace';
 
@@ -9,10 +9,13 @@ export default async function NotificationsPage() {
   const session = await requirePermission('settings.manage');
   const businessId = session.user.businessId;
 
-  const [business, templates, activity] = await Promise.all([
+  const repos = repositoriesFor(businessId);
+  const [business, templates, activity, smsStatus, recipients] = await Promise.all([
     businessRepository.getById(businessId),
     getNotificationTemplates(businessId),
     getNotificationActivity(businessId, { limit: 60 }),
+    repos.settings.getSmsSettingsStatus(),
+    repos.settings.listRecipients(),
   ]);
 
   return (
@@ -21,6 +24,8 @@ export default async function NotificationsPage() {
       activity={activity}
       timeZone={business?.timezone || 'UTC'}
       emailStatus={emailConfigStatus()}
+      smsStatus={smsStatus}
+      recipients={recipients}
       adminEmail={session.user.email ?? ''}
     />
   );

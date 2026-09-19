@@ -10,11 +10,15 @@ import {
   emailConfigStatus,
   sendTestEmail,
   businessRepository,
+  repositoriesFor,
   writeAudit,
   type NotificationTemplateConfig,
   type NotificationActivity,
   type NotificationEvent,
+  type NotificationChannel,
   type EmailConfigStatus,
+  type SmsSettingsStatus,
+  type RecipientRow,
   type ProcessResult,
 } from '@booking/db';
 import { requirePermission } from '@/server/auth/guard';
@@ -154,5 +158,145 @@ export async function processNotificationsAction(): Promise<NotificationActionRe
   } catch (error) {
     logger.error('notification.process.failed', { message: (error as Error)?.message });
     return { ok: false, error: 'Could not process the queue. Please try again.' };
+  }
+}
+
+// --- SMS provider (Twilio) settings -----------------------------------------
+
+export async function loadSmsSettings(): Promise<SmsSettingsStatus> {
+  const session = await requirePermission('settings.manage');
+  return repositoriesFor(session.user.businessId).settings.getSmsSettingsStatus();
+}
+
+export async function saveSmsSettingsAction(input: {
+  accountSid: string;
+  authToken: string;
+  fromNumber: string;
+  isEnabled: boolean;
+}): Promise<NotificationActionResult> {
+  const session = await requirePermission('settings.manage');
+  try {
+    await repositoriesFor(session.user.businessId).settings.saveSmsSettings({
+      accountSid: input.accountSid,
+      // Blank token means "keep the stored one".
+      authToken: input.authToken.trim() || null,
+      fromNumber: input.fromNumber,
+      isEnabled: input.isEnabled,
+    });
+    await writeAudit({
+      businessId: session.user.businessId,
+      actorUserId: session.user.id,
+      action: 'notification.sms.save',
+      entity: 'SmsSettings',
+      metadata: { enabled: input.isEnabled },
+    });
+    refresh();
+    return { ok: true };
+  } catch (error) {
+    if ((error as { message?: string })?.message?.includes('ENCRYPTION_KEY')) {
+      return { ok: false, error: (error as Error).message };
+    }
+    logger.error('notification.sms.save.failed', { message: (error as Error)?.message });
+    return { ok: false, error: 'Could not save the SMS settings. Please try again.' };
+  }
+}
+
+// --- Notification recipients ------------------------------------------------
+
+const VALID_CHANNELS = new Set<NotificationChannel>(['EMAIL', 'WHATSAPP', 'SMS']);
+
+function cleanChannels(list: string[]): NotificationChannel[] {
+  return [...new Set(list)].filter((c): c is NotificationChannel => VALID_CHANNELS.has(c as NotificationChannel));
+}
+function cleanEvents(list: string[]): NotificationEvent[] {
+  return [...new Set(list)].filter((e): e is NotificationEvent => VALID_EVENTS.has(e as NotificationEvent));
+}
+
+export async function loadRecipients(): Promise<RecipientRow[]> {
+  const session = await requirePermission('settings.manage');
+  return repositoriesFor(session.user.businessId).settings.listRecipients();
+}
+
+export interface RecipientFormInput {
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  channels: string[];
+  events: string[];
+  isActive: boolean;
+}
+
+export async function createRecipientAction(input: RecipientFormInput): Promise<NotificationActionResult> {
+  const session = await requirePermission('settings.manage');
+  try {
+    await repositoriesFor(session.user.businessId).settings.createRecipient({
+      name: input.name,
+      email: input.email,
+      phone: input.phone,
+      channels: cleanChannels(input.channels),
+      events: cleanEvents(input.events),
+      isActive: input.isActive,
+    });
+    await writeAudit({
+      businessId: session.user.businessId,
+      actorUserId: session.user.id,
+      action: 'notification.recipient.create',
+      entity: 'NotificationRecipient',
+    });
+    refresh();
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof Error && error.name === 'ValidationError') return { ok: false, error: error.message };
+    logger.error('notification.recipient.create.failed', { message: (error as Error)?.message });
+    return { ok: false, error: 'Could not add the recipient. Please try again.' };
+  }
+}
+
+export async function updateRecipientAction(id: string, input: RecipientFormInput): Promise<NotificationActionResult> {
+  const session = await requirePermission('settings.manage');
+  if (!id) return { ok: false, error: 'Missing recipient.' };
+  try {
+    const res = await repositoriesFor(session.user.businessId).settings.updateRecipient(id, {
+      name: input.name,
+      email: input.email,
+      phone: input.phone,
+      channels: cleanChannels(input.channels),
+      events: cleanEvents(input.events),
+      isActive: input.isActive,
+    });
+    if (res.count === 0) return { ok: false, error: 'Recipient not found.' };
+    await writeAudit({
+      businessId: session.user.businessId,
+      actorUserId: session.user.id,
+      action: 'notification.recipient.update',
+      entity: 'NotificationRecipient',
+      entityId: id,
+    });
+    refresh();
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof Error && error.name === 'ValidationError') return { ok: false, error: error.message };
+    logger.error('notification.recipient.update.failed', { message: (error as Error)?.message });
+    return { ok: false, error: 'Could not save the recipient. Please try again.' };
+  }
+}
+
+export async function deleteRecipientAction(id: string): Promise<NotificationActionResult> {
+  const session = await requirePermission('settings.manage');
+  if (!id) return { ok: false, error: 'Missing recipient.' };
+  try {
+    await repositoriesFor(session.user.businessId).settings.deleteRecipient(id);
+    await writeAudit({
+      businessId: session.user.businessId,
+      actorUserId: session.user.id,
+      action: 'notification.recipient.delete',
+      entity: 'NotificationRecipient',
+      entityId: id,
+    });
+    refresh();
+    return { ok: true };
+  } catch (error) {
+    logger.error('notification.recipient.delete.failed', { message: (error as Error)?.message });
+    return { ok: false, error: 'Could not delete the recipient. Please try again.' };
   }
 }

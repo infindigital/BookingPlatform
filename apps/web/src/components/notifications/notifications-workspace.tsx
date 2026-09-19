@@ -2,26 +2,38 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, Clock, CheckCircle2, Pencil, Zap } from 'lucide-react';
-import type { NotificationTemplateConfig, NotificationActivity, EmailConfigStatus } from '@booking/db';
+import { Mail, Clock, CheckCircle2, Pencil, Zap, Users } from 'lucide-react';
+import type {
+  NotificationTemplateConfig,
+  NotificationActivity,
+  EmailConfigStatus,
+  SmsSettingsStatus,
+  RecipientRow,
+} from '@booking/db';
 import { Badge } from '@booking/ui/badge';
 import { TemplateEditorDrawer } from './template-editor-drawer';
 import { ActivityTable } from './activity-table';
 import { EmailDeliveryCard } from './email-delivery-card';
+import { SmsSettingsCard } from './sms-settings-card';
+import { RecipientsPanel } from './recipients-panel';
 
-type Tab = 'templates' | 'activity';
+type Tab = 'templates' | 'recipients' | 'activity';
 
 export function NotificationsWorkspace({
   templates,
   activity,
   timeZone,
   emailStatus,
+  smsStatus,
+  recipients,
   adminEmail,
 }: {
   templates: NotificationTemplateConfig[];
   activity: NotificationActivity;
   timeZone: string;
   emailStatus: EmailConfigStatus;
+  smsStatus: SmsSettingsStatus;
+  recipients: RecipientRow[];
   adminEmail: string;
 }) {
   const router = useRouter();
@@ -49,18 +61,27 @@ export function NotificationsWorkspace({
         </p>
       </header>
 
-      <EmailDeliveryCard status={emailStatus} defaultTo={adminEmail} />
+      <div className="grid gap-4 lg:grid-cols-2">
+        <EmailDeliveryCard status={emailStatus} defaultTo={adminEmail} />
+        <SmsSettingsCard status={smsStatus} />
+      </div>
 
       {/* Tabs */}
       <div className="flex items-center gap-1 border-b border-border">
         <TabButton active={tab === 'templates'} onClick={() => setTab('templates')} icon={<Mail className="size-4" />}>
           Templates
         </TabButton>
+        <TabButton active={tab === 'recipients'} onClick={() => setTab('recipients')} icon={<Users className="size-4" />}>
+          Recipients
+          {recipients.length > 0 ? <Badge tone="neutral" className="ml-1.5">{recipients.length}</Badge> : null}
+        </TabButton>
         <TabButton active={tab === 'activity'} onClick={() => setTab('activity')} icon={<Clock className="size-4" />}>
           Activity
           {queued > 0 ? <Badge tone="info" className="ml-1.5">{queued} queued</Badge> : null}
         </TabButton>
       </div>
+
+      {tab === 'recipients' ? <RecipientsPanel initial={recipients} /> : null}
 
       {tab === 'templates' ? (
         <div className="grid gap-2.5">
@@ -90,12 +111,12 @@ export function NotificationsWorkspace({
             </button>
           ))}
           <p className="flex items-center gap-1.5 px-1 pt-1 text-xs text-muted-foreground">
-            <Mail className="size-3.5" /> Email channel. SMS and WhatsApp arrive with the Integrations phase.
+            <Mail className="size-3.5" /> These are the email templates. SMS uses the default copy when the SMS channel is on.
           </p>
         </div>
-      ) : (
+      ) : tab === 'activity' ? (
         <ActivityTable activity={activity} timeZone={timeZone} onChanged={() => router.refresh()} />
-      )}
+      ) : null}
 
       <div className="grid gap-2 sm:grid-cols-3">
         <Stat icon={<Clock className="size-4 text-amber-500" />} label="Queued" value={activity.counts.QUEUED} />
