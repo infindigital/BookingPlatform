@@ -76,6 +76,7 @@ export async function submitPublicBooking(input: {
   phone: string;
   notes: string;
   customerAddress?: string | null;
+  customFields?: Record<string, string> | null;
 }): Promise<PublicBookingResult> {
   try {
     const confirmation = await createPublicBooking({
@@ -93,6 +94,7 @@ export async function submitPublicBooking(input: {
       },
       notes: input.notes,
       customerAddress: input.customerAddress ?? null,
+      customFields: input.customFields ?? null,
     });
     return { ok: true, confirmation };
   } catch (error) {

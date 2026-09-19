@@ -6,6 +6,7 @@ import { CustomerRepository } from './customer.repository';
 import { BookingRepository } from './booking.repository';
 import { BusinessRepository } from './business.repository';
 import { EmployeeRepository } from './employee.repository';
+import { CustomFieldRepository } from './custom-field.repository';
 import { WebhookRepository } from '../integrations/webhook.repository';
 import { PaymentRepository } from '../payments/payment.repository';
 import { SettingsRepository } from '../settings/settings.repository';
@@ -24,6 +25,11 @@ export {
   type WorkingWindowInput,
 } from './employee.repository';
 export { WebhookRepository, type WebhookInput } from '../integrations/webhook.repository';
+export {
+  CustomFieldRepository,
+  type CustomFieldInput,
+  optionsToArray,
+} from './custom-field.repository';
 
 /**
  * Build the set of business-scoped repositories for a resolved tenant.
@@ -37,6 +43,7 @@ export function repositoriesFor(businessId: string, db: PrismaClient = prisma) {
     customers: new CustomerRepository(businessId, db),
     bookings: new BookingRepository(businessId, db),
     employees: new EmployeeRepository(businessId, db),
+    customFields: new CustomFieldRepository(businessId, db),
     webhooks: new WebhookRepository(businessId, db),
     payments: new PaymentRepository(businessId, db),
     settings: new SettingsRepository(businessId, db),

@@ -53,6 +53,15 @@ export async function POST(request: Request) {
   const serviceId = str(body.serviceId);
   if (!serviceId) return apiError('serviceId is required.', 400, ctx.origin, ctx.website.domain);
 
+  // Custom-field answers: a flat { fieldId: value } map. Cap the number of keys
+  // and coerce values to strings (defence in depth; the engine validates too).
+  const customFields: Record<string, string> = {};
+  if (body.customFields && typeof body.customFields === 'object' && !Array.isArray(body.customFields)) {
+    for (const [k, v] of Object.entries(body.customFields as Record<string, unknown>).slice(0, 50)) {
+      if (typeof k === 'string') customFields[k] = str(v).slice(0, 2000);
+    }
+  }
+
   try {
     const confirmation = await createPublicBooking({
       slug: ctx.website.slug,
@@ -69,6 +78,7 @@ export async function POST(request: Request) {
       },
       notes: str(body.notes) || null,
       customerAddress: str(body.customerAddress) || null,
+      customFields,
     });
     return apiOk({ booking: confirmation }, ctx, 201);
   } catch (error) {

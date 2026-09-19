@@ -36,6 +36,7 @@ export interface ManageBookingRow {
   locationMode: string | null;
   locationAddress: string | null;
   customerAddress: string | null;
+  customFields: { label: string; value: string }[];
   isUpcoming: boolean;
   canCancel: boolean;
   canReschedule: boolean;
@@ -131,6 +132,7 @@ export async function lookupCustomerBookings(
           postalCode: true,
         },
       },
+      customFieldValues: { select: { value: true, customField: { select: { label: true } } } },
     },
   });
 
@@ -166,6 +168,7 @@ export async function lookupCustomerBookings(
             .join(', ') || null
         : null,
       customerAddress: b.customerAddress ?? null,
+      customFields: b.customFieldValues.map((v) => ({ label: v.customField.label, value: v.value })),
       isUpcoming,
       canCancel: isUpcoming && canTransition(b.status, 'CANCELLED'),
       canReschedule: isUpcoming && isReschedulable(b.status),

@@ -1,5 +1,7 @@
 import type { LocationMode, PrismaClient } from '@prisma/client';
+import type { CustomFieldDef } from '@booking/core';
 import { prisma } from '../client';
+import { optionsToArray } from '../repositories/custom-field.repository';
 import { loadResolvedForm, type ResolvedForm } from '../form/config';
 
 /**
@@ -37,6 +39,8 @@ export interface PublicService {
   color: string | null;
   /** Locations this service is offered at (empty = every location). */
   locationIds: string[];
+  /** Extra questions to ask on the booking form for this service. */
+  fields: CustomFieldDef[];
 }
 
 export interface PublicEmployee {
@@ -105,7 +109,7 @@ export async function getPublicBookingData(
   const businessId = business.id;
 
   const now = new Date();
-  const [categories, services, employees, locations, notices, form] = await Promise.all([
+  const [categories, services, employees, locations, notices, customFields, form] = await Promise.all([
     db.serviceCategory.findMany({
       where: { businessId },
       orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
@@ -168,8 +172,26 @@ export async function getPublicBookingData(
       orderBy: [{ createdAt: 'asc' }],
       select: { id: true, locationId: true, title: true, message: true, level: true },
     }),
+    db.customField.findMany({
+      where: { businessId, isActive: true },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+      select: { id: true, serviceId: true, label: true, type: true, required: true, options: true, placeholder: true },
+    }),
     loadResolvedForm(businessId, db),
   ]);
+
+  // Fields with a null serviceId apply to every service; the rest only to theirs.
+  const globalFields = customFields.filter((f) => f.serviceId === null);
+  const toDef = (f: (typeof customFields)[number]): CustomFieldDef => ({
+    id: f.id,
+    label: f.label,
+    type: f.type,
+    required: f.required,
+    options: optionsToArray(f.options),
+    placeholder: f.placeholder,
+  });
+  const fieldsForService = (serviceId: string): CustomFieldDef[] =>
+    [...customFields.filter((f) => f.serviceId === serviceId), ...globalFields].map(toDef);
 
   return {
     business,
@@ -184,6 +206,7 @@ export async function getPublicBookingData(
       price: Number(s.price),
       color: s.color,
       locationIds: s.locations.map((sl) => sl.locationId),
+      fields: fieldsForService(s.id),
     })),
     employees: employees.map((e) => ({
       id: e.id,

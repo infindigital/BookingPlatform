@@ -19,6 +19,8 @@ export interface BookingListRow {
   locationMapUrl: string | null;
   /** Customer-supplied address for a mobile ("we come to you") booking. */
   customerAddress: string | null;
+  /** Answers to the service's custom fields (label denormalised for display). */
+  customFields: { label: string; value: string }[];
   priceTotal: number;
   currency: string;
   source: string | null;
@@ -100,6 +102,7 @@ export async function getBookingsList(
             mapUrl: true,
           },
         },
+        customFieldValues: { select: { value: true, customField: { select: { label: true } } } },
       },
     }),
     db.booking.count({ where }),
@@ -143,6 +146,7 @@ export async function getBookingsList(
         : null,
       locationMapUrl: b.location?.mapUrl ?? null,
       customerAddress: b.customerAddress ?? null,
+      customFields: b.customFieldValues.map((v) => ({ label: v.customField.label, value: v.value })),
       priceTotal: Number(b.priceTotal.toString()),
       currency: b.currency,
       source: b.source,

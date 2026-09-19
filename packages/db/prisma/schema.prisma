@@ -313,6 +313,7 @@ model Service {
   bookings     Booking[]
   bookingItems BookingItem[]
   locations    ServiceLocation[]
+  customFields CustomField[]
 
   @@index([businessId])
   @@index([businessId, categoryId])
@@ -831,21 +832,26 @@ model NotificationLog {
 model CustomField {
   id         String          @id @default(cuid())
   businessId String
+  // Null -> the question applies to every service; set -> only for that service.
+  serviceId  String?
   key        String
   label      String
   type       CustomFieldType
   required   Boolean         @default(false)
   options    Json? // for SELECT/RADIO/CHECKBOX
+  placeholder String?
   sortOrder  Int             @default(0)
   isActive   Boolean         @default(true)
   createdAt  DateTime        @default(now())
   updatedAt  DateTime        @updatedAt
 
   business Business           @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  service  Service?           @relation(fields: [serviceId], references: [id], onDelete: Cascade)
   values   CustomFieldValue[]
 
   @@unique([businessId, key])
   @@index([businessId])
+  @@index([serviceId])
 }
 
 model CustomFieldValue {

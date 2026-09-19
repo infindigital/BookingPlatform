@@ -1,7 +1,8 @@
 import type { PrismaClient } from '@prisma/client';
-import { ValidationError, BookingConflictError } from '@booking/core';
+import { ValidationError, BookingConflictError, validateCustomFieldAnswers, type CustomFieldDef } from '@booking/core';
 import { prisma } from '../client';
 import { repositoriesFor } from '../repositories/index';
+import { optionsToArray } from '../repositories/custom-field.repository';
 import { wallTimeToInstant } from '../dashboard/timezone';
 import { getAvailability } from '../availability/availability';
 import { loadResolvedForm } from '../form/config';
@@ -45,6 +46,8 @@ export interface CreatePublicBookingInput {
   notes?: string | null;
   /** Customer's own address, required for a MOBILE ("we come to you") location. */
   customerAddress?: string | null;
+  /** Answers to the service's custom fields, keyed by field id. */
+  customFields?: Record<string, string> | null;
 }
 
 export interface PublicBookingConfirmation {
@@ -135,6 +138,26 @@ export async function createPublicBooking(
     }
   }
 
+  // Validate the service's custom-field answers (server-side, authoritative).
+  const fieldRows = await db.customField.findMany({
+    where: { businessId, isActive: true, OR: [{ serviceId: service.id }, { serviceId: null }] },
+    orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+    select: { id: true, label: true, type: true, required: true, options: true, placeholder: true },
+  });
+  const fieldDefs: CustomFieldDef[] = fieldRows.map((f) => ({
+    id: f.id,
+    label: f.label,
+    type: f.type,
+    required: f.required,
+    options: optionsToArray(f.options),
+    placeholder: f.placeholder,
+  }));
+  const fieldResult = validateCustomFieldAnswers(fieldDefs, input.customFields ?? {});
+  if (!fieldResult.ok) {
+    const firstError = Object.values(fieldResult.errors)[0] ?? 'Please check the form and try again.';
+    throw new ValidationError(firstError);
+  }
+
   const startAt = wallTimeToInstant(input.dayKey, minutes, timeZone);
   const endAt = new Date(startAt.getTime() + service.durationMinutes * 60_000);
 
@@ -195,6 +218,18 @@ export async function createPublicBooking(
     notes,
     customerAddress,
   });
+
+  // Persist the validated custom-field answers.
+  if (fieldResult.answers.length > 0) {
+    await db.customFieldValue.createMany({
+      data: fieldResult.answers.map((a) => ({
+        businessId,
+        bookingId: booking.id,
+        customFieldId: a.fieldId,
+        value: a.value,
+      })),
+    });
+  }
 
   const employee = employeeId
     ? await db.employee.findFirst({ where: { id: employeeId, businessId }, select: { firstName: true, lastName: true } })
