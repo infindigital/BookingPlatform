@@ -14,6 +14,7 @@ export interface LocationRow {
   phone: string | null;
   instructions: string | null;
   mode: LocationMode;
+  timezone: string | null;
   isActive: boolean;
   /** Bookings that reference this location (kept, set to null, on delete). */
   bookingCount: number;
@@ -43,6 +44,7 @@ export async function getLocationsOverview(
       phone: l.phone,
       instructions: l.instructions,
       mode: l.mode,
+      timezone: l.timezone,
       isActive: l.isActive,
       bookingCount: l._count.bookings,
     })),

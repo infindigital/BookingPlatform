@@ -14,7 +14,13 @@ const MODE_META: Record<LocationMode, { label: string; Icon: typeof Building2 }>
   VIRTUAL: { label: 'Virtual', Icon: Video },
 };
 
-export function LocationsWorkspace({ locations }: { locations: LocationRow[] }) {
+export function LocationsWorkspace({
+  locations,
+  timezones,
+}: {
+  locations: LocationRow[];
+  timezones: string[];
+}) {
   const router = useRouter();
   const [formOpen, setFormOpen] = useState(false);
   const [seed, setSeed] = useState<LocationEditSeed | null>(null);
@@ -35,6 +41,7 @@ export function LocationsWorkspace({ locations }: { locations: LocationRow[] }) 
       phone: l.phone,
       instructions: l.instructions,
       mode: l.mode,
+      timezone: l.timezone,
       isActive: l.isActive,
     });
     setFormKey((k) => k + 1);
@@ -155,7 +162,14 @@ export function LocationsWorkspace({ locations }: { locations: LocationRow[] }) 
         </div>
       )}
 
-      <LocationFormDrawer key={formKey} open={formOpen} onOpenChange={setFormOpen} seed={seed} onSaved={onSaved} />
+      <LocationFormDrawer
+        key={formKey}
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        seed={seed}
+        timezones={timezones}
+        onSaved={onSaved}
+      />
     </div>
   );
 }

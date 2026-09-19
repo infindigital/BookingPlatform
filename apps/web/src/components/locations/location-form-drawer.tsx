@@ -18,6 +18,7 @@ export interface LocationEditSeed {
   phone: string | null;
   instructions: string | null;
   mode: LocationMode;
+  timezone: string | null;
   isActive: boolean;
 }
 
@@ -34,14 +35,19 @@ export function LocationFormDrawer({
   open,
   onOpenChange,
   seed,
+  timezones,
   onSaved,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** Present -> edit mode; null -> create mode. */
   seed: LocationEditSeed | null;
+  /** IANA timezone options; a location can override the business timezone. */
+  timezones: string[];
   onSaved: () => void;
 }) {
+  const seededTz = seed?.timezone ?? '';
+  const tzOptions = seededTz && !timezones.includes(seededTz) ? [seededTz, ...timezones] : timezones;
   const isEdit = !!seed;
   const [state, action, pending] = useActionState<LocationActionState, FormData>(
     isEdit ? updateLocationAction : createLocationAction,
@@ -129,6 +135,21 @@ export function LocationFormDrawer({
                   placeholder="Parking, entrance, what to bring - shown to customers on confirmation."
                   maxLength={1000}
                 />
+              </label>
+
+              <label className="block space-y-1">
+                <span className="text-xs font-medium text-muted-foreground">Timezone</span>
+                <select name="timezone" defaultValue={seededTz} className={CONTROL}>
+                  <option value="">Inherit business timezone</option>
+                  {tzOptions.map((tz) => (
+                    <option key={tz} value={tz}>
+                      {tz}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-xs text-muted-foreground">
+                  Leave as inherit unless this location runs on a different clock.
+                </span>
               </label>
 
               {isEdit ? (

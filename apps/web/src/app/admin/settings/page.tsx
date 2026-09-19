@@ -19,9 +19,8 @@ export default async function SettingsPage() {
   const session = await requirePermission('settings.manage');
   const repos = repositoriesFor(session.user.businessId);
 
-  const [business, locations, hoursRows, holidays] = await Promise.all([
+  const [business, hoursRows, holidays] = await Promise.all([
     repos.settings.getBusiness(),
-    repos.settings.listLocations(),
     repos.settings.getBusinessHours(),
     repos.settings.listHolidays(),
   ]);
@@ -35,18 +34,10 @@ export default async function SettingsPage() {
   };
 
   const week = resolveWeeklyHours(hoursRows);
-  const locationViews = locations.map((l) => ({
-    id: l.id,
-    name: l.name,
-    address: l.address,
-    timezone: l.timezone,
-    isActive: l.isActive,
-  }));
 
   return (
     <SettingsWorkspace
       profile={profile}
-      locations={locationViews}
       week={week}
       holidays={holidays}
       timezones={supported('timeZone')}

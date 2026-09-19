@@ -30,6 +30,7 @@ function parseLocationForm(formData: FormData): {
     phone: string | null;
     instructions: string | null;
     mode: LocationMode;
+    timezone: string | null;
     isActive: boolean;
   };
   error?: string;
@@ -47,6 +48,7 @@ function parseLocationForm(formData: FormData): {
       phone: String(formData.get('phone') ?? '').trim().slice(0, 40) || null,
       instructions: String(formData.get('instructions') ?? '').trim().slice(0, 1000) || null,
       mode,
+      timezone: String(formData.get('timezone') ?? '').trim().slice(0, 64) || null,
       isActive: String(formData.get('isActive') ?? '') === 'on',
     },
   };
@@ -68,6 +70,7 @@ export async function createLocationAction(
       phone: parsed.values.phone,
       instructions: parsed.values.instructions,
       mode: parsed.values.mode,
+      timezone: parsed.values.timezone,
       isActive: true,
     });
     await writeAudit({
@@ -107,6 +110,7 @@ export async function updateLocationAction(
       phone: parsed.values.phone,
       instructions: parsed.values.instructions,
       mode: parsed.values.mode,
+      timezone: parsed.values.timezone,
       isActive: parsed.values.isActive,
     });
     await writeAudit({
