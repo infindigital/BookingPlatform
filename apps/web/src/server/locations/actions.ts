@@ -46,6 +46,16 @@ function str(formData: FormData, key: string, max: number): string | null {
   return String(formData.get(key) ?? '').trim().slice(0, max) || null;
 }
 
+/** Unique, non-empty checkbox values submitted under a repeated field name. */
+function ids(formData: FormData, key: string): string[] {
+  const seen = new Set<string>();
+  for (const raw of formData.getAll(key)) {
+    const id = String(raw).trim();
+    if (id) seen.add(id);
+  }
+  return [...seen];
+}
+
 function parseLocationForm(formData: FormData): { values?: LocationValues; error?: string } {
   const name = String(formData.get('name') ?? '').trim();
   if (!name) return { error: 'A location name is required.' };
@@ -86,6 +96,8 @@ export async function createLocationAction(
     const repos = repositoriesFor(session.user.businessId);
     const location = await repos.locations.create({ ...parsed.values, isActive: true });
     if (parsed.values.isDefault) await repos.locations.clearDefault(location.id);
+    await repos.locations.setServices(location.id, ids(formData, 'serviceIds'));
+    await repos.locations.setEmployees(location.id, ids(formData, 'employeeIds'));
     await writeAudit({
       businessId: session.user.businessId,
       actorUserId: session.user.id,
@@ -119,6 +131,8 @@ export async function updateLocationAction(
   try {
     await repos.locations.update(id, { ...parsed.values });
     if (parsed.values.isDefault) await repos.locations.clearDefault(id);
+    await repos.locations.setServices(id, ids(formData, 'serviceIds'));
+    await repos.locations.setEmployees(id, ids(formData, 'employeeIds'));
     await writeAudit({
       businessId: session.user.businessId,
       actorUserId: session.user.id,

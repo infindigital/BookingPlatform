@@ -4,7 +4,7 @@ import { useActionState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Sheet, SheetContent, SheetClose, SheetTitle } from '@booking/ui/sheet';
 import { Button } from '@booking/ui/button';
-import type { LocationMode } from '@booking/db';
+import type { LocationMode, AssignableService, AssignableEmployee } from '@booking/db';
 import {
   createLocationAction,
   updateLocationAction,
@@ -28,6 +28,10 @@ export interface LocationEditSeed {
   timezone: string | null;
   isDefault: boolean;
   isActive: boolean;
+  /** Services explicitly offered here (empty = all services). */
+  serviceIds: string[];
+  /** Staff explicitly assigned here (empty = all staff). */
+  employeeIds: string[];
 }
 
 const CONTROL =
@@ -44,6 +48,8 @@ export function LocationFormDrawer({
   onOpenChange,
   seed,
   timezones,
+  services,
+  employees,
   onSaved,
 }: {
   open: boolean;
@@ -52,8 +58,14 @@ export function LocationFormDrawer({
   seed: LocationEditSeed | null;
   /** IANA timezone options; a location can override the business timezone. */
   timezones: string[];
+  /** Every service that can be offered here. */
+  services: AssignableService[];
+  /** Every employee that can be assigned here. */
+  employees: AssignableEmployee[];
   onSaved: () => void;
 }) {
+  const seededServiceIds = new Set(seed?.serviceIds ?? []);
+  const seededEmployeeIds = new Set(seed?.employeeIds ?? []);
   const seededTz = seed?.timezone ?? '';
   const tzOptions = seededTz && !timezones.includes(seededTz) ? [seededTz, ...timezones] : timezones;
   const isEdit = !!seed;
@@ -201,6 +213,62 @@ export function LocationFormDrawer({
                   Leave as inherit unless this location runs on a different clock.
                 </span>
               </label>
+
+              <fieldset className="space-y-2 border border-border p-3">
+                <legend className="px-1 text-xs font-medium text-muted-foreground">Services offered here</legend>
+                <p className="text-xs text-muted-foreground">
+                  Leave all unchecked to offer every service at this location.
+                </p>
+                {services.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">No services yet.</p>
+                ) : (
+                  <div className="max-h-44 space-y-1 overflow-y-auto">
+                    {services.map((s) => (
+                      <label key={s.id} className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          name="serviceIds"
+                          value={s.id}
+                          defaultChecked={seededServiceIds.has(s.id)}
+                          className="size-4 rounded border-border accent-primary"
+                        />
+                        <span className={s.isActive ? '' : 'text-muted-foreground'}>
+                          {s.name}
+                          {s.isActive ? '' : ' (inactive)'}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </fieldset>
+
+              <fieldset className="space-y-2 border border-border p-3">
+                <legend className="px-1 text-xs font-medium text-muted-foreground">Staff at this location</legend>
+                <p className="text-xs text-muted-foreground">
+                  Leave all unchecked to let every team member work here.
+                </p>
+                {employees.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">No staff yet.</p>
+                ) : (
+                  <div className="max-h-44 space-y-1 overflow-y-auto">
+                    {employees.map((e) => (
+                      <label key={e.id} className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          name="employeeIds"
+                          value={e.id}
+                          defaultChecked={seededEmployeeIds.has(e.id)}
+                          className="size-4 rounded border-border accent-primary"
+                        />
+                        <span className={e.isActive ? '' : 'text-muted-foreground'}>
+                          {e.name}
+                          {e.isActive ? '' : ' (inactive)'}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </fieldset>
 
               <label className="flex items-center gap-2.5 border border-border bg-muted/30 p-3">
                 <input

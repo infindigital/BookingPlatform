@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, MapPin, Pencil, Trash2, Phone, Building2, Car, Video } from 'lucide-react';
-import type { LocationRow, LocationMode } from '@booking/db';
+import type { LocationRow, LocationMode, AssignableService, AssignableEmployee } from '@booking/db';
 import { Button } from '@booking/ui/button';
 import { LocationFormDrawer, type LocationEditSeed } from './location-form-drawer';
 import { deleteLocationAction } from '@/server/locations/actions';
@@ -23,9 +23,13 @@ function localityLine(l: LocationRow): string {
 export function LocationsWorkspace({
   locations,
   timezones,
+  services,
+  employees,
 }: {
   locations: LocationRow[];
   timezones: string[];
+  services: AssignableService[];
+  employees: AssignableEmployee[];
 }) {
   const router = useRouter();
   const [formOpen, setFormOpen] = useState(false);
@@ -57,6 +61,8 @@ export function LocationsWorkspace({
       timezone: l.timezone,
       isDefault: l.isDefault,
       isActive: l.isActive,
+      serviceIds: l.serviceIds,
+      employeeIds: l.employeeIds,
     });
     setFormKey((k) => k + 1);
     setFormOpen(true);
@@ -178,9 +184,11 @@ export function LocationsWorkspace({
                 <p className="mt-auto pt-3 text-xs text-muted-foreground">
                   {l.bookingCount} booking{l.bookingCount === 1 ? '' : 's'}
                   {' · '}
-                  {l.serviceCount === 0 ? 'all services' : `${l.serviceCount} service${l.serviceCount === 1 ? '' : 's'}`}
+                  {l.serviceIds.length === 0
+                    ? 'all services'
+                    : `${l.serviceIds.length} service${l.serviceIds.length === 1 ? '' : 's'}`}
                   {' · '}
-                  {l.employeeCount === 0 ? 'all staff' : `${l.employeeCount} staff`}
+                  {l.employeeIds.length === 0 ? 'all staff' : `${l.employeeIds.length} staff`}
                 </p>
               </article>
             );
@@ -194,6 +202,8 @@ export function LocationsWorkspace({
         onOpenChange={setFormOpen}
         seed={seed}
         timezones={timezones}
+        services={services}
+        employees={employees}
         onSaved={onSaved}
       />
     </div>

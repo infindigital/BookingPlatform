@@ -17,5 +17,12 @@ export default async function LocationsPage() {
   const session = await requirePermission('settings.manage');
   const overview = await getLocationsOverview(session.user.businessId);
 
-  return <LocationsWorkspace locations={overview.locations} timezones={supportedTimezones()} />;
+  return (
+    <LocationsWorkspace
+      locations={overview.locations}
+      timezones={supportedTimezones()}
+      services={overview.services}
+      employees={overview.employees}
+    />
+  );
 }

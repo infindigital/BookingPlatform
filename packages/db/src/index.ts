@@ -81,6 +81,8 @@ export {
   getLocationsOverview,
   type LocationsOverview,
   type LocationRow,
+  type AssignableService,
+  type AssignableEmployee,
 } from './services/locations-overview';
 export {
   getFormConfig,
