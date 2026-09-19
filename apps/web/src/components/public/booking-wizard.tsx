@@ -10,10 +10,12 @@ import {
   type FormSettings,
   type FormStepKey,
 } from '@booking/core';
+import { isCheckboxChecked } from '@booking/core';
 import { Button } from '@booking/ui/button';
 import { submitPublicBooking, type PublicBookingResult } from '@/server/public/actions';
 import { DateTimePicker, type SelectedSlot } from './datetime-picker';
 import { DetailsForm, type CustomerDetails } from './details-form';
+import { CustomFieldsForm } from './custom-fields-form';
 import { formatMoney, formatDuration, confirmationWhen } from './format';
 
 type FlowStep = 'service' | 'team' | 'location' | 'time' | 'details' | 'review';
@@ -87,6 +89,7 @@ export function BookingWizard({
   const [customerAddress, setCustomerAddress] = useState('');
   const [slot, setSlot] = useState<SelectedSlot | null>(null);
   const [details, setDetails] = useState<CustomerDetails>({ firstName: '', lastName: '', email: '', phone: '', notes: '' });
+  const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
 
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -140,12 +143,19 @@ export function BookingWizard({
         return chosenLocation?.mode !== 'MOBILE' || customerAddress.trim().length > 0;
       case 'time':
         return !!slot;
-      case 'details':
+      case 'details': {
+        const requiredFieldsMet = (service?.fields ?? []).every((f) => {
+          if (!f.required) return true;
+          const v = customFieldValues[f.id];
+          return f.type === 'CHECKBOX' ? isCheckboxChecked(v) : (v ?? '').trim().length > 0;
+        });
         return (
           details.firstName.trim().length > 0 &&
           EMAIL_RE.test(details.email.trim()) &&
-          (!settings.requirePhone || details.phone.trim().length > 0)
+          (!settings.requirePhone || details.phone.trim().length > 0) &&
+          requiredFieldsMet
         );
+      }
       default:
         return true;
     }
@@ -156,6 +166,7 @@ export function BookingWizard({
     setEmployeeId(null);
     setLocationId(singleAutoLocation?.id ?? null);
     setSlot(null);
+    setCustomFieldValues({});
   }
   function pickStaff(id: string | null) {
     setEmployeeId(id);
@@ -192,6 +203,7 @@ export function BookingWizard({
         phone: details.phone,
         notes: details.notes,
         customerAddress: chosenLocation?.mode === 'MOBILE' ? customerAddress : null,
+        customFields: customFieldValues,
       });
       if (result.ok) {
         setConfirmation(result);
@@ -214,6 +226,7 @@ export function BookingWizard({
     setCustomerAddress('');
     setSlot(null);
     setDetails({ firstName: '', lastName: '', email: '', phone: '', notes: '' });
+    setCustomFieldValues({});
     setError(null);
     setStepIdx(0);
   }
@@ -258,6 +271,11 @@ export function BookingWizard({
           ) : null}
           {chosenLocation?.instructions ? <Row label="Instructions" value={chosenLocation.instructions} /> : null}
           {slot ? <Row label="When" value={confirmationWhen(c?.startISO ?? slot.startISO, timeZone)} /> : null}
+          {(service?.fields ?? []).map((f) => {
+            const raw = customFieldValues[f.id] ?? '';
+            const shown = f.type === 'CHECKBOX' ? (isCheckboxChecked(raw) ? 'Yes' : '') : raw.trim();
+            return shown ? <Row key={f.id} label={f.label} value={shown} /> : null;
+          })}
           {settings.showPrices && service ? <Row label="Price" value={formatMoney(service.price, business.currency)} /> : null}
           {c && c.amountDue > 0 ? (
             <Row
@@ -448,7 +466,12 @@ export function BookingWizard({
           />
         )}
 
-        {stepKey === 'details' && <DetailsForm value={details} onChange={setDetails} requirePhone={settings.requirePhone} />}
+        {stepKey === 'details' && (
+          <div className="space-y-3">
+            <DetailsForm value={details} onChange={setDetails} requirePhone={settings.requirePhone} />
+            <CustomFieldsForm fields={service?.fields ?? []} values={customFieldValues} onChange={setCustomFieldValues} />
+          </div>
+        )}
 
         {stepKey === 'review' && service && slot && (
           <dl className="space-y-3 rounded-none border border-border bg-muted/30 p-4 text-sm">
@@ -463,6 +486,11 @@ export function BookingWizard({
             <Row label="Name" value={`${details.firstName} ${details.lastName}`.trim()} />
             <Row label="Email" value={details.email} />
             {details.phone ? <Row label="Phone" value={details.phone} /> : null}
+            {(service.fields ?? []).map((f) => {
+              const raw = customFieldValues[f.id] ?? '';
+              const shown = f.type === 'CHECKBOX' ? (isCheckboxChecked(raw) ? 'Yes' : '') : raw.trim();
+              return shown ? <Row key={f.id} label={f.label} value={shown} /> : null;
+            })}
             {settings.showPrices ? (
               <div className="flex items-center justify-between border-t border-border pt-3 text-base font-semibold">
                 <span>Total</span>

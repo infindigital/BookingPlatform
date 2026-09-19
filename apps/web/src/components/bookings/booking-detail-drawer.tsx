@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { CalendarClock, DollarSign, Home, MapPin, Scissors, Tag, User, UserCog, X } from 'lucide-react';
+import { CalendarClock, DollarSign, Home, ListChecks, MapPin, Scissors, Tag, User, UserCog, X } from 'lucide-react';
 import type { BookingListRow, BookingFormData } from '@booking/db';
 import { availableActions, isReschedulable } from '@booking/core';
 import { Sheet, SheetContent, SheetClose, SheetTitle, SheetDescription } from '@booking/ui/sheet';
@@ -139,6 +139,9 @@ export function BookingDetailDrawer({
                 />
                 {booking.source ? <Row icon={Tag} label="Source" value={booking.source} /> : null}
                 {booking.notes ? <Row icon={User} label="Notes" value={booking.notes} /> : null}
+                {booking.customFields.map((f, i) => (
+                  <Row key={`${f.label}-${i}`} icon={ListChecks} label={f.label} value={f.value} />
+                ))}
               </div>
 
               {rescheduling && booking ? (

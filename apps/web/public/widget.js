@@ -110,6 +110,11 @@
     return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);
   }
 
+  function isCheckboxChecked(v) {
+    var s = (v == null ? '' : String(v)).trim().toLowerCase();
+    return s === 'true' || s === 'on' || s === '1' || s === 'yes';
+  }
+
   function locationSummary(loc) {
     var cityState = [loc.city, loc.state].filter(Boolean).join(', ');
     var locality = [cityState, loc.postalCode].filter(Boolean).join(' ').trim();
@@ -192,6 +197,8 @@
       '.bw-notice.crit{border-color:color-mix(in srgb,var(--bw-danger) 55%,transparent);background:color-mix(in srgb,var(--bw-danger) 8%,transparent);}',
       '.bw-notice-title{font-weight:600;margin-bottom:2px;}',
       '.bw-notice-msg{color:var(--bw-muted);white-space:pre-line;}',
+      '.bw-check-row{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;}',
+      '.bw-checkbox{width:16px;height:16px;accent-color:var(--bw-primary);}',
       '.bw-center{text-align:center;padding:26px 10px;}',
       '.bw-check{width:52px;height:52px;border-radius:999px;background:color-mix(in srgb,var(--bw-primary) 12%,transparent);',
       '  color:var(--bw-primary);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:26px;}',
@@ -275,6 +282,7 @@
       daySlots: {}, // dayKey -> [{startISO,employeeIds}]
       loadingSlots: false,
       details: { firstName: '', lastName: '', email: '', phone: '', notes: '' },
+      customFields: {}, // fieldId -> value
       submitting: false,
       confirmation: null
     };
@@ -485,7 +493,8 @@
       email: d.email.trim(),
       phone: d.phone.trim(),
       notes: d.notes.trim(),
-      customerAddress: loc && loc.mode === 'MOBILE' ? (this.state.customerAddress || '').trim() : null
+      customerAddress: loc && loc.mode === 'MOBILE' ? (this.state.customerAddress || '').trim() : null,
+      customFields: this.state.customFields
     }).then(function (res) {
       self.set({ submitting: false, confirmation: res.booking, step: 'done' });
     }).catch(function (err) {
@@ -561,7 +570,7 @@
       var card = el('button', {
         class: 'bw-card' + (self.state.serviceId === svc.id ? ' sel' : ''),
         type: 'button',
-        onclick: function () { self.state.serviceId = svc.id; self.state.employeeId = null; self.state.locationId = null; self.state.customerAddress = ''; self.state.daySlots = {}; self.goToTime(); }
+        onclick: function () { self.state.serviceId = svc.id; self.state.employeeId = null; self.state.locationId = null; self.state.customerAddress = ''; self.state.customFields = {}; self.state.daySlots = {}; self.goToTime(); }
       }, [
         el('div', { class: 'bw-card-main' }, [
           el('div', { class: 'bw-card-name', text: svc.name }),
@@ -734,11 +743,51 @@
     this.root.appendChild(field('Phone', 'phone', 'tel', requirePhone, requirePhone ? 'Required' : 'Optional'));
     this.root.appendChild(field('Notes', 'notes', 'textarea', false, 'Anything we should know? (optional)'));
 
+    // Per-service custom fields.
+    var cf = this.state.customFields;
+    this.serviceFields().forEach(function (f) {
+      var labelText = f.label + (f.required ? ' *' : '');
+      if (f.type === 'CHECKBOX') {
+        var cb = el('input', { type: 'checkbox', class: 'bw-checkbox' });
+        cb.checked = isCheckboxChecked(cf[f.id]);
+        cb.addEventListener('change', function () { cf[f.id] = cb.checked ? 'true' : 'false'; self.updateDetailsButton(); });
+        self.root.appendChild(el('div', { class: 'bw-field' }, [
+          el('label', { class: 'bw-check-row' }, [cb, el('span', { text: labelText })])
+        ]));
+        return;
+      }
+      var control;
+      if (f.type === 'SELECT' || f.type === 'RADIO') {
+        control = el('select', { class: 'bw-input' }, [el('option', { value: '', text: 'Select…' })].concat(
+          (f.options || []).map(function (o) { return el('option', { value: o, text: o }); })
+        ));
+        control.value = cf[f.id] || '';
+        control.addEventListener('change', function () { cf[f.id] = control.value; self.updateDetailsButton(); });
+      } else {
+        var t = f.type === 'NUMBER' ? 'number' : f.type === 'EMAIL' ? 'email' : f.type === 'DATE' ? 'date' : f.type === 'PHONE' ? 'tel' : 'text';
+        var isArea = f.type === 'TEXTAREA';
+        control = el(isArea ? 'textarea' : 'input', {
+          class: isArea ? 'bw-textarea' : 'bw-input',
+          type: isArea ? null : t,
+          rows: isArea ? '2' : null,
+          placeholder: f.placeholder || ''
+        });
+        control.value = cf[f.id] || '';
+        control.addEventListener('input', function () { cf[f.id] = control.value; self.updateDetailsButton(); });
+      }
+      self.root.appendChild(el('div', { class: 'bw-field' }, [el('label', { class: 'bw-label', text: labelText }), control]));
+    });
+
     var back = 'datetime';
     var nav = this.nav(back, function () { self.set({ step: 'review', error: null }); }, 'Continue');
     this._detailsNext = nav.querySelector('.bw-btn-primary');
     this.root.appendChild(nav);
     this.updateDetailsButton();
+  };
+
+  Widget.prototype.serviceFields = function () {
+    var svc = this.selectedService();
+    return (svc && svc.fields) || [];
   };
 
   Widget.prototype.detailsValid = function () {
@@ -748,7 +797,14 @@
     if (!d.firstName.trim()) return false;
     if (!isEmail(d.email.trim())) return false;
     if (requirePhone && !d.phone.trim()) return false;
-    return true;
+    var cf = this.state.customFields;
+    var ok = true;
+    this.serviceFields().forEach(function (f) {
+      if (!f.required) return;
+      if (f.type === 'CHECKBOX') { if (!isCheckboxChecked(cf[f.id])) ok = false; }
+      else if (!(cf[f.id] || '').trim()) ok = false;
+    });
+    return ok;
   };
 
   Widget.prototype.updateDetailsButton = function () {
@@ -780,6 +836,12 @@
     rows.push(['Name', (d.firstName + ' ' + d.lastName).trim()]);
     rows.push(['Email', d.email.trim()]);
     if (d.phone.trim()) rows.push(['Phone', d.phone.trim()]);
+    var cf = this.state.customFields;
+    this.serviceFields().forEach(function (f) {
+      var raw = cf[f.id];
+      var shown = f.type === 'CHECKBOX' ? (isCheckboxChecked(raw) ? 'Yes' : '') : (raw || '').trim();
+      if (shown) rows.push([f.label, shown]);
+    });
     if (svc && (!cfg.settings || cfg.settings.showPrices !== false)) {
       rows.push(['Price', svc.price > 0 ? money(svc.price, cfg.business.currency) : 'Free']);
     }

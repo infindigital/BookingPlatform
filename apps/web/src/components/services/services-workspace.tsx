@@ -2,11 +2,12 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Scissors, Pencil, Trash2, Tag, AlertTriangle, X } from 'lucide-react';
+import { Plus, Scissors, Pencil, Trash2, Tag, AlertTriangle, X, ListChecks } from 'lucide-react';
 import type { ServiceRow, ServiceCategoryRow } from '@booking/db';
 import { Button } from '@booking/ui/button';
 import { formatMoney } from '@/components/dashboard/format';
 import { ServiceFormDrawer, type ServiceEditSeed } from './service-form-drawer';
+import { ServiceFieldsDrawer } from './service-fields-drawer';
 import {
   deleteServiceAction,
   createCategoryAction,
@@ -36,6 +37,7 @@ export function ServicesWorkspace({
   const [formOpen, setFormOpen] = useState(false);
   const [seed, setSeed] = useState<ServiceEditSeed | null>(null);
   const [formKey, setFormKey] = useState(0);
+  const [fieldsFor, setFieldsFor] = useState<{ id: string; name: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -148,6 +150,14 @@ export function ServicesWorkspace({
                   <td className="hidden px-4 py-3 text-muted-foreground lg:table-cell">{s.employeeCount}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Booking questions for ${s.name}`}
+                        onClick={() => setFieldsFor({ id: s.id, name: s.name })}
+                      >
+                        <ListChecks className="size-4" />
+                      </Button>
                       <Button variant="ghost" size="icon" aria-label={`Edit ${s.name}`} onClick={() => openEdit(s)}>
                         <Pencil className="size-4" />
                       </Button>
@@ -180,6 +190,14 @@ export function ServicesWorkspace({
         seed={seed}
         categories={categories}
         onSaved={onSaved}
+      />
+
+      <ServiceFieldsDrawer
+        key={fieldsFor?.id ?? 'none'}
+        serviceId={fieldsFor?.id ?? null}
+        serviceName={fieldsFor?.name ?? ''}
+        open={!!fieldsFor}
+        onOpenChange={(o) => { if (!o) setFieldsFor(null); }}
       />
     </div>
   );

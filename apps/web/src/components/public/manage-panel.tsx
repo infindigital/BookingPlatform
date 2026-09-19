@@ -239,6 +239,11 @@ function BookingCard({
                 <span>{b.customerAddress}</span>
               </p>
             ) : null}
+            {b.customFields.map((f, i) => (
+              <p key={`${f.label}-${i}`} className="mt-0.5 text-xs text-muted-foreground">
+                <span className="font-medium">{f.label}:</span> {f.value}
+              </p>
+            ))}
             <p className="mt-1 font-mono text-xs text-muted-foreground">Ref {b.reference}</p>
           </div>
         </div>
