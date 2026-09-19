@@ -32,6 +32,14 @@ export class LocationRepository extends BaseRepository {
     return this.db.booking.count({ where: this.scope({ locationId: id }) });
   }
 
+  /** Clear the default flag on every other location, so at most one is default. */
+  clearDefault(exceptId?: string) {
+    return this.db.location.updateMany({
+      where: this.scope(exceptId ? { isDefault: true, id: { not: exceptId } } : { isDefault: true }),
+      data: { isDefault: false },
+    });
+  }
+
   count() {
     return this.db.location.count({ where: this.scope() });
   }

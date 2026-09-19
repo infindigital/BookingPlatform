@@ -14,6 +14,12 @@ const MODE_META: Record<LocationMode, { label: string; Icon: typeof Building2 }>
   VIRTUAL: { label: 'Virtual', Icon: Video },
 };
 
+/** "City, State ZIP" from whichever parts are present. */
+function localityLine(l: LocationRow): string {
+  const cityState = [l.city, l.state].filter(Boolean).join(', ');
+  return [cityState, l.postalCode].filter(Boolean).join(' ').trim();
+}
+
 export function LocationsWorkspace({
   locations,
   timezones,
@@ -38,10 +44,18 @@ export function LocationsWorkspace({
       id: l.id,
       name: l.name,
       address: l.address,
+      addressLine2: l.addressLine2,
+      city: l.city,
+      state: l.state,
+      postalCode: l.postalCode,
+      country: l.country,
+      mapUrl: l.mapUrl,
       phone: l.phone,
+      email: l.email,
       instructions: l.instructions,
       mode: l.mode,
       timezone: l.timezone,
+      isDefault: l.isDefault,
       isActive: l.isActive,
     });
     setFormKey((k) => k + 1);
@@ -109,6 +123,11 @@ export function LocationsWorkspace({
                     <div className="min-w-0">
                       <p className="flex items-center gap-1.5 truncate font-medium">
                         {l.name}
+                        {l.isDefault ? (
+                          <span className="inline-flex items-center rounded-none border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">
+                            Default
+                          </span>
+                        ) : null}
                         {!l.isActive ? (
                           <span className="inline-flex items-center rounded-none bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                             Inactive
@@ -135,10 +154,13 @@ export function LocationsWorkspace({
                 </div>
 
                 <dl className="mt-3 space-y-1.5 text-sm">
-                  {l.address ? (
+                  {l.address || localityLine(l) ? (
                     <div className="flex items-start gap-2 text-muted-foreground">
                       <MapPin className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-                      <span className="min-w-0">{l.address}</span>
+                      <span className="min-w-0">
+                        {l.address ? <span className="block">{l.address}</span> : null}
+                        {localityLine(l) ? <span className="block">{localityLine(l)}</span> : null}
+                      </span>
                     </div>
                   ) : null}
                   {l.phone ? (
@@ -155,6 +177,10 @@ export function LocationsWorkspace({
 
                 <p className="mt-auto pt-3 text-xs text-muted-foreground">
                   {l.bookingCount} booking{l.bookingCount === 1 ? '' : 's'}
+                  {' · '}
+                  {l.serviceCount === 0 ? 'all services' : `${l.serviceCount} service${l.serviceCount === 1 ? '' : 's'}`}
+                  {' · '}
+                  {l.employeeCount === 0 ? 'all staff' : `${l.employeeCount} staff`}
                 </p>
               </article>
             );

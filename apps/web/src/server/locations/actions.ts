@@ -23,18 +23,30 @@ function refresh(): void {
   revalidatePath('/admin');
 }
 
-function parseLocationForm(formData: FormData): {
-  values?: {
-    name: string;
-    address: string | null;
-    phone: string | null;
-    instructions: string | null;
-    mode: LocationMode;
-    timezone: string | null;
-    isActive: boolean;
-  };
-  error?: string;
-} {
+interface LocationValues {
+  name: string;
+  address: string | null;
+  addressLine2: string | null;
+  city: string | null;
+  state: string | null;
+  postalCode: string | null;
+  country: string | null;
+  mapUrl: string | null;
+  phone: string | null;
+  email: string | null;
+  instructions: string | null;
+  mode: LocationMode;
+  timezone: string | null;
+  isDefault: boolean;
+  isActive: boolean;
+}
+
+/** Trimmed string from the form, capped and nulled when empty. */
+function str(formData: FormData, key: string, max: number): string | null {
+  return String(formData.get(key) ?? '').trim().slice(0, max) || null;
+}
+
+function parseLocationForm(formData: FormData): { values?: LocationValues; error?: string } {
   const name = String(formData.get('name') ?? '').trim();
   if (!name) return { error: 'A location name is required.' };
 
@@ -44,11 +56,19 @@ function parseLocationForm(formData: FormData): {
   return {
     values: {
       name: name.slice(0, 120),
-      address: String(formData.get('address') ?? '').trim().slice(0, 300) || null,
-      phone: String(formData.get('phone') ?? '').trim().slice(0, 40) || null,
-      instructions: String(formData.get('instructions') ?? '').trim().slice(0, 1000) || null,
+      address: str(formData, 'address', 300),
+      addressLine2: str(formData, 'addressLine2', 300),
+      city: str(formData, 'city', 120),
+      state: str(formData, 'state', 120),
+      postalCode: str(formData, 'postalCode', 32),
+      country: str(formData, 'country', 120),
+      mapUrl: str(formData, 'mapUrl', 500),
+      phone: str(formData, 'phone', 40),
+      email: str(formData, 'email', 160),
+      instructions: str(formData, 'instructions', 1000),
       mode,
-      timezone: String(formData.get('timezone') ?? '').trim().slice(0, 64) || null,
+      timezone: str(formData, 'timezone', 64),
+      isDefault: String(formData.get('isDefault') ?? '') === 'on',
       isActive: String(formData.get('isActive') ?? '') === 'on',
     },
   };
@@ -64,15 +84,8 @@ export async function createLocationAction(
 
   try {
     const repos = repositoriesFor(session.user.businessId);
-    const location = await repos.locations.create({
-      name: parsed.values.name,
-      address: parsed.values.address,
-      phone: parsed.values.phone,
-      instructions: parsed.values.instructions,
-      mode: parsed.values.mode,
-      timezone: parsed.values.timezone,
-      isActive: true,
-    });
+    const location = await repos.locations.create({ ...parsed.values, isActive: true });
+    if (parsed.values.isDefault) await repos.locations.clearDefault(location.id);
     await writeAudit({
       businessId: session.user.businessId,
       actorUserId: session.user.id,
@@ -104,15 +117,8 @@ export async function updateLocationAction(
   if (!existing) return { ok: false, error: 'That location could not be found.' };
 
   try {
-    await repos.locations.update(id, {
-      name: parsed.values.name,
-      address: parsed.values.address,
-      phone: parsed.values.phone,
-      instructions: parsed.values.instructions,
-      mode: parsed.values.mode,
-      timezone: parsed.values.timezone,
-      isActive: parsed.values.isActive,
-    });
+    await repos.locations.update(id, { ...parsed.values });
+    if (parsed.values.isDefault) await repos.locations.clearDefault(id);
     await writeAudit({
       businessId: session.user.businessId,
       actorUserId: session.user.id,

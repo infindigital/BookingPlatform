@@ -15,10 +15,18 @@ export interface LocationEditSeed {
   id: string;
   name: string;
   address: string | null;
+  addressLine2: string | null;
+  city: string | null;
+  state: string | null;
+  postalCode: string | null;
+  country: string | null;
+  mapUrl: string | null;
   phone: string | null;
+  email: string | null;
   instructions: string | null;
   mode: LocationMode;
   timezone: string | null;
+  isDefault: boolean;
   isActive: boolean;
 }
 
@@ -109,21 +117,63 @@ export function LocationFormDrawer({
                   name="address"
                   defaultValue={seed?.address ?? ''}
                   className={CONTROL}
-                  placeholder="8101 E. Bannister Rd, Kansas City, MO 64134"
+                  placeholder="8101 E. Bannister Rd"
                   maxLength={300}
                 />
               </label>
 
               <label className="block space-y-1">
-                <span className="text-xs font-medium text-muted-foreground">Phone</span>
+                <span className="text-xs font-medium text-muted-foreground">Address line 2</span>
                 <input
-                  name="phone"
-                  defaultValue={seed?.phone ?? ''}
+                  name="addressLine2"
+                  defaultValue={seed?.addressLine2 ?? ''}
                   className={CONTROL}
-                  placeholder="(816) 442-0295"
-                  maxLength={40}
+                  placeholder="Suite, unit, floor (optional)"
+                  maxLength={300}
                 />
               </label>
+
+              <div className="grid grid-cols-2 gap-2">
+                <label className="space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground">City</span>
+                  <input name="city" defaultValue={seed?.city ?? ''} className={CONTROL} placeholder="Kansas City" maxLength={120} />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground">State</span>
+                  <input name="state" defaultValue={seed?.state ?? ''} className={CONTROL} placeholder="MO" maxLength={120} />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground">ZIP / postal code</span>
+                  <input name="postalCode" defaultValue={seed?.postalCode ?? ''} className={CONTROL} placeholder="64134" maxLength={32} />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground">Country</span>
+                  <input name="country" defaultValue={seed?.country ?? ''} className={CONTROL} placeholder="United States" maxLength={120} />
+                </label>
+              </div>
+
+              <label className="block space-y-1">
+                <span className="text-xs font-medium text-muted-foreground">Google Maps URL</span>
+                <input
+                  name="mapUrl"
+                  type="url"
+                  defaultValue={seed?.mapUrl ?? ''}
+                  className={CONTROL}
+                  placeholder="https://maps.google.com/..."
+                  maxLength={500}
+                />
+              </label>
+
+              <div className="grid grid-cols-2 gap-2">
+                <label className="space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground">Phone</span>
+                  <input name="phone" defaultValue={seed?.phone ?? ''} className={CONTROL} placeholder="(816) 442-0295" maxLength={40} />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground">Email</span>
+                  <input name="email" type="email" defaultValue={seed?.email ?? ''} className={CONTROL} placeholder="office@example.com" maxLength={160} />
+                </label>
+              </div>
 
               <label className="block space-y-1">
                 <span className="text-xs font-medium text-muted-foreground">Instructions</span>
@@ -149,6 +199,21 @@ export function LocationFormDrawer({
                 </select>
                 <span className="text-xs text-muted-foreground">
                   Leave as inherit unless this location runs on a different clock.
+                </span>
+              </label>
+
+              <label className="flex items-center gap-2.5 border border-border bg-muted/30 p-3">
+                <input
+                  type="checkbox"
+                  name="isDefault"
+                  defaultChecked={seed?.isDefault ?? false}
+                  className="size-4 rounded border-border accent-primary"
+                />
+                <span>
+                  <span className="block text-sm font-medium">Default location</span>
+                  <span className="block text-xs text-muted-foreground">
+                    Used as the fallback when a booking has no specific location.
+                  </span>
                 </span>
               </label>
 
