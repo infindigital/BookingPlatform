@@ -1,6 +1,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { prisma } from '../client';
 import { ServiceRepository } from './service.repository';
+import { LocationRepository } from './location.repository';
 import { CustomerRepository } from './customer.repository';
 import { BookingRepository } from './booking.repository';
 import { BusinessRepository } from './business.repository';
@@ -12,6 +13,7 @@ import { EventRepository } from '../events/event.repository';
 
 export { BaseRepository } from './base';
 export { ServiceRepository } from './service.repository';
+export { LocationRepository } from './location.repository';
 export { CustomerRepository } from './customer.repository';
 export { BookingRepository } from './booking.repository';
 export { BusinessRepository } from './business.repository';
@@ -31,6 +33,7 @@ export { WebhookRepository, type WebhookInput } from '../integrations/webhook.re
 export function repositoriesFor(businessId: string, db: PrismaClient = prisma) {
   return {
     services: new ServiceRepository(businessId, db),
+    locations: new LocationRepository(businessId, db),
     customers: new CustomerRepository(businessId, db),
     bookings: new BookingRepository(businessId, db),
     employees: new EmployeeRepository(businessId, db),

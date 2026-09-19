@@ -78,6 +78,11 @@ export {
 } from './services/overview';
 export { resetBusinessData, type ResetSummary } from './services/reset';
 export {
+  getLocationsOverview,
+  type LocationsOverview,
+  type LocationRow,
+} from './services/locations-overview';
+export {
   getFormConfig,
   saveFormDesign,
   loadResolvedForm,
@@ -125,6 +130,8 @@ export type {
   Customer,
   Service,
   Employee,
+  Location,
+  LocationMode,
   BookingStatus,
   PaymentStatus,
   NotificationEvent,
