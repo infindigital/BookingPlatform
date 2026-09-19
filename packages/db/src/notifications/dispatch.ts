@@ -11,7 +11,15 @@ import {
 import { prisma } from '../client';
 import { logger } from '../logger';
 import { getChannelProvider } from './provider';
+import { twilioProviderFromCredentials } from './twilio-provider';
+import { repositoriesFor } from '../repositories/index';
 import { buildBookingContext } from './variables';
+
+/** Per-recipient override carried on a fan-out job's payload. */
+interface JobPayload {
+  recipientEmail?: string | null;
+  recipientPhone?: string | null;
+}
 
 /**
  * DB-backed queue dispatcher. No Redis, no external broker (cost policy): a due
@@ -81,8 +89,13 @@ export async function processDueNotifications(
     const attempt = job.attempts + 1;
     try {
       const ctx = job.bookingId ? await buildBookingContext(job.businessId, job.bookingId, db) : null;
+      // An internal recipient carries its own address on the job payload; otherwise
+      // the booking's customer is the recipient.
+      const payload = (job.payload ?? null) as JobPayload | null;
       const recipient =
-        job.channel === 'EMAIL' ? ctx?.recipientEmail ?? '' : ctx?.recipientPhone ?? ctx?.recipientEmail ?? '';
+        job.channel === 'EMAIL'
+          ? payload?.recipientEmail ?? ctx?.recipientEmail ?? ''
+          : payload?.recipientPhone ?? ctx?.recipientPhone ?? ctx?.recipientEmail ?? '';
       const tmpl = await templateFor(job.businessId, job.event, job.channel, db);
       const vars = ctx?.vars ?? {};
       const subject = tmpl.subject ? renderTemplate(tmpl.subject, vars) : null;
@@ -98,8 +111,7 @@ export async function processDueNotifications(
         text = renderEmailText({ bodyText: body, manageUrl });
       }
 
-      const provider = getChannelProvider(job.channel);
-      const send = await provider.send({
+      const message = {
         channel: job.channel,
         recipient,
         subject,
@@ -107,7 +119,18 @@ export async function processDueNotifications(
         html,
         event: job.event,
         bookingId: job.bookingId,
-      });
+      };
+      // SMS credentials are per business (encrypted in the DB): resolve a Twilio
+      // provider for this tenant. Other channels use the globally registered one.
+      let send;
+      if (job.channel === 'SMS') {
+        const creds = await repositoriesFor(job.businessId, db).settings.getSmsCredentials();
+        send = creds
+          ? await twilioProviderFromCredentials(creds).send(message)
+          : { ok: false, error: 'SMS is not configured for this business.' };
+      } else {
+        send = await getChannelProvider(job.channel).send(message);
+      }
 
       if (send.ok) {
         await db.$transaction([

@@ -3,13 +3,17 @@ import {
   resolveBusinessProfile,
   resolveLocationInput,
   toStorableHours,
+  NOTIFICATION_EVENTS,
+  defaultTemplate,
   type BusinessProfileInput,
   type BusinessProfile,
   type LocationInput,
   type DayHours,
 } from '@booking/core';
+import type { NotificationChannel, NotificationEvent } from '@prisma/client';
 import { BaseRepository } from '../repositories/base';
 import { dateMidnightInstant, localWallClock } from '../dashboard/timezone';
+import { encryptSecret, decryptSecret, encryptionAvailable } from '../security/crypto';
 
 export interface HolidayInput {
   name: string;
@@ -52,6 +56,52 @@ export interface SpecialDayRow {
   closeTime: string | null;
   locationId: string | null;
   locationName: string | null;
+}
+
+/** Masked SMS provider status for the admin UI (never includes the token). */
+export interface SmsSettingsStatus {
+  /** True once an account SID + from-number + saved token are all present. */
+  configured: boolean;
+  isEnabled: boolean;
+  provider: string;
+  accountSid: string | null;
+  fromNumber: string | null;
+  /** Whether an auth token is stored (so the form can show "unchanged"). */
+  hasToken: boolean;
+}
+
+/** Decrypted SMS credentials, for the provider at send time. */
+export interface SmsCredentials {
+  accountSid: string;
+  authToken: string;
+  fromNumber: string;
+}
+
+export interface SmsSettingsInput {
+  accountSid: string | null;
+  /** Plaintext; when null/blank the stored token is kept unchanged. */
+  authToken: string | null;
+  fromNumber: string | null;
+  isEnabled: boolean;
+}
+
+export interface RecipientInput {
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  channels: NotificationChannel[];
+  events: NotificationEvent[];
+  isActive?: boolean;
+}
+
+export interface RecipientRow {
+  id: string;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  channels: NotificationChannel[];
+  events: NotificationEvent[];
+  isActive: boolean;
 }
 
 const DAY_KEY_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -316,5 +366,125 @@ export class SettingsRepository extends BaseRepository {
 
   deleteSpecialDay(id: string) {
     return this.db.specialDay.deleteMany({ where: this.scope({ id }) });
+  }
+
+  // --- SMS provider (Twilio) settings ---------------------------------------
+
+  /** Masked status for the admin UI. Never exposes the stored auth token. */
+  async getSmsSettingsStatus(): Promise<SmsSettingsStatus> {
+    const row = await this.db.smsSettings.findUnique({ where: { businessId: this.businessId } });
+    const hasToken = !!row?.authTokenCipher;
+    return {
+      configured: !!(row?.accountSid && row?.fromNumber && hasToken),
+      isEnabled: row?.isEnabled ?? false,
+      provider: row?.provider ?? 'twilio',
+      accountSid: row?.accountSid ?? null,
+      fromNumber: row?.fromNumber ?? null,
+      hasToken,
+    };
+  }
+
+  /** Decrypted credentials for the SMS provider, or null when not fully set up. */
+  async getSmsCredentials(): Promise<SmsCredentials | null> {
+    const row = await this.db.smsSettings.findUnique({ where: { businessId: this.businessId } });
+    if (!row || !row.isEnabled || !row.accountSid || !row.fromNumber || !row.authTokenCipher) return null;
+    const authToken = decryptSecret(row.authTokenCipher);
+    if (!authToken) return null;
+    return { accountSid: row.accountSid, authToken, fromNumber: row.fromNumber };
+  }
+
+  async saveSmsSettings(input: SmsSettingsInput): Promise<void> {
+    const accountSid = input.accountSid?.trim() || null;
+    const fromNumber = input.fromNumber?.trim() || null;
+    const newToken = input.authToken?.trim() || null;
+
+    // Only touch the ciphertext when a new token was supplied; encrypting needs a key.
+    let cipherUpdate: string | undefined;
+    if (newToken) {
+      if (!encryptionAvailable()) {
+        throw new ValidationError('Set ENCRYPTION_KEY (or AUTH_SECRET) before saving an SMS auth token.');
+      }
+      cipherUpdate = encryptSecret(newToken);
+    }
+
+    await this.db.smsSettings.upsert({
+      where: { businessId: this.businessId },
+      create: {
+        businessId: this.businessId,
+        provider: 'twilio',
+        accountSid,
+        fromNumber,
+        isEnabled: input.isEnabled,
+        authTokenCipher: cipherUpdate ?? null,
+      },
+      update: {
+        accountSid,
+        fromNumber,
+        isEnabled: input.isEnabled,
+        ...(cipherUpdate !== undefined ? { authTokenCipher: cipherUpdate } : {}),
+      },
+    });
+
+    // Keep the SMS templates in step with the toggle so enabling SMS actually
+    // enqueues SMS jobs (a channel only fires when it has an active template).
+    await this.syncSmsTemplates(input.isEnabled);
+  }
+
+  /** Ensure a default, (de)activated SMS template exists for every event. */
+  private async syncSmsTemplates(active: boolean): Promise<void> {
+    for (const meta of NOTIFICATION_EVENTS) {
+      const def = defaultTemplate(meta.event);
+      await this.db.notificationTemplate.upsert({
+        where: { businessId_event_channel: { businessId: this.businessId, event: meta.event, channel: 'SMS' } },
+        create: { businessId: this.businessId, event: meta.event, channel: 'SMS', subject: null, body: def.body, isActive: active },
+        update: { isActive: active },
+      });
+    }
+  }
+
+  // --- Notification recipients (internal) -----------------------------------
+
+  async listRecipients(): Promise<RecipientRow[]> {
+    const rows = await this.db.notificationRecipient.findMany({
+      where: this.scope(),
+      orderBy: [{ isActive: 'desc' }, { createdAt: 'asc' }],
+    });
+    return rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      email: r.email,
+      phone: r.phone,
+      channels: r.channels,
+      events: r.events,
+      isActive: r.isActive,
+    }));
+  }
+
+  private normaliseRecipient(input: RecipientInput) {
+    const email = input.email?.trim() || null;
+    const phone = input.phone?.trim() || null;
+    if (!email && !phone) throw new ValidationError('A recipient needs an email address or a phone number.');
+    return {
+      name: input.name?.trim().slice(0, 160) || null,
+      email: email?.slice(0, 200) ?? null,
+      phone: phone?.slice(0, 40) ?? null,
+      channels: input.channels,
+      events: input.events,
+      isActive: input.isActive ?? true,
+    };
+  }
+
+  createRecipient(input: RecipientInput) {
+    const v = this.normaliseRecipient(input);
+    return this.db.notificationRecipient.create({ data: { businessId: this.businessId, ...v } });
+  }
+
+  updateRecipient(id: string, input: RecipientInput) {
+    const v = this.normaliseRecipient(input);
+    return this.db.notificationRecipient.updateMany({ where: this.scope({ id }), data: v });
+  }
+
+  deleteRecipient(id: string) {
+    return this.db.notificationRecipient.deleteMany({ where: this.scope({ id }) });
   }
 }

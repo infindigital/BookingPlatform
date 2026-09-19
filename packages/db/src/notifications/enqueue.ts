@@ -45,8 +45,47 @@ export async function enqueueBookingEvent(
         data: { businessId, bookingId, event, channel, status: 'QUEUED', scheduledAt: new Date() },
       });
     }
+    await enqueueRecipientJobs(businessId, bookingId, event, channels, db);
   } catch (error) {
     logger.error('notification.enqueue.failed', { event, bookingId, message: (error as Error)?.message });
+  }
+}
+
+/**
+ * Fan out extra jobs to internal recipients (staff / owner) for this event. Each
+ * recipient job carries the recipient's own address on the payload so the
+ * dispatcher sends it there instead of to the customer. A recipient only gets a
+ * channel it opted into (empty = all), that has an active template, and that it
+ * has an address for.
+ */
+async function enqueueRecipientJobs(
+  businessId: string,
+  bookingId: string,
+  event: NotificationEvent,
+  activeChannels: NotificationChannel[],
+  db: PrismaClient,
+): Promise<void> {
+  if (activeChannels.length === 0) return;
+  const recipients = await db.notificationRecipient.findMany({ where: { businessId, isActive: true } });
+  for (const r of recipients) {
+    if (r.events.length > 0 && !r.events.includes(event)) continue;
+    const wanted = r.channels.length > 0 ? activeChannels.filter((c) => r.channels.includes(c)) : activeChannels;
+    for (const channel of wanted) {
+      const isEmail = channel === 'EMAIL';
+      const address = isEmail ? r.email : r.phone;
+      if (!address) continue;
+      await db.notificationJob.create({
+        data: {
+          businessId,
+          bookingId,
+          event,
+          channel,
+          status: 'QUEUED',
+          scheduledAt: new Date(),
+          payload: { recipientEmail: isEmail ? r.email : null, recipientPhone: isEmail ? null : r.phone },
+        },
+      });
+    }
   }
 }
 

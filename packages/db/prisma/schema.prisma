@@ -170,6 +170,8 @@ model Business {
   notificationTemplate NotificationTemplate[]
   notificationJobs     NotificationJob[]
   notificationLogs     NotificationLog[]
+  notificationRecipients NotificationRecipient[]
+  smsSettings          SmsSettings?
   customFields         CustomField[]
   customFieldValues    CustomFieldValue[]
   formThemes           FormTheme[]
@@ -823,6 +825,42 @@ model NotificationLog {
 
   @@index([businessId])
   @@index([jobId])
+}
+
+// SMS provider (Twilio) configuration, one row per business. The auth token is
+// stored encrypted (authTokenCipher) and never returned to the client.
+model SmsSettings {
+  id              String   @id @default(cuid())
+  businessId      String   @unique
+  provider        String   @default("twilio")
+  accountSid      String?
+  authTokenCipher String?
+  fromNumber      String?
+  isEnabled       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+}
+
+// Extra internal recipients (staff / owner) notified on booking events, in
+// addition to the customer. `channels` and `events` narrow what they receive
+// (empty = all channels / all events).
+model NotificationRecipient {
+  id         String                @id @default(cuid())
+  businessId String
+  name       String?
+  email      String?
+  phone      String?
+  channels   NotificationChannel[]
+  events     NotificationEvent[]
+  isActive   Boolean               @default(true)
+  createdAt  DateTime              @default(now())
+  updatedAt  DateTime              @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
 }
 
 // ---------------------------------------------------------------------------

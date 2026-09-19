@@ -39,6 +39,11 @@ const serverSchema = z.object({
   EMAIL_FROM: z.string().email().optional(),
   EMAIL_FROM_NAME: z.string().optional(),
   EMAIL_REPLY_TO: z.string().email().optional(),
+  // Key used to encrypt provider secrets (e.g. the Twilio auth token) at rest in
+  // the database. Any string works - it is stretched to a 32-byte key. When unset
+  // the app falls back to AUTH_SECRET; if neither is set, storing provider secrets
+  // is refused with a clear error. Server-side only.
+  ENCRYPTION_KEY: z.string().min(1).optional(),
   // Shared secret for the webhook-delivery cron endpoint. When unset, the endpoint
   // is disabled (404) so it can never be triggered anonymously.
   WEBHOOKS_CRON_SECRET: z.string().min(1).optional(),
