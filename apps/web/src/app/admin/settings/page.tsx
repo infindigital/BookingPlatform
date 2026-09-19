@@ -19,11 +19,14 @@ export default async function SettingsPage() {
   const session = await requirePermission('settings.manage');
   const repos = repositoriesFor(session.user.businessId);
 
-  const [business, hoursRows, holidays] = await Promise.all([
+  const [business, hoursRows, holidays, specialDays, locationRows] = await Promise.all([
     repos.settings.getBusiness(),
     repos.settings.getBusinessHours(),
     repos.settings.listHolidays(),
+    repos.settings.listSpecialDays(),
+    repos.settings.listLocations(),
   ]);
+  const locations = locationRows.map((l) => ({ id: l.id, name: l.name }));
 
   const profile = {
     name: business?.name ?? '',
@@ -40,6 +43,8 @@ export default async function SettingsPage() {
       profile={profile}
       week={week}
       holidays={holidays}
+      specialDays={specialDays}
+      locations={locations}
       timezones={supported('timeZone')}
       currencies={supported('currency')}
     />

@@ -30,6 +30,14 @@ function posInt(value: FormDataEntryValue | null, fallback: number): number {
   return Number.isFinite(n) && n >= 0 ? Math.round(n) : fallback;
 }
 
+/** Parse an optional positive integer: empty -> null; a positive value -> it. */
+function optInt(value: FormDataEntryValue | null): number | null {
+  const raw = String(value ?? '').trim();
+  if (raw === '') return null;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? Math.round(n) : null;
+}
+
 function parseServiceForm(formData: FormData): {
   values?: {
     name: string;
@@ -38,6 +46,9 @@ function parseServiceForm(formData: FormData): {
     durationMinutes: number;
     bufferBeforeMinutes: number;
     bufferAfterMinutes: number;
+    minAdvanceMinutes: number;
+    maxAdvanceDays: number | null;
+    slotIntervalMinutes: number | null;
     price: number;
     color: string | null;
     isActive: boolean;
@@ -65,6 +76,9 @@ function parseServiceForm(formData: FormData): {
       durationMinutes,
       bufferBeforeMinutes: posInt(formData.get('bufferBeforeMinutes'), 0),
       bufferAfterMinutes: posInt(formData.get('bufferAfterMinutes'), 0),
+      minAdvanceMinutes: posInt(formData.get('minAdvanceMinutes'), 0),
+      maxAdvanceDays: optInt(formData.get('maxAdvanceDays')),
+      slotIntervalMinutes: optInt(formData.get('slotIntervalMinutes')),
       price,
       color: HEX_RE.test(color) ? color.toLowerCase() : null,
       isActive: String(formData.get('isActive') ?? '') === 'on',
@@ -89,6 +103,9 @@ export async function createServiceAction(
       durationMinutes: parsed.values.durationMinutes,
       bufferBeforeMinutes: parsed.values.bufferBeforeMinutes,
       bufferAfterMinutes: parsed.values.bufferAfterMinutes,
+      minAdvanceMinutes: parsed.values.minAdvanceMinutes,
+      maxAdvanceDays: parsed.values.maxAdvanceDays,
+      slotIntervalMinutes: parsed.values.slotIntervalMinutes,
       price: parsed.values.price,
       color: parsed.values.color,
       isActive: true,
@@ -133,6 +150,9 @@ export async function updateServiceAction(
       durationMinutes: parsed.values.durationMinutes,
       bufferBeforeMinutes: parsed.values.bufferBeforeMinutes,
       bufferAfterMinutes: parsed.values.bufferAfterMinutes,
+      minAdvanceMinutes: parsed.values.minAdvanceMinutes,
+      maxAdvanceDays: parsed.values.maxAdvanceDays,
+      slotIntervalMinutes: parsed.values.slotIntervalMinutes,
       price: parsed.values.price,
       color: parsed.values.color,
       isActive: parsed.values.isActive,

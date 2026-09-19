@@ -19,6 +19,9 @@ export interface ServiceEditSeed {
   durationMinutes: number;
   bufferBeforeMinutes: number;
   bufferAfterMinutes: number;
+  minAdvanceMinutes: number;
+  maxAdvanceDays: number | null;
+  slotIntervalMinutes: number | null;
   price: number;
   color: string | null;
   isActive: boolean;
@@ -107,6 +110,44 @@ export function ServiceFormDrawer({
                   <input name="bufferAfterMinutes" type="number" min={0} step={5} defaultValue={seed?.bufferAfterMinutes ?? 0} className={CONTROL} />
                 </label>
               </div>
+
+              <fieldset className="space-y-2 border border-border p-3">
+                <legend className="px-1 text-xs font-medium text-muted-foreground">Booking rules</legend>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="space-y-1">
+                    <span className="text-xs font-medium text-muted-foreground">Min. notice (mins)</span>
+                    <input name="minAdvanceMinutes" type="number" min={0} step={15} defaultValue={seed?.minAdvanceMinutes ?? 0} className={CONTROL} />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-xs font-medium text-muted-foreground">Book up to (days)</span>
+                    <input
+                      name="maxAdvanceDays"
+                      type="number"
+                      min={0}
+                      step={1}
+                      defaultValue={seed?.maxAdvanceDays ?? ''}
+                      placeholder="No limit"
+                      className={CONTROL}
+                    />
+                  </label>
+                </div>
+                <label className="block space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground">Time-slot step (mins)</span>
+                  <input
+                    name="slotIntervalMinutes"
+                    type="number"
+                    min={0}
+                    step={5}
+                    defaultValue={seed?.slotIntervalMinutes ?? ''}
+                    placeholder="Use default"
+                    className={CONTROL}
+                  />
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  How soon before the start a customer may book, how far ahead, and the interval between offered times.
+                  Leave the last two empty for no limit / the default step.
+                </p>
+              </fieldset>
 
               <label className="block space-y-1">
                 <span className="text-xs font-medium text-muted-foreground">Colour</span>

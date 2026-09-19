@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { repositoriesFor, writeAudit, type HolidayRow } from '@booking/db';
+import { repositoriesFor, writeAudit, type HolidayRow, type SpecialDayRow } from '@booking/db';
 import { DomainError, type DayHours } from '@booking/core';
 import { requirePermission } from '@/server/auth/guard';
 import { logger } from '@/lib/logger';
@@ -231,5 +231,76 @@ export async function deleteHolidayAction(id: string): Promise<SettingsActionRes
     return { ok: true };
   } catch (error) {
     return fail('settings.holiday.delete.failed', error, 'Could not delete the closure.');
+  }
+}
+
+// --- Special days -----------------------------------------------------------
+
+export async function listSpecialDaysAction(): Promise<SpecialDayRow[]> {
+  const session = await requirePermission('settings.manage');
+  return repositoriesFor(session.user.businessId).settings.listSpecialDays();
+}
+
+export interface SpecialDayFormInput {
+  dayKey: string;
+  name: string | null;
+  isClosed: boolean;
+  openTime: string | null;
+  closeTime: string | null;
+  locationId: string | null;
+}
+
+export async function createSpecialDayAction(input: SpecialDayFormInput): Promise<SettingsActionResult> {
+  const session = await requirePermission('settings.manage');
+  try {
+    const created = await repositoriesFor(session.user.businessId).settings.createSpecialDay(input);
+    await writeAudit({
+      businessId: session.user.businessId,
+      actorUserId: session.user.id,
+      action: 'settings.specialDay.create',
+      entity: 'SpecialDay',
+      entityId: created.id,
+    });
+    refresh();
+    return { ok: true };
+  } catch (error) {
+    return fail('settings.specialDay.create.failed', error, 'Could not add the special day.');
+  }
+}
+
+export async function updateSpecialDayAction(id: string, input: SpecialDayFormInput): Promise<SettingsActionResult> {
+  const session = await requirePermission('settings.manage');
+  try {
+    const res = await repositoriesFor(session.user.businessId).settings.updateSpecialDay(id, input);
+    if (res.count === 0) return { ok: false, error: 'Special day not found.' };
+    await writeAudit({
+      businessId: session.user.businessId,
+      actorUserId: session.user.id,
+      action: 'settings.specialDay.update',
+      entity: 'SpecialDay',
+      entityId: id,
+    });
+    refresh();
+    return { ok: true };
+  } catch (error) {
+    return fail('settings.specialDay.update.failed', error, 'Could not update the special day.');
+  }
+}
+
+export async function deleteSpecialDayAction(id: string): Promise<SettingsActionResult> {
+  const session = await requirePermission('settings.manage');
+  try {
+    await repositoriesFor(session.user.businessId).settings.deleteSpecialDay(id);
+    await writeAudit({
+      businessId: session.user.businessId,
+      actorUserId: session.user.id,
+      action: 'settings.specialDay.delete',
+      entity: 'SpecialDay',
+      entityId: id,
+    });
+    refresh();
+    return { ok: true };
+  } catch (error) {
+    return fail('settings.specialDay.delete.failed', error, 'Could not delete the special day.');
   }
 }

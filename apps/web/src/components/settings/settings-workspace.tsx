@@ -1,31 +1,37 @@
 'use client';
 
 import { useState } from 'react';
-import { Building2, Clock, CalendarOff, type LucideIcon } from 'lucide-react';
+import { Building2, Clock, CalendarOff, CalendarClock, type LucideIcon } from 'lucide-react';
 import type { DayHours } from '@booking/core';
-import type { HolidayRow } from '@booking/db';
+import type { HolidayRow, SpecialDayRow } from '@booking/db';
 import { BusinessProfileForm, type ProfileValues } from './business-profile-form';
 import { BusinessHoursForm } from './business-hours-form';
 import { HolidaysManager } from './holidays-manager';
+import { SpecialDaysManager, type SpecialDayLocationOption } from './special-days-manager';
 
-type Tab = 'general' | 'hours' | 'closures';
+type Tab = 'general' | 'hours' | 'closures' | 'special';
 
 const TABS: { key: Tab; label: string; icon: LucideIcon }[] = [
   { key: 'general', label: 'General', icon: Building2 },
   { key: 'hours', label: 'Opening hours', icon: Clock },
   { key: 'closures', label: 'Closures', icon: CalendarOff },
+  { key: 'special', label: 'Special days', icon: CalendarClock },
 ];
 
 export function SettingsWorkspace({
   profile,
   week,
   holidays,
+  specialDays,
+  locations,
   timezones,
   currencies,
 }: {
   profile: ProfileValues;
   week: DayHours[];
   holidays: HolidayRow[];
+  specialDays: SpecialDayRow[];
+  locations: SpecialDayLocationOption[];
   timezones: string[];
   currencies: string[];
 }) {
@@ -59,6 +65,7 @@ export function SettingsWorkspace({
       {tab === 'general' && <BusinessProfileForm profile={profile} timezones={timezones} currencies={currencies} />}
       {tab === 'hours' && <BusinessHoursForm initial={week} />}
       {tab === 'closures' && <HolidaysManager initial={holidays} />}
+      {tab === 'special' && <SpecialDaysManager initial={specialDays} locations={locations} />}
     </div>
   );
 }
