@@ -88,7 +88,14 @@ export async function getAvailability(
 
   const service = await db.service.findFirst({
     where: { id: params.serviceId, businessId },
-    select: { durationMinutes: true, bufferBeforeMinutes: true, bufferAfterMinutes: true },
+    select: {
+      durationMinutes: true,
+      bufferBeforeMinutes: true,
+      bufferAfterMinutes: true,
+      minAdvanceMinutes: true,
+      maxAdvanceDays: true,
+      slotIntervalMinutes: true,
+    },
   });
   const empty: AvailabilityResult = {
     durationMinutes: service?.durationMinutes ?? 0,
@@ -96,6 +103,17 @@ export async function getAvailability(
     days: days.map((dayKey) => ({ dayKey, slots: [] })),
   };
   if (!service) return empty;
+
+  // Per-service booking rules layer on top of the caller/business defaults:
+  //  - the booking step can be overridden per service,
+  //  - the effective minimum lead is the stricter of the global policy and the
+  //    service's own minimum notice,
+  //  - a max-advance horizon caps how far ahead slots may be offered (only when
+  //    a concrete "now" is supplied, i.e. customer-facing lookups).
+  const effectiveStepMinutes = service.slotIntervalMinutes && service.slotIntervalMinutes > 0
+    ? service.slotIntervalMinutes
+    : stepMinutes;
+  const effectiveMinLeadMs = Math.max(minLeadMs, (service.minAdvanceMinutes ?? 0) * MIN);
 
   // Location gating (backward-compatible): a service with explicit
   // ServiceLocation rows is only bookable at those locations; a service with no
@@ -147,7 +165,7 @@ export async function getAvailability(
   const rangeStart = dateMidnightInstant(params.fromDayKey, timeZone);
   const rangeEnd = dateMidnightInstant(addDays(params.toDayKey, 1), timeZone);
 
-  const [workingHours, bookings, timeOff, blocked, holidays, businessHoursRowsForLocation] = await Promise.all([
+  const [workingHours, bookings, timeOff, blocked, holidays, businessHoursRowsForLocation, specialDays] = await Promise.all([
     db.employeeWorkingHours.findMany({
       where: { businessId, employeeId: { in: employeeIds } },
       select: { employeeId: true, dayOfWeek: true, startTime: true, endTime: true, breaks: { select: { startTime: true, endTime: true } } },
@@ -174,6 +192,15 @@ export async function getAvailability(
     db.businessHours.findMany({
       where: { businessId, locationId: params.locationId ?? null },
       select: { dayOfWeek: true, openTime: true, closeTime: true, isClosed: true },
+    }),
+    db.specialDay.findMany({
+      where: {
+        businessId,
+        ...(params.locationId
+          ? { OR: [{ locationId: params.locationId }, { locationId: null }] }
+          : { locationId: null }),
+      },
+      select: { date: true, locationId: true, isClosed: true, openTime: true, closeTime: true },
     }),
   ]);
 
@@ -217,32 +244,87 @@ export async function getAvailability(
   }
   const isHoliday = (dayKey: string) => holidayExact.has(dayKey) || holidayMonthDay.has(dayKey.slice(5));
 
+  // Date-specific overrides. A location-specific special day wins over a
+  // business-wide one for the same date. isClosed short-circuits the day; custom
+  // open/close hours replace the normal opening-hours boundary for that date.
+  interface SpecialForDay {
+    isClosed: boolean;
+    open: number | null;
+    close: number | null;
+  }
+  const specialByDay = new Map<string, SpecialForDay>();
+  const scopedDates = new Set<string>();
+  const toSpecial = (sd: (typeof specialDays)[number]): SpecialForDay => ({
+    isClosed: sd.isClosed,
+    open: sd.openTime ? parseHHMM(sd.openTime) : null,
+    close: sd.closeTime ? parseHHMM(sd.closeTime) : null,
+  });
+  // Location-scoped rows win over business-wide ones for the same date.
+  for (const sd of specialDays) {
+    if (sd.locationId === null) continue;
+    const key = localWallClock(sd.date, timeZone).dayKey;
+    specialByDay.set(key, toSpecial(sd));
+    scopedDates.add(key);
+  }
+  for (const sd of specialDays) {
+    if (sd.locationId !== null) continue;
+    const key = localWallClock(sd.date, timeZone).dayKey;
+    if (!scopedDates.has(key)) specialByDay.set(key, toSpecial(sd));
+  }
+
   const durationMs = service.durationMinutes * MIN;
-  const stepMs = stepMinutes * MIN;
+  const stepMs = effectiveStepMinutes * MIN;
   const bufferBeforeMs = service.bufferBeforeMinutes * MIN;
   const bufferAfterMs = service.bufferAfterMinutes * MIN;
   const nowMs = params.now?.getTime();
+  // Booking horizon: when a max-advance is set and we have a concrete "now",
+  // slots starting after the cutoff are not offered.
+  const maxAdvanceMs =
+    nowMs !== undefined && service.maxAdvanceDays && service.maxAdvanceDays > 0
+      ? nowMs + service.maxAdvanceDays * 24 * 60 * MIN
+      : undefined;
 
   const resultDays: AvailabilityDay[] = [];
   for (const dayKey of days) {
-    if (isHoliday(dayKey)) {
+    const special = specialByDay.get(dayKey);
+    // A special day with custom open/close hours overrides both holidays and the
+    // normal weekday opening hours; a closed special day yields no availability.
+    const hasSpecialHours = !!special && !special.isClosed && special.open !== null && special.close !== null && special.close > special.open;
+
+    if (special?.isClosed) {
+      resultDays.push({ dayKey, slots: [] });
+      continue;
+    }
+    if (!special && isHoliday(dayKey)) {
       resultDays.push({ dayKey, slots: [] });
       continue;
     }
     const weekday = weekdayOf(dayKey);
-    // A business-wide closed day yields no availability for anyone.
-    if (businessHours.closedDays.has(weekday)) {
+    // A business-wide closed weekday yields no availability, unless a special day
+    // explicitly opens this date with custom hours.
+    if (!hasSpecialHours && businessHours.closedDays.has(weekday)) {
       resultDays.push({ dayKey, slots: [] });
       continue;
     }
-    // Business opening windows for this weekday, as instants (undefined = unconstrained).
-    const bhForDay = businessHours.windowsByDay.get(weekday);
-    const businessSpans: Span[] | null = bhForDay
-      ? bhForDay.map((w) => ({
-          start: wallTimeToInstant(dayKey, w.open, timeZone).getTime(),
-          end: wallTimeToInstant(dayKey, w.close, timeZone).getTime(),
-        }))
-      : null;
+    // Business opening windows: the special-day custom hours when set, otherwise
+    // this weekday's configured hours (undefined = unconstrained).
+    let businessSpans: Span[] | null;
+    if (hasSpecialHours) {
+      businessSpans = [
+        {
+          start: wallTimeToInstant(dayKey, special!.open!, timeZone).getTime(),
+          end: wallTimeToInstant(dayKey, special!.close!, timeZone).getTime(),
+        },
+      ];
+    } else {
+      const bhForDay = businessHours.windowsByDay.get(weekday);
+      businessSpans = bhForDay
+        ? bhForDay.map((w) => ({
+            start: wallTimeToInstant(dayKey, w.open, timeZone).getTime(),
+            end: wallTimeToInstant(dayKey, w.close, timeZone).getTime(),
+          }))
+        : null;
+    }
     const startsByEmployee = new Map<number, string[]>(); // startMs → employeeIds
 
     for (const empId of employeeIds) {
@@ -284,9 +366,11 @@ export async function getAvailability(
         bufferBeforeMs,
         bufferAfterMs,
         now: nowMs,
-        minLeadMs,
+        minLeadMs: effectiveMinLeadMs,
       });
       for (const startMs of starts) {
+        // Enforce the per-service booking horizon (max advance).
+        if (maxAdvanceMs !== undefined && startMs > maxAdvanceMs) continue;
         const arr = startsByEmployee.get(startMs) ?? [];
         arr.push(empId);
         startsByEmployee.set(startMs, arr);
@@ -303,5 +387,5 @@ export async function getAvailability(
     resultDays.push({ dayKey, slots });
   }
 
-  return { durationMinutes: service.durationMinutes, stepMinutes, days: resultDays };
+  return { durationMinutes: service.durationMinutes, stepMinutes: effectiveStepMinutes, days: resultDays };
 }

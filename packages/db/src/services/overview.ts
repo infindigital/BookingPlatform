@@ -16,6 +16,12 @@ export interface ServiceRow {
   durationMinutes: number;
   bufferBeforeMinutes: number;
   bufferAfterMinutes: number;
+  /** Minimum notice (minutes) before the appointment start. */
+  minAdvanceMinutes: number;
+  /** Booking horizon in days; null = no limit. */
+  maxAdvanceDays: number | null;
+  /** Per-service booking step (minutes); null = use the global default. */
+  slotIntervalMinutes: number | null;
   price: number;
   color: string | null;
   isActive: boolean;
@@ -72,6 +78,9 @@ export async function getServicesOverview(
       durationMinutes: s.durationMinutes,
       bufferBeforeMinutes: s.bufferBeforeMinutes,
       bufferAfterMinutes: s.bufferAfterMinutes,
+      minAdvanceMinutes: s.minAdvanceMinutes,
+      maxAdvanceDays: s.maxAdvanceDays,
+      slotIntervalMinutes: s.slotIntervalMinutes,
       price: Number(s.price.toString()),
       color: s.color,
       isActive: s.isActive,

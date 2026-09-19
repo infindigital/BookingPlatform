@@ -30,7 +30,43 @@ export interface DeleteResult {
   reason?: 'not_found';
 }
 
+export interface SpecialDayInput {
+  /** "YYYY-MM-DD" in the business timezone. */
+  dayKey: string;
+  name?: string | null;
+  /** When true, the business (or location) is closed that date. */
+  isClosed?: boolean;
+  /** "HH:mm" open/close, required when not closed. */
+  openTime?: string | null;
+  closeTime?: string | null;
+  /** Null -> business-wide; otherwise scoped to one location. */
+  locationId?: string | null;
+}
+
+export interface SpecialDayRow {
+  id: string;
+  dayKey: string;
+  name: string | null;
+  isClosed: boolean;
+  openTime: string | null;
+  closeTime: string | null;
+  locationId: string | null;
+  locationName: string | null;
+}
+
 const DAY_KEY_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+const HHMM_RE = /^(\d{1,2}):(\d{2})$/;
+
+/** Validate & canonicalise a "HH:mm" clock time. */
+function normalizeHHMM(value: string | null | undefined): string {
+  const v = (value ?? '').trim();
+  const m = HHMM_RE.exec(v);
+  if (!m) throw new ValidationError('A valid time (HH:mm) is required.');
+  const h = Number(m[1]);
+  const min = Number(m[2]);
+  if (h > 23 || min > 59) throw new ValidationError('That time is not valid.');
+  return `${String(h).padStart(2, '0')}:${m[2]}`;
+}
 
 /** Validate & canonicalise a "YYYY-MM-DD" day key (must be a real calendar date). */
 function normalizeDayKey(value: string | null | undefined): string {
@@ -196,5 +232,89 @@ export class SettingsRepository extends BaseRepository {
 
   deleteHoliday(id: string) {
     return this.db.holiday.deleteMany({ where: this.scope({ id }) });
+  }
+
+  // --- Special days (date-specific hours / closures) ------------------------
+
+  async listSpecialDays(): Promise<SpecialDayRow[]> {
+    const tz = await this.getTimezone();
+    const rows = await this.db.specialDay.findMany({
+      where: this.scope(),
+      orderBy: { date: 'asc' },
+      include: { location: { select: { name: true } } },
+    });
+    return rows.map((s) => ({
+      id: s.id,
+      dayKey: localWallClock(s.date, tz).dayKey,
+      name: s.name,
+      isClosed: s.isClosed,
+      openTime: s.openTime,
+      closeTime: s.closeTime,
+      locationId: s.locationId,
+      locationName: s.location?.name ?? null,
+    }));
+  }
+
+  /** Resolve the validated fields for a special day, or throw. */
+  private async resolveSpecialDay(input: SpecialDayInput) {
+    const dayKey = normalizeDayKey(input.dayKey);
+    const isClosed = input.isClosed === true;
+    let openTime: string | null = null;
+    let closeTime: string | null = null;
+    if (!isClosed) {
+      openTime = normalizeHHMM(input.openTime);
+      closeTime = normalizeHHMM(input.closeTime);
+      if (closeTime <= openTime) throw new ValidationError('The closing time must be after the opening time.');
+    }
+    // A location id, when given, must belong to this tenant.
+    let locationId: string | null = input.locationId?.trim() || null;
+    if (locationId) {
+      const owned = await this.db.location.findFirst({ where: this.scope({ id: locationId }), select: { id: true } });
+      if (!owned) throw new ValidationError('That location could not be found.');
+    }
+    const tz = await this.getTimezone();
+    return {
+      dayKey,
+      isClosed,
+      openTime,
+      closeTime,
+      locationId,
+      name: (input.name ?? '').trim().slice(0, 200) || null,
+      date: dateMidnightInstant(dayKey, tz),
+    };
+  }
+
+  async createSpecialDay(input: SpecialDayInput) {
+    const v = await this.resolveSpecialDay(input);
+    return this.db.specialDay.create({
+      data: {
+        businessId: this.businessId,
+        locationId: v.locationId,
+        date: v.date,
+        name: v.name,
+        isClosed: v.isClosed,
+        openTime: v.openTime,
+        closeTime: v.closeTime,
+      },
+    });
+  }
+
+  async updateSpecialDay(id: string, input: SpecialDayInput) {
+    const v = await this.resolveSpecialDay(input);
+    return this.db.specialDay.updateMany({
+      where: this.scope({ id }),
+      data: {
+        locationId: v.locationId,
+        date: v.date,
+        name: v.name,
+        isClosed: v.isClosed,
+        openTime: v.openTime,
+        closeTime: v.closeTime,
+      },
+    });
+  }
+
+  deleteSpecialDay(id: string) {
+    return this.db.specialDay.deleteMany({ where: this.scope({ id }) });
   }
 }

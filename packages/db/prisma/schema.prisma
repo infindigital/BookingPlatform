@@ -157,6 +157,7 @@ model Business {
   employeeWorkingHours EmployeeWorkingHours[]
   breaks               Break[]
   holidays             Holiday[]
+  specialDays          SpecialDay[]
   timeOff              TimeOff[]
   blockedTimes         BlockedTime[]
   customers            Customer[]
@@ -294,6 +295,12 @@ model Service {
   bufferAfterMinutes  Int      @default(0)
   price               Decimal  @default(0) @db.Decimal(10, 2)
   capacity            Int      @default(1)
+  // Booking rules (per-service). minAdvanceMinutes = minimum notice before the
+  // appointment start; maxAdvanceDays = how far ahead it can be booked (null =
+  // no limit); slotIntervalMinutes = booking step (null = use the global step).
+  minAdvanceMinutes   Int      @default(0)
+  maxAdvanceDays      Int?
+  slotIntervalMinutes Int?
   color               String?
   isActive            Boolean  @default(true)
   createdAt           DateTime @default(now())
@@ -366,6 +373,7 @@ model Location {
   services             ServiceLocation[]
   employees            EmployeeLocation[]
   notices              LocationNotice[]
+  specialDays          SpecialDay[]
 
   @@index([businessId])
 }
@@ -532,6 +540,28 @@ model Holiday {
   business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
   @@index([businessId])
+}
+
+// Date-specific hours override. A SpecialDay either closes the business (or one
+// location) for that calendar date, or replaces the normal weekday opening hours
+// with custom open/close times. A null locationId applies business-wide.
+model SpecialDay {
+  id         String   @id @default(cuid())
+  businessId String
+  locationId String?
+  date       DateTime
+  name       String?
+  isClosed   Boolean  @default(false)
+  openTime   String? // "HH:mm" when not closed
+  closeTime  String? // "HH:mm" when not closed
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  location Location? @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+  @@index([locationId])
 }
 
 model TimeOff {
