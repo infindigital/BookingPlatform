@@ -13,6 +13,7 @@ import {
   Plug,
   Paintbrush,
   Settings,
+  ShieldCheck,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -57,6 +58,7 @@ export const NAV_SECTIONS: { heading: string; items: NavItem[] }[] = [
     heading: 'Configure',
     items: [
       { label: 'Form Designer', href: '/admin/form-designer', icon: Paintbrush, phase: 10 },
+      { label: 'Access', href: '/admin/access', icon: ShieldCheck, phase: 25 },
       { label: 'Settings', href: '/admin/settings', icon: Settings, phase: 19 },
     ],
   },
