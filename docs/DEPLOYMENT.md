@@ -31,6 +31,7 @@ notification/webhook queues are drained by a plain scheduled HTTP call.
 | `NODE_ENV` | auto | `production` on the host (enables HSTS). |
 | `NOTIFICATIONS_CRON_SECRET` | optional | Enables `POST /api/notifications/process`. Unset → endpoint is 404. |
 | `WEBHOOKS_CRON_SECRET` | optional | Enables `POST /api/webhooks/process`. Unset → endpoint is 404. |
+| `ENCRYPTION_KEY` | **before storing SMS creds** | Encrypts provider secrets at rest (the Twilio auth token). Any string; stretched to a 32-byte key. Falls back to `AUTH_SECRET` when unset. Set a dedicated value so rotating `AUTH_SECRET` does not invalidate stored SMS credentials. |
 | `SMTP_HOST`,`SMTP_PORT`,`SMTP_USER`,`SMTP_PASS`,`EMAIL_FROM`,… | optional | SMTP transport. Unset → no-op (queued + logged, nothing sent). |
 | `WEBHOOKS_ALLOW_INSECURE` | never in prod | Dev-only escape hatch for http/private webhook targets (SSRF). |
 
@@ -181,7 +182,46 @@ EMAIL_FROM=bookings@clientdomain.com
 | Apply existing (Postgres) migrations | `pnpm --filter @booking/db migrate:deploy` |
 | Create schema on a fresh DB (either dialect) | `pnpm --filter @booking/db db:push` |
 | Seed demo/business data | `pnpm --filter @booking/db seed` |
+| Load a real business (idempotent) | `pnpm --filter @booking/db load:midwest` |
 | Inspect data (GUI) | `pnpm --filter @booking/db studio` |
+
+---
+
+## Loading a real business (no demo data)
+
+For a real tenant, skip the demo seed and use the **idempotent loader** instead. It
+upserts the business, public website, primary location, weekly hours, service
+categories and services, the permission catalogue, the Administrator and Employee
+system roles, and a real admin user from a JSON file. It never creates customers or
+bookings, and re-running it updates in place.
+
+```bash
+# 1. Copy the template and fill in real values (services, prices, hours, address, admin)
+cp packages/db/prisma/data/midwest.template.json packages/db/prisma/data/midwest.json
+
+# 2. Apply migrations, then load (uses DATABASE_URL)
+pnpm --filter @booking/db migrate:deploy
+pnpm --filter @booking/db load:midwest
+```
+
+`midwest.json` is gitignored, so real data never lands in the repo. Full field
+reference: [`packages/db/prisma/data/README.md`](../packages/db/prisma/data/README.md).
+
+## Roles, access, and the audit log
+
+Admin users, roles, and permissions are managed in the app at **`/admin/access`**
+(gated by the `settings.manage` permission). The loader provisions an `Administrator`
+role with every permission and maps your admin user to it, so the first sign-in has
+full access. Create additional custom roles there, assign them per team member, and
+review sensitive actions (sign-ins, approvals, configuration changes) in the audit log.
+
+## Text messaging (Twilio SMS)
+
+SMS is configured in-app at **`/admin/notifications`** (SMS settings card): account SID,
+from number, and auth token. Before saving credentials, set **`ENCRYPTION_KEY`** in the
+environment so the auth token is encrypted at rest. The SMS channel only sends once it is
+enabled there and a template row exists for the event; otherwise the platform stays on
+email. No Twilio env vars are needed: credentials are per-business in the database.
 
 ---
 
@@ -194,5 +234,8 @@ EMAIL_FROM=bookings@clientdomain.com
 - [ ] Point `APP_URL` at the real HTTPS URL (HSTS + correct absolute links).
 - [ ] Serve over HTTPS (the security headers assume it; HSTS is emitted in production).
 - [ ] Configure SMTP so confirmation emails actually send.
+- [ ] Set `ENCRYPTION_KEY` before entering Twilio SMS credentials at `/admin/notifications`.
 - [ ] Schedule the notification + webhook queue endpoints.
-- [ ] Seed the client's real business, services, staff and hours (edit `prisma/seed.ts` or use Studio).
+- [ ] Load the client's real business, services, and hours with the idempotent loader
+      (`load:midwest`, see *Loading a real business* above), not the demo seed.
+- [ ] Confirm the admin can sign in and manage roles at `/admin/access`.
