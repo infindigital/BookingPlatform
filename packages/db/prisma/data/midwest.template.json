@@ -1,0 +1,82 @@
+{
+  "_comment": "TEMPLATE ONLY - copy to midwest.json and replace every REPLACE_ME / 0 / example value with real Midwest Identity Services data before running the loader. See prisma/data/README.md. Category names reflect the real service lines; services, prices, durations, address, hours, publicKey, and admin are placeholders.",
+  "business": {
+    "name": "Midwest Identity Services",
+    "slug": "midwest-identity-services",
+    "timezone": "America/Chicago",
+    "currency": "USD",
+    "email": "REPLACE_ME@example.com",
+    "phone": "REPLACE_ME"
+  },
+  "website": {
+    "name": "Midwest Identity Services",
+    "publicKey": "pk_REPLACE_ME",
+    "domain": null
+  },
+  "location": {
+    "name": "REPLACE_ME (e.g. Kansas City office)",
+    "address": "REPLACE_ME",
+    "addressLine2": null,
+    "city": "Kansas City",
+    "state": "MO",
+    "postalCode": "REPLACE_ME",
+    "country": "US",
+    "phone": "REPLACE_ME",
+    "email": "REPLACE_ME@example.com",
+    "instructions": null,
+    "mode": "IN_PERSON",
+    "timezone": "America/Chicago"
+  },
+  "businessHours": [
+    { "dayOfWeek": 0, "isClosed": true },
+    { "dayOfWeek": 1, "openTime": "REPLACE_ME", "closeTime": "REPLACE_ME" },
+    { "dayOfWeek": 2, "openTime": "REPLACE_ME", "closeTime": "REPLACE_ME" },
+    { "dayOfWeek": 3, "openTime": "REPLACE_ME", "closeTime": "REPLACE_ME" },
+    { "dayOfWeek": 4, "openTime": "REPLACE_ME", "closeTime": "REPLACE_ME" },
+    { "dayOfWeek": 5, "openTime": "REPLACE_ME", "closeTime": "REPLACE_ME" },
+    { "dayOfWeek": 6, "isClosed": true }
+  ],
+  "categories": [
+    {
+      "name": "Fingerprinting",
+      "description": "REPLACE_ME or set to null",
+      "services": [
+        {
+          "name": "REPLACE_ME - example fingerprinting service",
+          "description": null,
+          "durationMinutes": 30,
+          "price": 0,
+          "bufferAfterMinutes": 0
+        }
+      ]
+    },
+    {
+      "name": "Notary",
+      "description": null,
+      "services": [
+        {
+          "name": "REPLACE_ME - example notary service",
+          "durationMinutes": 30,
+          "price": 0
+        }
+      ]
+    },
+    {
+      "name": "Apostille",
+      "description": null,
+      "services": [
+        {
+          "name": "REPLACE_ME - example apostille service",
+          "durationMinutes": 30,
+          "price": 0
+        }
+      ]
+    }
+  ],
+  "admin": {
+    "email": "REPLACE_ME@example.com",
+    "name": "REPLACE_ME",
+    "password": "REPLACE_ME_or_remove_this_field_for_magic_link_only"
+  },
+  "employees": []
+}

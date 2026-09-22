@@ -1,6 +1,19 @@
 export { prisma } from './client';
 export { detectDialect, dialect, quoteIdent, placeholder, forUpdateByIdAndBusiness, type SqlDialect } from './dialect';
 export { seedDemo, type SeedSummary } from './seed/demo-seed';
+export {
+  loadMidwest,
+  type MidwestData,
+  type MidwestLoadSummary,
+  type MidwestBusinessData,
+  type MidwestWebsiteData,
+  type MidwestLocationData,
+  type MidwestHoursData,
+  type MidwestCategoryData,
+  type MidwestServiceData,
+  type MidwestEmployeeData,
+  type MidwestAdminData,
+} from './seed/midwest-load';
 export * from './repositories/index';
 export { createBooking, type CreateBookingInput } from './booking/create-booking';
 export { setBookingStatus, transitionBooking, type BookingTransition } from './booking/transition';

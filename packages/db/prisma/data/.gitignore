@@ -1,0 +1,3 @@
+# Real business data is never committed. Keep only the template tracked.
+midwest.json
+*.local.json
