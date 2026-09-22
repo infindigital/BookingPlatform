@@ -1,5 +1,5 @@
 {
-  "_comment": "Copy to midwest.json and adjust before loading. Service lines (Fingerprinting, Notary, Apostille) and their services are pre-filled with representative offerings and example durations; set real prices, and replace the REPLACE_ME contact/address/publicKey/admin values. See prisma/data/README.md.",
+  "_comment": "Copy to midwest.json and adjust before loading. Service lines (Fingerprinting, Notary, Apostille) and their services are pre-filled with representative offerings and example durations; set real prices, and replace the REPLACE_ME contact/address/publicKey/admin/employee values. The employees array holds one example entry showing the shape (services linked by name, weekly hours with a break) - edit or duplicate it per real staff member, or set it to [] to load no staff. See prisma/data/README.md.",
   "business": {
     "name": "Midwest Identity Services",
     "slug": "midwest-identity-services",
@@ -109,5 +109,27 @@
     "name": "REPLACE_ME",
     "password": "REPLACE_ME_or_remove_this_field_for_magic_link_only"
   },
-  "employees": []
+  "employees": [
+    {
+      "firstName": "REPLACE_ME",
+      "lastName": "REPLACE_ME",
+      "email": "REPLACE_ME@example.com",
+      "phone": null,
+      "title": "Fingerprint Technician & Notary",
+      "services": [
+        "Ink Card Fingerprinting (FD-258)",
+        "Live Scan / Electronic Fingerprinting",
+        "Background Check Fingerprinting",
+        "General Notarization",
+        "Mobile Notary Visit"
+      ],
+      "workingHours": [
+        { "dayOfWeek": 1, "startTime": "09:00", "endTime": "17:00", "breaks": [{ "startTime": "12:00", "endTime": "13:00", "label": "Lunch" }] },
+        { "dayOfWeek": 2, "startTime": "09:00", "endTime": "17:00", "breaks": [{ "startTime": "12:00", "endTime": "13:00", "label": "Lunch" }] },
+        { "dayOfWeek": 3, "startTime": "09:00", "endTime": "17:00", "breaks": [{ "startTime": "12:00", "endTime": "13:00", "label": "Lunch" }] },
+        { "dayOfWeek": 4, "startTime": "09:00", "endTime": "17:00", "breaks": [{ "startTime": "12:00", "endTime": "13:00", "label": "Lunch" }] },
+        { "dayOfWeek": 5, "startTime": "09:00", "endTime": "17:00", "breaks": [{ "startTime": "12:00", "endTime": "13:00", "label": "Lunch" }] }
+      ]
+    }
+  ]
 }
