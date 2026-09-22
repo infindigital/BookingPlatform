@@ -1,5 +1,5 @@
 {
-  "_comment": "TEMPLATE ONLY - copy to midwest.json and replace every REPLACE_ME / 0 / example value with real Midwest Identity Services data before running the loader. See prisma/data/README.md. Category names reflect the real service lines; services, prices, durations, address, hours, publicKey, and admin are placeholders.",
+  "_comment": "Copy to midwest.json and adjust before loading. Service lines (Fingerprinting, Notary, Apostille) and their services are pre-filled with representative offerings and example durations; set real prices, and replace the REPLACE_ME contact/address/publicKey/admin values. See prisma/data/README.md.",
   "business": {
     "name": "Midwest Identity Services",
     "slug": "midwest-identity-services",
@@ -14,7 +14,7 @@
     "domain": null
   },
   "location": {
-    "name": "REPLACE_ME (e.g. Kansas City office)",
+    "name": "Kansas City Office",
     "address": "REPLACE_ME",
     "addressLine2": null,
     "city": "Kansas City",
@@ -29,45 +29,76 @@
   },
   "businessHours": [
     { "dayOfWeek": 0, "isClosed": true },
-    { "dayOfWeek": 1, "openTime": "REPLACE_ME", "closeTime": "REPLACE_ME" },
-    { "dayOfWeek": 2, "openTime": "REPLACE_ME", "closeTime": "REPLACE_ME" },
-    { "dayOfWeek": 3, "openTime": "REPLACE_ME", "closeTime": "REPLACE_ME" },
-    { "dayOfWeek": 4, "openTime": "REPLACE_ME", "closeTime": "REPLACE_ME" },
-    { "dayOfWeek": 5, "openTime": "REPLACE_ME", "closeTime": "REPLACE_ME" },
+    { "dayOfWeek": 1, "openTime": "09:00", "closeTime": "17:00" },
+    { "dayOfWeek": 2, "openTime": "09:00", "closeTime": "17:00" },
+    { "dayOfWeek": 3, "openTime": "09:00", "closeTime": "17:00" },
+    { "dayOfWeek": 4, "openTime": "09:00", "closeTime": "17:00" },
+    { "dayOfWeek": 5, "openTime": "09:00", "closeTime": "17:00" },
     { "dayOfWeek": 6, "isClosed": true }
   ],
   "categories": [
     {
       "name": "Fingerprinting",
-      "description": "REPLACE_ME or set to null",
+      "description": "Ink and electronic fingerprinting services.",
       "services": [
         {
-          "name": "REPLACE_ME - example fingerprinting service",
-          "description": null,
-          "durationMinutes": 30,
-          "price": 0,
-          "bufferAfterMinutes": 0
+          "name": "Ink Card Fingerprinting (FD-258)",
+          "description": "Traditional ink fingerprint cards.",
+          "durationMinutes": 20,
+          "price": 0
+        },
+        {
+          "name": "Live Scan / Electronic Fingerprinting",
+          "description": "Digital fingerprint capture and submission.",
+          "durationMinutes": 15,
+          "price": 0
+        },
+        {
+          "name": "Background Check Fingerprinting",
+          "description": "Fingerprinting for employment or licensing background checks.",
+          "durationMinutes": 20,
+          "price": 0
         }
       ]
     },
     {
       "name": "Notary",
-      "description": null,
+      "description": "Notarization and mobile notary services.",
       "services": [
         {
-          "name": "REPLACE_ME - example notary service",
+          "name": "General Notarization",
+          "description": "Standard notarization per document.",
+          "durationMinutes": 15,
+          "price": 0
+        },
+        {
+          "name": "Mobile Notary Visit",
+          "description": "Notary travels to the client location.",
           "durationMinutes": 30,
+          "price": 0
+        },
+        {
+          "name": "Loan Signing",
+          "description": "Notarization of loan and closing documents.",
+          "durationMinutes": 60,
           "price": 0
         }
       ]
     },
     {
       "name": "Apostille",
-      "description": null,
+      "description": "Document authentication and apostille services.",
       "services": [
         {
-          "name": "REPLACE_ME - example apostille service",
-          "durationMinutes": 30,
+          "name": "Document Apostille / Authentication",
+          "description": "Apostille or authentication for use abroad.",
+          "durationMinutes": 15,
+          "price": 0
+        },
+        {
+          "name": "Expedited Apostille",
+          "description": "Rush processing for apostille requests.",
+          "durationMinutes": 15,
           "price": 0
         }
       ]
