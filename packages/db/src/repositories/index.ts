@@ -7,6 +7,8 @@ import { BookingRepository } from './booking.repository';
 import { BusinessRepository } from './business.repository';
 import { EmployeeRepository } from './employee.repository';
 import { CustomFieldRepository } from './custom-field.repository';
+import { RoleRepository } from './role.repository';
+import { AuditRepository } from './audit.repository';
 import { WebhookRepository } from '../integrations/webhook.repository';
 import { PaymentRepository } from '../payments/payment.repository';
 import { SettingsRepository } from '../settings/settings.repository';
@@ -30,6 +32,19 @@ export {
   type CustomFieldInput,
   optionsToArray,
 } from './custom-field.repository';
+export {
+  RoleRepository,
+  type RoleInput,
+  type RoleRow,
+  type PermissionRow,
+  type TeamMemberRow,
+} from './role.repository';
+export {
+  AuditRepository,
+  type AuditFilter,
+  type AuditRow,
+  type AuditPage,
+} from './audit.repository';
 
 /**
  * Build the set of business-scoped repositories for a resolved tenant.
@@ -48,6 +63,8 @@ export function repositoriesFor(businessId: string, db: PrismaClient = prisma) {
     payments: new PaymentRepository(businessId, db),
     settings: new SettingsRepository(businessId, db),
     events: new EventRepository(businessId, db),
+    roles: new RoleRepository(businessId, db),
+    audit: new AuditRepository(businessId, db),
   };
 }
 

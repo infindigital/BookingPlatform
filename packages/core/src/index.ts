@@ -12,4 +12,5 @@ export * from './events/index';
 export * from './public/index';
 export * from './security/index';
 export * from './auth/permissions';
+export * from './auth/catalog';
 export * from './errors';

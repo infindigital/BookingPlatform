@@ -1,4 +1,5 @@
 import type { PrismaClient } from '@prisma/client';
+import { PERMISSION_KEYS } from '@booking/core';
 import { createBooking } from '../booking/create-booking';
 import { hashPassword } from '../auth/password';
 
@@ -13,18 +14,7 @@ const DEMO_PASSWORD = 'password123';
 const DEMO_SLUG = 'demo-business';
 const PUBLIC_KEY = 'pk_demo_booking_123';
 
-const PERMISSIONS = [
-  'booking.read',
-  'booking.write',
-  'booking.approve',
-  'service.manage',
-  'employee.manage',
-  'customer.manage',
-  'payment.manage',
-  'settings.manage',
-  'analytics.read',
-  'event.manage',
-];
+const PERMISSIONS = PERMISSION_KEYS;
 
 const FORM_THEMES = [
   { key: 'minimal', name: 'Minimal' },
