@@ -12,6 +12,8 @@ export {
   type MidwestCategoryData,
   type MidwestServiceData,
   type MidwestEmployeeData,
+  type MidwestDayOffData,
+  type MidwestSpecialDayData,
   type MidwestAdminData,
 } from './seed/midwest-load';
 export * from './repositories/index';

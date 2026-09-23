@@ -89,6 +89,14 @@ export interface MidwestEmployeeWorkingHoursData {
   breaks?: MidwestBreakData[];
 }
 
+export interface MidwestDayOffData {
+  /** Inclusive start date, "YYYY-MM-DD". */
+  start: string;
+  /** Inclusive end date, "YYYY-MM-DD"; defaults to `start` for a single day. */
+  end?: string;
+  reason?: string | null;
+}
+
 export interface MidwestEmployeeData {
   firstName: string;
   lastName: string;
@@ -98,6 +106,20 @@ export interface MidwestEmployeeData {
   /** Service names (from `categories`) this employee provides. */
   services?: string[];
   workingHours?: MidwestEmployeeWorkingHoursData[];
+  /** Time off / days off that block this employee's availability. */
+  daysOff?: MidwestDayOffData[];
+}
+
+export interface MidwestSpecialDayData {
+  /** Inclusive start date, "YYYY-MM-DD". */
+  date: string;
+  /** Inclusive end date for a range; each date becomes its own special-day row. */
+  endDate?: string;
+  /** Label (e.g. the featured service). */
+  name?: string;
+  openTime?: string;
+  closeTime?: string;
+  isClosed?: boolean;
 }
 
 export interface MidwestAdminData {
@@ -115,6 +137,8 @@ export interface MidwestData {
   categories: MidwestCategoryData[];
   admin: MidwestAdminData;
   employees?: MidwestEmployeeData[];
+  /** Business/location special days (custom or closed hours on specific dates). */
+  specialDays?: MidwestSpecialDayData[];
 }
 
 export interface MidwestLoadSummary {
@@ -123,6 +147,8 @@ export interface MidwestLoadSummary {
   categories: number;
   services: number;
   employees: number;
+  daysOff: number;
+  specialDays: number;
   adminEmail: string;
 }
 
@@ -131,6 +157,24 @@ const EMPLOYEE_ROLE_PERMISSIONS = ['booking.read', 'booking.write', 'customer.ma
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(`Midwest load: ${message}`);
+}
+
+function dayStartUtc(date: string): Date {
+  return new Date(`${date}T00:00:00.000Z`);
+}
+function dayEndUtc(date: string): Date {
+  return new Date(`${date}T23:59:59.999Z`);
+}
+/** Inclusive list of "YYYY-MM-DD" dates from start to end. */
+function eachDate(start: string, end: string): string[] {
+  const out: string[] = [];
+  const cursor = new Date(`${start}T00:00:00.000Z`);
+  const last = new Date(`${end}T00:00:00.000Z`);
+  while (cursor.getTime() <= last.getTime()) {
+    out.push(cursor.toISOString().slice(0, 10));
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+  return out;
 }
 
 export async function loadMidwest(db: PrismaClient, data: MidwestData): Promise<MidwestLoadSummary> {
@@ -296,6 +340,7 @@ export async function loadMidwest(db: PrismaClient, data: MidwestData): Promise<
 
   // 8. Employees (optional). Find-or-create by email, else by full name.
   let employeeCount = 0;
+  let daysOffCount = 0;
   for (const emp of data.employees ?? []) {
     assert(emp.firstName && emp.lastName, 'every employee needs firstName and lastName');
     const existingEmp = emp.email
@@ -353,6 +398,43 @@ export async function loadMidwest(db: PrismaClient, data: MidwestData): Promise<
         });
       }
     }
+
+    // Days off / time off (replace) - these block the employee's availability.
+    await db.timeOff.deleteMany({ where: { businessId, employeeId: employee.id } });
+    for (const off of emp.daysOff ?? []) {
+      await db.timeOff.create({
+        data: {
+          businessId,
+          employeeId: employee.id,
+          startAt: dayStartUtc(off.start),
+          endAt: dayEndUtc(off.end ?? off.start),
+          reason: off.reason ?? null,
+          approved: true,
+        },
+      });
+      daysOffCount += 1;
+    }
+  }
+
+  // 9. Special days (business/location level, replace). Date ranges expand to
+  // one row per date so each day carries its own custom or closed hours.
+  await db.specialDay.deleteMany({ where: { businessId } });
+  let specialDayCount = 0;
+  for (const sd of data.specialDays ?? []) {
+    for (const d of eachDate(sd.date, sd.endDate ?? sd.date)) {
+      await db.specialDay.create({
+        data: {
+          businessId,
+          locationId: location.id,
+          date: dayStartUtc(d),
+          name: sd.name ?? null,
+          isClosed: sd.isClosed ?? false,
+          openTime: sd.isClosed ? null : sd.openTime ?? null,
+          closeTime: sd.isClosed ? null : sd.closeTime ?? null,
+        },
+      });
+      specialDayCount += 1;
+    }
   }
 
   return {
@@ -361,6 +443,8 @@ export async function loadMidwest(db: PrismaClient, data: MidwestData): Promise<
     categories: data.categories.length,
     services: serviceCount,
     employees: employeeCount,
+    daysOff: daysOffCount,
+    specialDays: specialDayCount,
     adminEmail: data.admin.email,
   };
 }
