@@ -22,7 +22,7 @@ export interface DemoConfig {
 export const demoConfig: DemoConfig = {
   productName: 'Midwest Identity Services',
   tagline: 'Where modern businesses take bookings. Elegant, fast, and ready to embed anywhere.',
-  demoBusinessSlug: 'demo-business',
+  demoBusinessSlug: 'midwest-identity-services',
   supportedProviders: {
     databases: ['postgresql', 'mysql'],
     notificationChannels: ['email', 'whatsapp', 'sms'],

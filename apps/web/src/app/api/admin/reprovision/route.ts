@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { prisma, seedDemo } from '@booking/db';
+import { prisma, loadMidwest } from '@booking/db';
 import { MIGRATIONS_SQL } from '@/lib/migrations-sql';
+import { MIDWEST_SEED } from '@/lib/midwest-seed';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
@@ -13,8 +14,10 @@ export const maxDuration = 60;
  * Unlike /api/admin/bootstrap (which only CREATEs missing objects and so cannot
  * repair a schema whose tables exist but are missing newer columns), this drops
  * the public schema and rebuilds it from the full migration history (the schema
- * source of truth), then reseeds the demo. Use it when a deployed database has
- * drifted behind the code.
+ * source of truth), then loads the real Midwest Identity Services catalogue.
+ * Use it when a deployed database has drifted behind the code, or to (re)build a
+ * clean single-tenant Midwest database. No demo/sample business is created and no
+ * fake customers or bookings are ever seeded.
  *
  *   GET /api/admin/reprovision?token=<AUTH_SECRET>&confirm=reset
  *
@@ -78,7 +81,8 @@ async function handle(request: Request): Promise<NextResponse> {
   if (url.searchParams.get('confirm') !== 'reset') {
     return NextResponse.json({
       ok: false,
-      willDo: 'DROP SCHEMA public CASCADE, rebuild it from all migrations, and reseed the demo. This DELETES all data.',
+      willDo:
+        'DROP SCHEMA public CASCADE, rebuild it from all migrations, and load the Midwest Identity Services catalogue. This DELETES all data.',
       howTo: 'Re-run this URL with &confirm=reset appended to proceed.',
     });
   }
@@ -119,19 +123,21 @@ async function handle(request: Request): Promise<NextResponse> {
     );
   }
 
-  // 3. Reseed the demo business + admin.
+  // 3. Load the real Midwest catalogue (business, hours, services, staff, days
+  //    off, special days, admin). No demo business and no fake data.
   try {
-    const seed = await seedDemo(prisma, { force: true });
+    const loaded = await loadMidwest(prisma, MIDWEST_SEED);
     return NextResponse.json({
       ok: true,
       migrate: { executed },
-      seed,
-      login: { url: '/admin', email: 'admin@aurora.example', password: 'password123' },
-      next: 'Change the demo admin password, then load real data with the Midwest loader.',
+      loaded,
+      login: { url: '/admin', email: MIDWEST_SEED.admin.email, password: MIDWEST_SEED.admin.password },
+      bookingPage: `/book/${MIDWEST_SEED.business.slug}`,
+      next: 'Log in with the Midwest admin above, then change the password.',
     });
   } catch (e) {
-    logger.error('reprovision.seed.failed', { message: clean(e) });
-    return NextResponse.json({ ok: false, step: 'seed', migrate: { executed }, error: clean(e) }, { status: 500 });
+    logger.error('reprovision.load.failed', { message: clean(e) });
+    return NextResponse.json({ ok: false, step: 'load', migrate: { executed }, error: clean(e) }, { status: 500 });
   }
 }
 

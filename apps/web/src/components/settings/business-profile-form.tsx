@@ -80,7 +80,7 @@ export function BusinessProfileForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <Field label="Business name">
-            <input className={CONTROL} value={name} onChange={(e) => setName(e.target.value)} placeholder="Aurora Spa" />
+            <input className={CONTROL} value={name} onChange={(e) => setName(e.target.value)} placeholder="Midwest Identity Services" />
           </Field>
         </div>
 
@@ -105,7 +105,7 @@ export function BusinessProfileForm({
         </Field>
 
         <Field label="Contact email" hint="Optional. Shown to customers on confirmations.">
-          <input className={CONTROL} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="hello@aurora.example" />
+          <input className={CONTROL} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="mwfingerprinting@gmail.com" />
         </Field>
 
         <Field label="Contact phone" hint="Optional.">

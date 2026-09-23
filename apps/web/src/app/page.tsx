@@ -32,7 +32,7 @@ export default function HomePage() {
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
           <Link
-            href="/book/demo-business"
+            href={`/book/${demoConfig.demoBusinessSlug}`}
             className={`${buttonVariants({ variant: 'primary', size: 'lg' })} group gap-2 shadow-glow`}
           >
             Try the booking flow
