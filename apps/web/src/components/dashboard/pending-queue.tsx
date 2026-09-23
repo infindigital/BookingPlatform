@@ -23,7 +23,12 @@ export function PendingQueue({
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between">
-        <CardTitle>Pending approvals</CardTitle>
+        <CardTitle className="flex items-center gap-2.5">
+          <span className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md ring-1 ring-white/20">
+            <Inbox className="size-4" aria-hidden />
+          </span>
+          Pending approvals
+        </CardTitle>
         {bookings.length > 0 ? <Badge tone="warning">{bookings.length}</Badge> : null}
       </CardHeader>
       <CardContent>

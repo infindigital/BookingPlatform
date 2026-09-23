@@ -14,8 +14,15 @@ export function TodayTimeline({
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between">
-        <CardTitle>Today&rsquo;s schedule</CardTitle>
-        <span className="text-xs text-muted-foreground">{bookings.length} on the books</span>
+        <CardTitle className="flex items-center gap-2.5">
+          <span className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-md ring-1 ring-white/20">
+            <CalendarClock className="size-4" aria-hidden />
+          </span>
+          Today&rsquo;s schedule
+        </CardTitle>
+        <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+          {bookings.length} on the books
+        </span>
       </CardHeader>
       <CardContent>
         {bookings.length === 0 ? (

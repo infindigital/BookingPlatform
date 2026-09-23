@@ -16,8 +16,12 @@ export function ActivityFeed({
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between">
-        <CardTitle>Recent activity</CardTitle>
-        <Activity className="size-4 text-muted-foreground" />
+        <CardTitle className="flex items-center gap-2.5">
+          <span className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-sky-400 to-cyan-500 text-white shadow-md ring-1 ring-white/20">
+            <Activity className="size-4" aria-hidden />
+          </span>
+          Recent activity
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {bookings.length === 0 ? (
