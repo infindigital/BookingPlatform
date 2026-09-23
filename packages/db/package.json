@@ -16,6 +16,7 @@
     "db:push": "prisma db push",
     "seed": "tsx prisma/seed.ts",
     "load:midwest": "tsx prisma/load-midwest.ts",
+    "build:migrations-sql": "tsx scripts/build-migrations-sql.ts",
     "studio": "prisma studio",
     "lint": "echo \"(db) type-checked via tsc\"",
     "typecheck": "tsc --noEmit",
