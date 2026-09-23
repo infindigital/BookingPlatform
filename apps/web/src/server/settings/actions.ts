@@ -1,10 +1,13 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { repositoriesFor, writeAudit, type HolidayRow, type SpecialDayRow } from '@booking/db';
+import { repositoriesFor, writeAudit, prisma, loadMidwest, type HolidayRow, type SpecialDayRow } from '@booking/db';
 import { DomainError, type DayHours } from '@booking/core';
 import { requirePermission } from '@/server/auth/guard';
 import { logger } from '@/lib/logger';
+import { MIGRATIONS_SQL } from '@/lib/migrations-sql';
+import { MIDWEST_SEED } from '@/lib/midwest-seed';
+import { syncSchema } from '@/lib/schema-sync';
 
 export interface SettingsActionResult {
   ok: boolean;
@@ -27,6 +30,56 @@ function fail(event: string, error: unknown, fallback: string): SettingsActionRe
   if (error instanceof DomainError) return { ok: false, error: error.message };
   logger.error(event, { message: (error as Error)?.message });
   return { ok: false, error: fallback };
+}
+
+// --- Maintenance ------------------------------------------------------------
+
+export interface DbUpdateResult extends SettingsActionResult {
+  applied?: number;
+  skipped?: number;
+  seeded?: boolean;
+}
+
+/**
+ * Non-destructive database update. Brings the schema up to date (repairs
+ * "column does not exist" drift such as the per-service pricing fields) without
+ * dropping or reseeding, so all existing Midwest data is preserved. Seeds the
+ * Midwest catalogue only when the database is empty of it. Safe to run any time.
+ */
+export async function updateDatabaseSchemaAction(): Promise<DbUpdateResult> {
+  const session = await requirePermission('settings.manage');
+  try {
+    const sync = await syncSchema(prisma, MIGRATIONS_SQL);
+    if (sync.errors.length) {
+      logger.error('business.schemaSync.failed', { errors: sync.errors.slice(0, 3) });
+      return { ok: false, error: sync.errors[0] ?? 'The database update did not complete.' };
+    }
+
+    let seeded = false;
+    const existing = await prisma.business.findFirst({
+      where: { slug: MIDWEST_SEED.business.slug },
+      select: { id: true },
+    });
+    if (!existing) {
+      await loadMidwest(prisma, MIDWEST_SEED);
+      seeded = true;
+    }
+
+    await writeAudit({
+      businessId: session.user.businessId,
+      actorUserId: session.user.id,
+      action: 'business.schemaSync',
+      entity: 'Business',
+      entityId: session.user.businessId,
+      metadata: { applied: sync.applied, skipped: sync.skipped, seeded },
+    });
+    revalidatePath('/admin/services');
+    revalidatePath('/admin/form-designer');
+    revalidatePath('/admin');
+    return { ok: true, applied: sync.applied, skipped: sync.skipped, seeded };
+  } catch (error) {
+    return fail('business.schemaSync.failed', error, 'Could not update the database. Please try again.');
+  }
 }
 
 // --- Business profile -------------------------------------------------------
