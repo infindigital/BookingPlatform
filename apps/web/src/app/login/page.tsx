@@ -22,9 +22,7 @@ export default function LoginPage() {
       <section className="relative hidden flex-col justify-between overflow-hidden p-12 lg:flex">
         <div className="absolute inset-0 bg-gradient-to-br from-primary via-[hsl(var(--aurora-2))] to-[hsl(var(--aurora-3))] opacity-95" />
         <div className="relative flex items-center">
-          <span className="inline-flex rounded-none bg-black p-3">
-            <Logo className="h-9 w-auto" priority />
-          </span>
+          <Logo className="h-10 w-auto" tone="onDark" priority />
         </div>
 
         <div className="relative max-w-md text-primary-foreground">

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { buttonVariants } from '@booking/ui/button';
 import { demoConfig } from '@/config/demo';
+import { Logo } from '@/components/shell/logo';
 
 export default function HomePage() {
   return (
@@ -25,8 +26,8 @@ export default function HomePage() {
           Premium booking platform
         </span>
 
-        <h1 className="mt-8 text-3xl font-semibold leading-tight tracking-tight text-white sm:text-5xl">
-          Midwest Identity Services
+        <h1 className="mt-8">
+          <Logo className="h-16 w-auto sm:h-24" tone="onDark" priority />
         </h1>
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
