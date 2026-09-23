@@ -152,7 +152,7 @@ export function BookingWizard({
         return (
           details.firstName.trim().length > 0 &&
           EMAIL_RE.test(details.email.trim()) &&
-          (!settings.requirePhone || details.phone.trim().length > 0) &&
+          (!settings.showPhone || !settings.requirePhone || details.phone.trim().length > 0) &&
           requiredFieldsMet
         );
       }
@@ -468,7 +468,14 @@ export function BookingWizard({
 
         {stepKey === 'details' && (
           <div className="space-y-3">
-            <DetailsForm value={details} onChange={setDetails} requirePhone={settings.requirePhone} />
+            <DetailsForm
+              value={details}
+              onChange={setDetails}
+              requirePhone={settings.requirePhone}
+              showLastName={settings.showLastName}
+              showPhone={settings.showPhone}
+              showNotes={settings.showNotes}
+            />
             <CustomFieldsForm fields={service?.fields ?? []} values={customFieldValues} onChange={setCustomFieldValues} />
           </div>
         )}

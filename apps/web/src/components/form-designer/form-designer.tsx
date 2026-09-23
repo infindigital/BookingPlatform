@@ -384,7 +384,22 @@ export function FormDesigner({
               disabled={!teamStep}
             />
             <Toggle label="Show prices" checked={settings.showPrices} onChange={(v) => setSetting('showPrices', v)} />
-            <Toggle label="Require phone number" checked={settings.requirePhone} onChange={(v) => setSetting('requirePhone', v)} />
+          </div>
+
+          <p className="mt-5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Contact fields</p>
+          <p className="mb-1 text-[11px] text-muted-foreground">
+            First name and email are always asked. Toggle the rest on or off.
+          </p>
+          <div className="space-y-1">
+            <Toggle label="Show last name field" checked={settings.showLastName} onChange={(v) => setSetting('showLastName', v)} />
+            <Toggle label="Show phone field" checked={settings.showPhone} onChange={(v) => setSetting('showPhone', v)} />
+            <Toggle
+              label="Require phone number"
+              checked={settings.requirePhone}
+              onChange={(v) => setSetting('requirePhone', v)}
+              disabled={!settings.showPhone}
+            />
+            <Toggle label="Show notes field" checked={settings.showNotes} onChange={(v) => setSetting('showNotes', v)} />
           </div>
 
           <div className="mt-4 grid grid-cols-2 gap-3">

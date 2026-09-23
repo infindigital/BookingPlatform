@@ -29,8 +29,14 @@ export interface FormSettings {
   minLeadMinutes: number;
   /** Show service prices in the flow. */
   showPrices: boolean;
-  /** Require a phone number in the details step. */
+  /** Show the "Last name" field in the details step. */
+  showLastName: boolean;
+  /** Show the "Phone" field in the details step. */
+  showPhone: boolean;
+  /** Require a phone number in the details step (only when the phone field is shown). */
   requirePhone: boolean;
+  /** Show the free-text "Notes" field in the details step. */
+  showNotes: boolean;
   /** Offer an "Any available" option in the team step. */
   allowAnyEmployee: boolean;
   /** Optional custom line shown on the confirmation screen. */
@@ -43,7 +49,10 @@ export const DEFAULT_FORM_SETTINGS: FormSettings = {
   daysAhead: 14,
   minLeadMinutes: 60,
   showPrices: true,
+  showLastName: true,
+  showPhone: true,
   requirePhone: false,
+  showNotes: true,
   allowAnyEmployee: true,
   confirmationMessage: '',
   layout: 'classic',
@@ -72,7 +81,10 @@ export function resolveFormSettings(raw: unknown): FormSettings {
     daysAhead: clampInt(s.daysAhead, 1, 60, DEFAULT_FORM_SETTINGS.daysAhead),
     minLeadMinutes: clampInt(s.minLeadMinutes, 0, 43_200, DEFAULT_FORM_SETTINGS.minLeadMinutes),
     showPrices: asBool(s.showPrices, DEFAULT_FORM_SETTINGS.showPrices),
+    showLastName: asBool(s.showLastName, DEFAULT_FORM_SETTINGS.showLastName),
+    showPhone: asBool(s.showPhone, DEFAULT_FORM_SETTINGS.showPhone),
     requirePhone: asBool(s.requirePhone, DEFAULT_FORM_SETTINGS.requirePhone),
+    showNotes: asBool(s.showNotes, DEFAULT_FORM_SETTINGS.showNotes),
     allowAnyEmployee: asBool(s.allowAnyEmployee, DEFAULT_FORM_SETTINGS.allowAnyEmployee),
     confirmationMessage:
       typeof s.confirmationMessage === 'string' ? s.confirmationMessage.slice(0, 280) : DEFAULT_FORM_SETTINGS.confirmationMessage,

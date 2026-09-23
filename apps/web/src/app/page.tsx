@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Fingerprint } from 'lucide-react';
 import { buttonVariants } from '@booking/ui/button';
 import { demoConfig } from '@/config/demo';
 import { Logo } from '@/components/shell/logo';
@@ -22,8 +22,8 @@ export default function HomePage() {
         className="mx-auto flex max-w-3xl flex-col items-center text-center"
       >
         <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-xs font-semibold tracking-wide text-white backdrop-blur">
-          <Sparkles className="size-3.5" aria-hidden />
-          Premium booking platform
+          <Fingerprint className="size-3.5" aria-hidden />
+          Fingerprinting {'·'} Notary {'·'} Apostille {'·'} Kansas City
         </span>
 
         <h1 className="mt-8">
