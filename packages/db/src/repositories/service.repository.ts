@@ -18,8 +18,10 @@ export class ServiceRepository extends BaseRepository {
     return this.db.service.create({ data: { ...data, businessId: this.businessId } });
   }
 
-  update(id: string, data: Prisma.ServiceUpdateInput) {
+  update(id: string, data: Prisma.ServiceUncheckedUpdateInput) {
     // updateMany with scoped where guarantees we never touch another tenant's row.
+    // Unchecked input keeps this to scalar columns (incl. the categoryId FK):
+    // updateMany cannot perform relation writes such as `category: { connect }`.
     return this.db.service.updateMany({ where: this.scope({ id }), data });
   }
 

@@ -159,9 +159,9 @@ export async function updateServiceAction(
     await repos.services.update(id, {
       name: parsed.values.name,
       description: parsed.values.description,
-      category: parsed.values.categoryId
-        ? { connect: { id: parsed.values.categoryId } }
-        : { disconnect: true },
+      // Scalar FK (null clears the category). A relation write like
+      // `category: { connect }` is invalid for updateMany and throws.
+      categoryId: parsed.values.categoryId,
       durationMinutes: parsed.values.durationMinutes,
       bufferBeforeMinutes: parsed.values.bufferBeforeMinutes,
       bufferAfterMinutes: parsed.values.bufferAfterMinutes,
