@@ -34,6 +34,29 @@ function clean(e: unknown): string {
   return ((e as Error)?.message ?? String(e)).replace(/\s+/g, ' ').trim().slice(0, 500);
 }
 
+/**
+ * Read a query param from the RAW query string. URLSearchParams turns "+" into a
+ * space, which silently breaks a base64 AUTH_SECRET (openssl rand -base64 emits
+ * "+" and "/"), so pasting the secret straight into the URL would never match.
+ * Reading raw and decoding with decodeURIComponent preserves "+".
+ */
+function rawParam(requestUrl: string, key: string): string {
+  const query = requestUrl.split('?')[1] ?? '';
+  for (const pair of query.split('&')) {
+    const eq = pair.indexOf('=');
+    const k = eq === -1 ? pair : pair.slice(0, eq);
+    if (k === key) {
+      const raw = eq === -1 ? '' : pair.slice(eq + 1);
+      try {
+        return decodeURIComponent(raw).trim();
+      } catch {
+        return raw.trim();
+      }
+    }
+  }
+  return '';
+}
+
 async function handle(request: Request): Promise<NextResponse> {
   const secret = process.env.AUTH_SECRET;
   if (!secret) {
@@ -41,8 +64,15 @@ async function handle(request: Request): Promise<NextResponse> {
   }
 
   const url = new URL(request.url);
-  if ((url.searchParams.get('token') ?? '') !== secret) {
-    return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
+  const token = rawParam(request.url, 'token');
+  if (token !== secret.trim()) {
+    return NextResponse.json(
+      {
+        error: 'Unauthorized.',
+        hint: 'The token query param did not match AUTH_SECRET. Copy the exact AUTH_SECRET value from Vercel env vars; special characters like + / = are handled automatically now.',
+      },
+      { status: 401 },
+    );
   }
 
   if (url.searchParams.get('confirm') !== 'reset') {
