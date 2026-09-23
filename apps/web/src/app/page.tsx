@@ -30,6 +30,11 @@ export default function HomePage() {
           <Logo className="h-16 w-auto sm:h-24" tone="onDark" priority />
         </h1>
 
+        <p className="mt-6 max-w-xl text-balance text-base text-white/80 sm:text-lg">
+          Trusted fingerprinting and identity verification in Kansas City. Book fingerprinting,
+          notary, apostille and officiant appointments in seconds.
+        </p>
+
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
           <Link
             href={`/book/${demoConfig.demoBusinessSlug}`}

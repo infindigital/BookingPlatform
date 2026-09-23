@@ -27,10 +27,10 @@ export function Logo({
 }) {
   return (
     <Image
-      src="/brand/midwest-white.png"
+      src="/brand/Midwest-Logo-Identity-Services-White.webp"
       alt="Midwest Identity Services"
-      width={2172}
-      height={724}
+      width={1101}
+      height={276}
       priority={priority}
       className={`${className} ${TONE_CLASS[tone]}`.trim()}
     />
