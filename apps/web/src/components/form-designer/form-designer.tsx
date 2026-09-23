@@ -375,13 +375,21 @@ export function FormDesigner({
 
         <section className="rounded-none border border-border bg-card p-4">
           <h2 className="text-sm font-semibold">Booking flow</h2>
-          <div className="mt-3 space-y-1">
-            <Toggle label="Let customers choose a team member" checked={teamStep} onChange={setTeamStep} />
+
+          <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Steps shown</p>
+          <p className="mb-1 text-[11px] text-muted-foreground">Choose which steps the customer walks through.</p>
+          <div className="space-y-1">
+            <Toggle label="Show team member selection" checked={teamStep} onChange={setTeamStep} />
             <Toggle
               label='Offer an "Any available" option'
               checked={settings.allowAnyEmployee}
               onChange={(v) => setSetting('allowAnyEmployee', v)}
               disabled={!teamStep}
+            />
+            <Toggle
+              label="Show location selection"
+              checked={settings.alwaysShowLocation}
+              onChange={(v) => setSetting('alwaysShowLocation', v)}
             />
             <Toggle label="Show prices" checked={settings.showPrices} onChange={(v) => setSetting('showPrices', v)} />
           </div>

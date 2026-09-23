@@ -39,6 +39,11 @@ export interface FormSettings {
   showNotes: boolean;
   /** Offer an "Any available" option in the team step. */
   allowAnyEmployee: boolean;
+  /**
+   * Always show the location-selection step, even with a single fixed location.
+   * Off (default) auto-selects a lone fixed location and hides the step.
+   */
+  alwaysShowLocation: boolean;
   /** Optional custom line shown on the confirmation screen. */
   confirmationMessage: string;
   /** Visual layout design of the booking flow. */
@@ -54,6 +59,7 @@ export const DEFAULT_FORM_SETTINGS: FormSettings = {
   requirePhone: false,
   showNotes: true,
   allowAnyEmployee: true,
+  alwaysShowLocation: false,
   confirmationMessage: '',
   layout: 'classic',
 };
@@ -86,6 +92,7 @@ export function resolveFormSettings(raw: unknown): FormSettings {
     requirePhone: asBool(s.requirePhone, DEFAULT_FORM_SETTINGS.requirePhone),
     showNotes: asBool(s.showNotes, DEFAULT_FORM_SETTINGS.showNotes),
     allowAnyEmployee: asBool(s.allowAnyEmployee, DEFAULT_FORM_SETTINGS.allowAnyEmployee),
+    alwaysShowLocation: asBool(s.alwaysShowLocation, DEFAULT_FORM_SETTINGS.alwaysShowLocation),
     confirmationMessage:
       typeof s.confirmationMessage === 'string' ? s.confirmationMessage.slice(0, 280) : DEFAULT_FORM_SETTINGS.confirmationMessage,
     layout: (FORM_LAYOUTS as readonly string[]).includes(s.layout as string)

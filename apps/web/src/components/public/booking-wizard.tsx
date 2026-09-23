@@ -70,7 +70,9 @@ export function BookingWizard({
   // address) gets an explicit Location step. No locations at all = unchanged.
   const onlyLocation = locations.length === 1 ? locations[0] : undefined;
   const singleAutoLocation = onlyLocation && onlyLocation.mode !== 'MOBILE' ? onlyLocation : null;
-  const showLocationStep = locations.length > 0 && !singleAutoLocation;
+  // A lone fixed location is normally auto-selected and its step hidden, unless
+  // the business explicitly opts to always show the location step.
+  const showLocationStep = locations.length > 0 && (!singleAutoLocation || settings.alwaysShowLocation);
 
   const flow = useMemo<FlowStep[]>(() => {
     const s: FlowStep[] = ['service'];
