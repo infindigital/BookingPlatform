@@ -18,6 +18,20 @@ export interface MutationResult {
 
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 
+/**
+ * A save can fail because the deployed database is behind the migrations: a
+ * table (P2021) or column (P2022) the app writes does not exist yet. That is
+ * not a transient error - "try again" never helps - so surface an actionable
+ * message pointing at the reprovision step instead of a generic retry.
+ */
+function isSchemaDriftError(error: unknown): boolean {
+  const code = (error as { code?: unknown } | null)?.code;
+  return code === 'P2021' || code === 'P2022';
+}
+
+const SCHEMA_DRIFT_MESSAGE =
+  'Your workspace database is missing a recent update, so this could not be saved. An owner needs to re-run setup (reprovision) to apply the latest changes, then try again.';
+
 function refresh(): void {
   revalidatePath('/admin/services');
   revalidatePath('/admin/employees');
@@ -121,6 +135,7 @@ export async function createServiceAction(
     return { ok: true, serviceId: service.id };
   } catch (error) {
     logger.error('service.create.failed', { message: (error as Error)?.message });
+    if (isSchemaDriftError(error)) return { ok: false, error: SCHEMA_DRIFT_MESSAGE };
     return { ok: false, error: 'Could not create the service. Please try again.' };
   }
 }
@@ -168,6 +183,7 @@ export async function updateServiceAction(
     return { ok: true, serviceId: id };
   } catch (error) {
     logger.error('service.update.failed', { message: (error as Error)?.message });
+    if (isSchemaDriftError(error)) return { ok: false, error: SCHEMA_DRIFT_MESSAGE };
     return { ok: false, error: 'Could not save the service. Please try again.' };
   }
 }
@@ -202,6 +218,7 @@ export async function deleteServiceAction(input: { serviceId: string }): Promise
     return { ok: true };
   } catch (error) {
     logger.error('service.delete.failed', { message: (error as Error)?.message });
+    if (isSchemaDriftError(error)) return { ok: false, error: SCHEMA_DRIFT_MESSAGE };
     return { ok: false, error: 'Could not delete the service. Please try again.' };
   }
 }
@@ -218,6 +235,7 @@ export async function createCategoryAction(input: { name: string }): Promise<Mut
     return { ok: true };
   } catch (error) {
     logger.error('category.create.failed', { message: (error as Error)?.message });
+    if (isSchemaDriftError(error)) return { ok: false, error: SCHEMA_DRIFT_MESSAGE };
     return { ok: false, error: 'Could not create the category. Please try again.' };
   }
 }
@@ -233,6 +251,7 @@ export async function deleteCategoryAction(input: { categoryId: string }): Promi
     return { ok: true };
   } catch (error) {
     logger.error('category.delete.failed', { message: (error as Error)?.message });
+    if (isSchemaDriftError(error)) return { ok: false, error: SCHEMA_DRIFT_MESSAGE };
     return { ok: false, error: 'Could not delete the category. Please try again.' };
   }
 }
