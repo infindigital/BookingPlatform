@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Filter } from 'lucide-react';
-import type { CalendarBooking, CalendarEmployee, CalendarService } from '@booking/db';
+import type { CalendarBooking, CalendarEmployee, CalendarService, CalendarOff } from '@booking/db';
 import { Button } from '@booking/ui/button';
 import { cn } from '@booking/ui/lib/cn';
 import {
@@ -55,6 +55,7 @@ export function CalendarView({
   bookings,
   employees,
   services,
+  off,
   employeeId,
   timeZone,
   todayKey,
@@ -66,6 +67,7 @@ export function CalendarView({
   bookings: CalendarBooking[];
   employees: CalendarEmployee[];
   services: CalendarService[];
+  off: CalendarOff[];
   employeeId: string;
   timeZone: string;
   todayKey: string;
@@ -165,11 +167,12 @@ export function CalendarView({
       ) : null}
 
       {view === 'agenda' ? (
-        <AgendaList days={days} bookings={bookings} timeZone={timeZone} todayKey={todayKey} onSelect={onSelect} />
+        <AgendaList days={days} bookings={bookings} off={off} timeZone={timeZone} todayKey={todayKey} onSelect={onSelect} />
       ) : (
         <WeekGrid
           days={days}
           bookings={bookings}
+          off={off}
           timeZone={timeZone}
           todayKey={todayKey}
           nowMinutes={nowMinutes}

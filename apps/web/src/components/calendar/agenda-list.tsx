@@ -1,7 +1,7 @@
 'use client';
 
-import { CalendarClock } from 'lucide-react';
-import type { CalendarBooking } from '@booking/db';
+import { CalendarClock, CalendarOff as CalendarOffIcon } from 'lucide-react';
+import type { CalendarBooking, CalendarOff } from '@booking/db';
 import { toNoonUTC } from '@booking/core';
 import { StatusBadge } from '@/components/dashboard/status-badge';
 import { formatDurationMinutes, formatTime } from '@/components/dashboard/format';
@@ -18,12 +18,14 @@ function fullDay(dayKey: string): string {
 export function AgendaList({
   days,
   bookings,
+  off,
   timeZone,
   todayKey,
   onSelect,
 }: {
   days: string[];
   bookings: CalendarBooking[];
+  off: CalendarOff[];
   timeZone: string;
   todayKey: string;
   onSelect: (b: CalendarBooking) => void;
@@ -34,7 +36,15 @@ export function AgendaList({
     arr.push(b);
     byDay.set(b.dayKey, arr);
   }
-  const populated = days.filter((d) => (byDay.get(d)?.length ?? 0) > 0);
+  // All-day off markers (closures, full-day time off) shown as agenda notes.
+  const offByDay = new Map<string, CalendarOff[]>();
+  for (const o of off) {
+    if (!o.allDay) continue;
+    const arr = offByDay.get(o.dayKey) ?? [];
+    arr.push(o);
+    offByDay.set(o.dayKey, arr);
+  }
+  const populated = days.filter((d) => (byDay.get(d)?.length ?? 0) > 0 || (offByDay.get(d)?.length ?? 0) > 0);
 
   if (populated.length === 0) {
     return (
@@ -50,6 +60,7 @@ export function AgendaList({
     <div className="space-y-6">
       {populated.map((day) => {
         const items = (byDay.get(day) ?? []).slice().sort((a, b) => a.startMinutes - b.startMinutes);
+        const offMarks = offByDay.get(day) ?? [];
         return (
           <section key={day}>
             <h3 className="sticky top-14 z-10 mb-2 flex items-center gap-2 bg-background/80 py-1 text-sm font-semibold backdrop-blur">
@@ -60,6 +71,20 @@ export function AgendaList({
                 </span>
               ) : null}
             </h3>
+            {offMarks.length > 0 ? (
+              <div className="mb-2 flex flex-wrap gap-2">
+                {offMarks.map((o, i) => (
+                  <span
+                    key={i}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-700 dark:text-amber-300"
+                  >
+                    <CalendarOffIcon className="size-3.5" aria-hidden />
+                    {o.label ?? (o.kind === 'closed' ? 'Closed' : o.kind === 'timeoff' ? 'Time off' : 'Blocked')}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+            {items.length === 0 ? null : (
             <ul className="overflow-hidden rounded-none border border-border bg-card">
               {items.map((b) => (
                 <li key={b.id}>
@@ -89,6 +114,7 @@ export function AgendaList({
                 </li>
               ))}
             </ul>
+            )}
           </section>
         );
       })}

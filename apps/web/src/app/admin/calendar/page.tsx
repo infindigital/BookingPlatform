@@ -42,6 +42,7 @@ export default async function CalendarPage({
     end,
     timeZone,
     employeeId: employeeId === 'all' ? null : employeeId,
+    days,
   });
 
   return (
@@ -52,6 +53,7 @@ export default async function CalendarPage({
       bookings={data.bookings}
       employees={data.employees}
       services={data.services}
+      off={data.off}
       employeeId={employeeId}
       timeZone={timeZone}
       todayKey={todayKey}

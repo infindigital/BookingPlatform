@@ -75,6 +75,8 @@ export {
   type CalendarBooking,
   type CalendarEmployee,
   type CalendarService,
+  type CalendarOff,
+  type CalendarOffKind,
   type CalendarQuery,
 } from './calendar/bookings';
 export { localWallClock, dateMidnightInstant, wallTimeToInstant } from './dashboard/timezone';

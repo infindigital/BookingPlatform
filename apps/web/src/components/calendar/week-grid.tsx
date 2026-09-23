@@ -1,10 +1,20 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { CalendarBooking } from '@booking/db';
+import type { CalendarBooking, CalendarOff } from '@booking/db';
 import { assignLanes, hourWindow, toNoonUTC } from '@booking/core';
 import { cn } from '@booking/ui/lib/cn';
 import { formatTime } from '@/components/dashboard/format';
+
+// Subtle diagonal-hatch fills for the non-bookable overlays, per kind.
+const OFF_FILL: Record<CalendarOff['kind'], string> = {
+  closed:
+    'repeating-linear-gradient(45deg, hsl(var(--muted-foreground)/0.10) 0 6px, transparent 6px 12px)',
+  timeoff:
+    'repeating-linear-gradient(45deg, hsl(38 92% 50%/0.16) 0 6px, transparent 6px 12px)',
+  blocked:
+    'repeating-linear-gradient(45deg, hsl(var(--muted-foreground)/0.14) 0 6px, transparent 6px 12px)',
+};
 
 const HOUR_HEIGHT = 56; // px
 const PX_PER_MIN = HOUR_HEIGHT / 60;
@@ -26,6 +36,7 @@ function dayHeader(dayKey: string, timeZone: string): { weekday: string; day: st
 export function WeekGrid({
   days,
   bookings,
+  off,
   timeZone,
   todayKey,
   nowMinutes,
@@ -33,12 +44,19 @@ export function WeekGrid({
 }: {
   days: string[];
   bookings: CalendarBooking[];
+  off: CalendarOff[];
   timeZone: string;
   todayKey: string;
   nowMinutes: number;
   onSelect: (b: CalendarBooking) => void;
 }) {
-  const { startHour, endHour } = useMemo(() => hourWindow(bookings), [bookings]);
+  // Timed off-bands widen the visible window; all-day closures do not (they'd
+  // blow it out to a full 24h). All-day overlays paint the whole column anyway.
+  const windowItems = useMemo(
+    () => [...bookings, ...off.filter((o) => !o.allDay)],
+    [bookings, off],
+  );
+  const { startHour, endHour } = useMemo(() => hourWindow(windowItems), [windowItems]);
   const totalMinutes = (endHour - startHour) * 60;
   const gridHeight = totalMinutes * PX_PER_MIN;
   const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => startHour + i);
@@ -52,6 +70,16 @@ export function WeekGrid({
     }
     return map;
   }, [bookings]);
+
+  const offByDay = useMemo(() => {
+    const map = new Map<string, CalendarOff[]>();
+    for (const o of off) {
+      const arr = map.get(o.dayKey) ?? [];
+      arr.push(o);
+      map.set(o.dayKey, arr);
+    }
+    return map;
+  }, [off]);
 
   return (
     <div className="overflow-x-auto rounded-none border border-border bg-card">
@@ -110,6 +138,7 @@ export function WeekGrid({
             const placed = assignLanes(byDay.get(day) ?? []);
             const isToday = day === todayKey;
             const showNow = isToday && nowMinutes >= startHour * 60 && nowMinutes <= endHour * 60;
+            const offItems = offByDay.get(day) ?? [];
             return (
               <div key={day} className="relative border-r border-border" style={{ height: gridHeight }}>
                 {/* Hour gridlines */}
@@ -120,6 +149,27 @@ export function WeekGrid({
                     style={{ top: (h - startHour) * HOUR_HEIGHT }}
                   />
                 ))}
+
+                {/* Off-time overlays (closures, holidays, time off, blocks) - behind bookings */}
+                {offItems.map((o, i) => {
+                  const top = o.allDay ? 0 : Math.max(0, (o.startMinutes - startHour * 60) * PX_PER_MIN);
+                  const bottom = o.allDay ? gridHeight : (o.endMinutes - startHour * 60) * PX_PER_MIN;
+                  const height = Math.max(6, bottom - top);
+                  return (
+                    <div
+                      key={`${o.kind}-${i}`}
+                      className="pointer-events-none absolute inset-x-0 z-0 overflow-hidden"
+                      style={{ top, height, backgroundImage: OFF_FILL[o.kind] }}
+                      title={o.label ?? (o.kind === 'closed' ? 'Closed' : o.kind === 'timeoff' ? 'Time off' : 'Blocked')}
+                    >
+                      {o.label || o.allDay ? (
+                        <span className="absolute left-1 top-1 rounded bg-card/80 px-1 py-0.5 text-[10px] font-medium text-muted-foreground backdrop-blur-sm">
+                          {o.label ?? (o.kind === 'closed' ? 'Closed' : o.kind === 'timeoff' ? 'Time off' : 'Blocked')}
+                        </span>
+                      ) : null}
+                    </div>
+                  );
+                })}
 
                 {/* Current-time indicator */}
                 {showNow ? (
