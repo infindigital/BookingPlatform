@@ -19,6 +19,10 @@ export const FORM_LAYOUTS = [
   'spotlight',
   'glass',
   'boutique',
+  // Modern set.
+  'mesh',
+  'canvas',
+  'focus',
 ] as const;
 export type FormLayout = (typeof FORM_LAYOUTS)[number];
 
@@ -48,6 +52,8 @@ export interface FormSettings {
   confirmationMessage: string;
   /** Visual layout design of the booking flow. */
   layout: FormLayout;
+  /** Service category ids hidden from the public booking flow (empty = show all). */
+  hiddenCategoryIds: string[];
 }
 
 export const DEFAULT_FORM_SETTINGS: FormSettings = {
@@ -62,6 +68,7 @@ export const DEFAULT_FORM_SETTINGS: FormSettings = {
   alwaysShowLocation: false,
   confirmationMessage: '',
   layout: 'classic',
+  hiddenCategoryIds: [],
 };
 
 export const FORM_STEP_KEYS = ['service', 'employee', 'datetime', 'details', 'confirm'] as const;
@@ -98,6 +105,9 @@ export function resolveFormSettings(raw: unknown): FormSettings {
     layout: (FORM_LAYOUTS as readonly string[]).includes(s.layout as string)
       ? (s.layout as FormLayout)
       : DEFAULT_FORM_SETTINGS.layout,
+    hiddenCategoryIds: Array.isArray(s.hiddenCategoryIds)
+      ? Array.from(new Set(s.hiddenCategoryIds.filter((id): id is string => typeof id === 'string' && id.length > 0)))
+      : DEFAULT_FORM_SETTINGS.hiddenCategoryIds,
   };
 }
 

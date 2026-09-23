@@ -57,11 +57,23 @@ export function BookingWizard({
   steps?: FormStepKey[];
   preview?: boolean;
 }) {
-  const { business, categories, services, employees, locations, notices = [] } = data;
+  const { business, categories: allCategories, services: allServices, employees, locations, notices = [] } = data;
   const timeZone = business.timezone;
   const todayKey = useMemo(() => todayInTz(timeZone), [timeZone]);
 
   const settings = settingsProp ?? data.form?.settings ?? DEFAULT_FORM_SETTINGS;
+
+  // Categories the business has toggled off are removed from the flow, along
+  // with the services inside them (uncategorised services always remain).
+  const hiddenCategoryIds = useMemo(() => new Set(settings.hiddenCategoryIds ?? []), [settings.hiddenCategoryIds]);
+  const categories = useMemo(
+    () => allCategories.filter((c) => !hiddenCategoryIds.has(c.id)),
+    [allCategories, hiddenCategoryIds],
+  );
+  const services = useMemo(
+    () => allServices.filter((s) => !s.categoryId || !hiddenCategoryIds.has(s.categoryId)),
+    [allServices, hiddenCategoryIds],
+  );
   const configuredSteps = stepsProp ?? data.form?.steps ?? DEFAULT_STEPS;
   const showTeamStep = hasTeamStep(configuredSteps);
 
@@ -790,6 +802,67 @@ export function BookingWizard({
           </div>
           <div className="min-h-[22rem] px-6 pb-9 sm:px-12">{body}</div>
           <div className="flex items-center justify-between gap-3 border-t border-border px-6 py-5 sm:px-12">{footer}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // ---- MESH (modern): rounded card floating on a soft gradient mesh ----
+  if (layout === 'mesh') {
+    return (
+      <div className={preview ? '' : 'mx-auto max-w-2xl'}>
+        <div className="relative overflow-hidden rounded-3xl border border-border shadow-premium">
+          <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--brand-1))] to-[hsl(var(--brand-2))]" aria-hidden />
+          <span className="pointer-events-none absolute -left-12 -top-10 size-56 rounded-full bg-white/25 blur-3xl" aria-hidden />
+          <span className="pointer-events-none absolute -bottom-16 -right-10 size-56 rounded-full bg-black/20 blur-3xl" aria-hidden />
+          <div className="relative px-6 pb-4 pt-7 text-primary-foreground sm:px-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/70">Book an appointment</p>
+            <h1 className="mt-1 text-3xl font-extrabold tracking-tight sm:text-4xl">{business.name}</h1>
+          </div>
+          <div className="relative mx-3 mb-3 rounded-2xl bg-card p-6 shadow-lg sm:mx-4 sm:mb-4 sm:p-8">
+            <Stepper flow={flow} current={stepIdx} />
+            <div className="mt-6 min-h-[20rem]">{body}</div>
+            <div className="mt-6 flex items-center justify-between gap-3 border-t border-border pt-5">{footer}</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ---- CANVAS (modern): editorial, oversized type, borderless ----
+  if (layout === 'canvas') {
+    return (
+      <div className={preview ? '' : 'mx-auto max-w-3xl'}>
+        <div className="flex items-baseline justify-between gap-4 border-b-2 border-foreground pb-4">
+          <h1 className="text-4xl font-black leading-none tracking-tighter sm:text-6xl">{business.name}</h1>
+          <span className="shrink-0 text-sm font-bold uppercase tracking-widest text-muted-foreground tabular-nums">
+            {String(Math.min(stepIdx + 1, flow.length)).padStart(2, '0')} / {String(flow.length).padStart(2, '0')}
+          </span>
+        </div>
+        <p className="mt-4 text-sm font-semibold uppercase tracking-[0.22em] text-primary">{stepTitle}</p>
+        <div className="mt-6 min-h-[22rem]">{bodyCore}</div>
+        <div className="mt-8 flex items-center justify-between gap-3 border-t border-border pt-6">{footer}</div>
+      </div>
+    );
+  }
+
+  // ---- FOCUS (modern): centered SaaS card with a circular step badge ----
+  if (layout === 'focus') {
+    return (
+      <div className={preview ? '' : 'mx-auto max-w-xl'}>
+        <div className="rounded-3xl border border-border bg-card p-6 shadow-premium sm:p-9">
+          <div className="flex flex-col items-center text-center">
+            <span className="flex size-12 items-center justify-center rounded-full bg-gradient-to-br from-[hsl(var(--brand-1))] to-[hsl(var(--brand-2))] text-lg font-extrabold text-primary-foreground shadow-glow tabular-nums">
+              {Math.min(stepIdx + 1, flow.length)}
+            </span>
+            <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.25em] text-primary">
+              Step {Math.min(stepIdx + 1, flow.length)} of {flow.length}
+            </p>
+            <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">{stepTitle}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">{business.name}</p>
+          </div>
+          <div className="mt-7 min-h-[20rem] text-left">{bodyCore}</div>
+          <div className="mt-6 flex items-center justify-between gap-3 border-t border-border pt-5">{footer}</div>
         </div>
       </div>
     );

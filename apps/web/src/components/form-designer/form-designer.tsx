@@ -55,6 +55,9 @@ const LAYOUT_OPTIONS: { value: FormLayout; label: string; hint: string }[] = [
   { value: 'spotlight', label: 'Spotlight', hint: 'Dark premium header' },
   { value: 'glass', label: 'Glass', hint: 'Frosted over gradient' },
   { value: 'boutique', label: 'Boutique', hint: 'Monogram luxury' },
+  { value: 'mesh', label: 'Mesh', hint: 'Card on gradient mesh' },
+  { value: 'canvas', label: 'Canvas', hint: 'Editorial oversized type' },
+  { value: 'focus', label: 'Focus', hint: 'Centered SaaS card' },
 ];
 
 /** Tiny wireframe that previews each layout's structure. */
@@ -146,6 +149,35 @@ function LayoutGlyph({ value }: { value: FormLayout }) {
       </span>
     );
   }
+  if (value === 'mesh') {
+    return (
+      <span className={`relative flex flex-col ${base} gap-1 overflow-hidden bg-primary/30 p-1`}>
+        <span className="pointer-events-none absolute -left-2 -top-2 size-6 rounded-full bg-white/50 blur-md" aria-hidden />
+        <span className="mt-3 flex flex-col gap-1 rounded bg-background/80 p-1">
+          <span className="h-1.5 bg-foreground/25" />
+          <span className="h-1.5 w-2/3 bg-foreground/15" />
+        </span>
+      </span>
+    );
+  }
+  if (value === 'canvas') {
+    return (
+      <span className={`flex flex-col ${base} justify-center gap-1 px-1`}>
+        <span className="h-2.5 w-3/4 bg-foreground/70" />
+        <span className="h-px w-full bg-foreground/40" />
+        <span className="mt-1 h-1.5 w-1/2 bg-foreground/15" />
+      </span>
+    );
+  }
+  if (value === 'focus') {
+    return (
+      <span className={`flex flex-col ${base} items-center justify-center gap-1 px-1`}>
+        <span className="flex size-4 items-center justify-center rounded-full bg-primary text-[7px] font-bold text-primary-foreground">1</span>
+        <span className="h-1.5 w-1/2 bg-foreground/25" />
+        <span className="h-1.5 w-3/4 bg-foreground/15" />
+      </span>
+    );
+  }
   // classic
   return (
     <span className={`flex ${base} gap-1 p-1`}>
@@ -196,6 +228,14 @@ export function FormDesigner({
   function applyPreset(key: string) {
     const preset = FORM_THEME_PRESETS[key];
     if (preset) setTokens(preset);
+  }
+
+  const hiddenCategoryIds = settings.hiddenCategoryIds ?? [];
+  function setCategoryVisible(id: string, visible: boolean) {
+    const next = visible
+      ? hiddenCategoryIds.filter((c) => c !== id)
+      : Array.from(new Set([...hiddenCategoryIds, id]));
+    setSetting('hiddenCategoryIds', next);
   }
 
   const activePresetKey = useMemo(() => {
@@ -443,6 +483,25 @@ export function FormDesigner({
             />
           </Field>
         </section>
+
+        {previewData.categories.length > 0 ? (
+          <section className="rounded-none border border-border bg-card p-4">
+            <h2 className="text-sm font-semibold">Service categories</h2>
+            <p className="mb-3 text-xs text-muted-foreground">
+              Toggle which categories appear on the booking page. Hidden categories and their services are not shown to customers.
+            </p>
+            <div className="space-y-1">
+              {previewData.categories.map((cat) => (
+                <Toggle
+                  key={cat.id}
+                  label={cat.name}
+                  checked={!hiddenCategoryIds.includes(cat.id)}
+                  onChange={(v) => setCategoryVisible(cat.id, v)}
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         {error ? (
           <p role="alert" className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
