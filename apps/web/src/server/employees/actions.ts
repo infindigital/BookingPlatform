@@ -1,11 +1,13 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { validateWeeklySchedule, type WorkingWindow } from '@booking/core';
+import { validateWeeklySchedule, addDays, type WorkingWindow } from '@booking/core';
 import {
   repositoriesFor,
   writeAudit,
   getEmployeeDetail,
+  businessRepository,
+  wallTimeToInstant,
   type EmployeeDetail,
   type ServiceAssignmentInput,
 } from '@booking/db';
@@ -230,6 +232,53 @@ export async function addEmployeeTimeOffAction(input: {
   } catch (error) {
     logger.error('employee.timeoff.add.failed', { message: (error as Error)?.message });
     return { ok: false, error: 'Could not add time off. Please try again.' };
+  }
+}
+
+const DAY_KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Add an all-day day off spanning one or more whole calendar days (no times).
+ * Stored as a TimeOff whose instant range covers midnight-to-midnight in the
+ * business timezone, so the availability engine and calendar treat the whole
+ * day(s) as off. `name` is stored as the reason.
+ */
+export async function addEmployeeDayOffAction(input: {
+  employeeId: string;
+  startDate: string;
+  endDate: string;
+  name?: string | null;
+}): Promise<EmployeeMutationResult> {
+  const session = await requirePermission('employee.manage');
+  if (!input.employeeId) return { ok: false, error: 'Missing team member.' };
+  if (!DAY_KEY_RE.test(input.startDate) || !DAY_KEY_RE.test(input.endDate)) {
+    return { ok: false, error: 'Pick a valid start and end date.' };
+  }
+  if (input.endDate < input.startDate) return { ok: false, error: 'The end date must be on or after the start date.' };
+
+  const repos = repositoriesFor(session.user.businessId);
+  const employee = await repos.employees.getById(input.employeeId);
+  if (!employee) return { ok: false, error: 'That team member could not be found.' };
+
+  const business = await businessRepository.getById(session.user.businessId);
+  const tz = business?.timezone || 'UTC';
+  const startAt = wallTimeToInstant(input.startDate, 0, tz);
+  const endAt = wallTimeToInstant(addDays(input.endDate, 1), 0, tz); // exclusive end of the last day
+
+  try {
+    await repos.employees.addTimeOff(input.employeeId, { startAt, endAt, reason: input.name?.trim() || null });
+    await writeAudit({
+      businessId: session.user.businessId,
+      actorUserId: session.user.id,
+      action: 'employee.dayoff.add',
+      entity: 'Employee',
+      entityId: input.employeeId,
+    });
+    refresh();
+    return { ok: true };
+  } catch (error) {
+    logger.error('employee.dayoff.add.failed', { message: (error as Error)?.message });
+    return { ok: false, error: 'Could not add the day off. Please try again.' };
   }
 }
 

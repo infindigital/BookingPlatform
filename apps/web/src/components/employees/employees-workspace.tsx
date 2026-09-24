@@ -6,7 +6,7 @@ import { Plus, Search, UserCog, X, Check } from 'lucide-react';
 import type { EmployeeListRow } from '@booking/db';
 import { Button } from '@booking/ui/button';
 import { initials } from '@/components/dashboard/format';
-import { EmployeeDetailDrawer, type EmployeeEditSeed } from './employee-detail-drawer';
+import type { EmployeeEditSeed } from './employee-detail-drawer';
 import { EmployeeFormDrawer } from './employee-form-drawer';
 
 function weeklyHoursLabel(minutes: number): string {
@@ -21,22 +21,18 @@ export function EmployeesWorkspace({
   total,
   search,
   includeInactive,
-  timeZone,
   canWrite,
 }: {
   rows: EmployeeListRow[];
   total: number;
   search: string;
   includeInactive: boolean;
-  timeZone: string;
   canWrite: boolean;
 }) {
   const router = useRouter();
   const [searchDraft, setSearchDraft] = useState(search);
-  const [detailId, setDetailId] = useState<string | null>(null);
-  const [detailOpen, setDetailOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
-  const [formSeed, setFormSeed] = useState<EmployeeEditSeed | null>(null);
+  const [formSeed] = useState<EmployeeEditSeed | null>(null);
   const [formKey, setFormKey] = useState(0);
 
   const go = (patch: { search?: string; inactive?: boolean }) => {
@@ -50,24 +46,15 @@ export function EmployeesWorkspace({
   };
 
   function openDetail(id: string) {
-    setDetailId(id);
-    setDetailOpen(true);
+    router.push(`/admin/employees/${id}`);
   }
   function openCreate() {
-    setFormSeed(null);
-    setFormKey((k) => k + 1);
-    setFormOpen(true);
-  }
-  function openEdit(seed: EmployeeEditSeed) {
-    setDetailOpen(false);
-    setFormSeed(seed);
     setFormKey((k) => k + 1);
     setFormOpen(true);
   }
   function onSaved(employeeId: string) {
     setFormOpen(false);
-    router.refresh();
-    openDetail(employeeId);
+    router.push(`/admin/employees/${employeeId}`);
   }
 
   return (
@@ -208,14 +195,6 @@ export function EmployeesWorkspace({
 
       {total > 0 ? <p className="text-xs text-muted-foreground">{total} team member{total === 1 ? '' : 's'}</p> : null}
 
-      <EmployeeDetailDrawer
-        employeeId={detailId}
-        open={detailOpen}
-        onOpenChange={setDetailOpen}
-        timeZone={timeZone}
-        canWrite={canWrite}
-        onEdit={openEdit}
-      />
       <EmployeeFormDrawer key={formKey} open={formOpen} onOpenChange={setFormOpen} seed={formSeed} onSaved={onSaved} />
     </div>
   );

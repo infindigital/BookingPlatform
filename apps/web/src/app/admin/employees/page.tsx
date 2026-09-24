@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { hasPermission } from '@booking/core';
-import { businessRepository, getEmployeesList } from '@booking/db';
+import { getEmployeesList } from '@booking/db';
 import { requirePermission } from '@/server/auth/guard';
 import { EmployeesWorkspace } from '@/components/employees/employees-workspace';
 
@@ -19,10 +19,7 @@ export default async function EmployeesPage({
   const search = sp.search?.trim() || '';
   const includeInactive = sp.inactive === '1';
 
-  const [business, list] = await Promise.all([
-    businessRepository.getById(businessId),
-    getEmployeesList(businessId, { search: search || null, includeInactive }),
-  ]);
+  const list = await getEmployeesList(businessId, { search: search || null, includeInactive });
 
   return (
     <EmployeesWorkspace
@@ -30,7 +27,6 @@ export default async function EmployeesPage({
       total={list.total}
       search={search}
       includeInactive={includeInactive}
-      timeZone={business?.timezone || 'UTC'}
       canWrite={canWrite}
     />
   );
