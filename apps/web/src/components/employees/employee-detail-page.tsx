@@ -425,7 +425,7 @@ function DaysOffEditor({
   function openAdd() {
     const today = new Date().toISOString().slice(0, 10);
     setStartDate(today);
-    setEndDate(today);
+    setEndDate('');
     setName('');
     setError(null);
     setAdding(true);
@@ -433,12 +433,18 @@ function DaysOffEditor({
 
   function submit() {
     setError(null);
-    if (!startDate || !endDate) {
-      setError('Pick a start and end date.');
+    if (!startDate) {
+      setError('Pick a date.');
+      return;
+    }
+    // End date is optional: a blank end means a single-day special day off.
+    const effectiveEnd = endDate || startDate;
+    if (effectiveEnd < startDate) {
+      setError('The end date must be on or after the start date.');
       return;
     }
     start(async () => {
-      const res = await addEmployeeDayOffAction({ employeeId: detail.id, startDate, endDate, name: name || null });
+      const res = await addEmployeeDayOffAction({ employeeId: detail.id, startDate, endDate: effectiveEnd, name: name || null });
       if (res.ok) {
         setAdding(false);
         onSaved();
@@ -472,17 +478,20 @@ function DaysOffEditor({
     >
       {adding ? (
         <div className="mb-3 space-y-2 rounded-xl border border-border bg-muted/30 p-3">
+          <p className="text-xs text-muted-foreground">
+            Pick a date to block off. Leave the end date and label blank for a single special day off.
+          </p>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <label className="space-y-1">
-              <span className="text-xs font-medium text-muted-foreground">Start date</span>
+              <span className="text-xs font-medium text-muted-foreground">Date</span>
               <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className={`${CONTROL} w-full`} />
             </label>
             <label className="space-y-1">
-              <span className="text-xs font-medium text-muted-foreground">End date</span>
+              <span className="text-xs font-medium text-muted-foreground">End date (optional)</span>
               <input type="date" value={endDate} min={startDate} onChange={(e) => setEndDate(e.target.value)} className={`${CONTROL} w-full`} />
             </label>
           </div>
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name (e.g. Vacation, Holiday) - optional" className={`${CONTROL} w-full`} />
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Label (e.g. Vacation, Holiday) - optional" className={`${CONTROL} w-full`} />
           {error ? <p className="text-xs text-destructive">{error}</p> : null}
           <div className="flex justify-end gap-2">
             <Button size="sm" variant="ghost" onClick={() => setAdding(false)} disabled={pending}>Cancel</Button>
