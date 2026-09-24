@@ -294,18 +294,17 @@ function ServiceRow({
 
 /* ------------------------------- Working hours ----------------------------- */
 
-interface BreakDraft { startTime: string; endTime: string }
-interface PeriodDraft { startTime: string; endTime: string; breaks: BreakDraft[] }
+interface PeriodDraft { startTime: string; endTime: string }
 interface DayDraft { enabled: boolean; periods: PeriodDraft[] }
 
-const NEW_PERIOD: PeriodDraft = { startTime: '09:00', endTime: '17:00', breaks: [] };
+const NEW_PERIOD: PeriodDraft = { startTime: '09:00', endTime: '17:00' };
 
 function HoursEditor({ detail, canWrite, onSaved }: { detail: EmployeeDetail; canWrite: boolean; onSaved: () => void }) {
   const build = (): DayDraft[] =>
     WEEKDAYS.map((d) => {
       const rows = detail.schedule.filter((s) => s.dayOfWeek === d.value);
       return rows.length
-        ? { enabled: true, periods: rows.map((r) => ({ startTime: r.startTime, endTime: r.endTime, breaks: r.breaks.map((b) => ({ startTime: b.startTime, endTime: b.endTime })) })) }
+        ? { enabled: true, periods: rows.map((r) => ({ startTime: r.startTime, endTime: r.endTime })) }
         : { enabled: false, periods: [{ ...NEW_PERIOD }] };
     });
   const [days, setDays] = useState<DayDraft[]>(build);
@@ -323,16 +322,10 @@ function HoursEditor({ detail, canWrite, onSaved }: { detail: EmployeeDetail; ca
     setDays((prev) => prev.map((d, idx) => (idx === i ? { ...d, periods: d.periods.map((pp, pi) => (pi === p ? { ...pp, ...next } : pp)) } : d)));
   const addPeriod = (i: number) => setDays((prev) => prev.map((d, idx) => (idx === i ? { ...d, periods: [...d.periods, { ...NEW_PERIOD }] } : d)));
   const removePeriod = (i: number, p: number) => setDays((prev) => prev.map((d, idx) => (idx === i ? { ...d, periods: d.periods.filter((_, pi) => pi !== p) } : d)));
-  const addBreak = (i: number, p: number) =>
-    setDays((prev) => prev.map((d, idx) => (idx === i ? { ...d, periods: d.periods.map((pp, pi) => (pi === p ? { ...pp, breaks: [...pp.breaks, { startTime: '12:00', endTime: '13:00' }] } : pp)) } : d)));
-  const patchBreak = (i: number, p: number, b: number, next: Partial<BreakDraft>) =>
-    setDays((prev) => prev.map((d, idx) => (idx === i ? { ...d, periods: d.periods.map((pp, pi) => (pi === p ? { ...pp, breaks: pp.breaks.map((bb, bi) => (bi === b ? { ...bb, ...next } : bb)) } : pp)) } : d)));
-  const removeBreak = (i: number, p: number, b: number) =>
-    setDays((prev) => prev.map((d, idx) => (idx === i ? { ...d, periods: d.periods.map((pp, pi) => (pi === p ? { ...pp, breaks: pp.breaks.filter((_, bi) => bi !== b) } : pp)) } : d)));
   const applyToAll = (i: number) =>
     setDays((prev) => {
       const src = prev[i]!;
-      const clone = (): PeriodDraft[] => src.periods.map((pp) => ({ startTime: pp.startTime, endTime: pp.endTime, breaks: pp.breaks.map((bb) => ({ ...bb })) }));
+      const clone = (): PeriodDraft[] => src.periods.map((pp) => ({ startTime: pp.startTime, endTime: pp.endTime }));
       return prev.map((d) => ({ enabled: src.enabled, periods: clone() }));
     });
 
@@ -340,7 +333,7 @@ function HoursEditor({ detail, canWrite, onSaved }: { detail: EmployeeDetail; ca
     setError(null);
     const windows = days.flatMap((d, i) =>
       d.enabled
-        ? d.periods.map((p) => ({ dayOfWeek: WEEKDAYS[i]!.value, startTime: p.startTime, endTime: p.endTime, breaks: p.breaks.map((b) => ({ startTime: b.startTime, endTime: b.endTime, label: null })) }))
+        ? d.periods.map((p) => ({ dayOfWeek: WEEKDAYS[i]!.value, startTime: p.startTime, endTime: p.endTime, breaks: [] }))
         : [],
     );
     start(async () => {
@@ -356,6 +349,10 @@ function HoursEditor({ detail, canWrite, onSaved }: { detail: EmployeeDetail; ca
       title="Working hours"
       action={canWrite ? <Button size="sm" onClick={save} disabled={pending}>{pending ? 'Saving…' : 'Save hours'}</Button> : null}
     >
+      <p className="mb-3 rounded-lg bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+        Add one or more time blocks per day. Any gap between blocks is treated as a break automatically, so
+        customers can only book inside the hours you list here.
+      </p>
       <ul className="space-y-2">
         {days.map((d, i) => (
           <li key={WEEKDAYS[i]!.value} className={`rounded-xl border p-3 transition-colors ${d.enabled ? 'border-border bg-background' : 'border-dashed border-border bg-muted/20'}`}>
@@ -382,44 +379,20 @@ function HoursEditor({ detail, canWrite, onSaved }: { detail: EmployeeDetail; ca
             {d.enabled ? (
               <div className="mt-2.5 space-y-2">
                 {d.periods.map((p, pi) => (
-                  <div key={pi} className="rounded-lg border border-border/70 bg-card p-2.5">
-                    <div className="flex flex-wrap items-center gap-1.5 text-sm">
-                      <input type="time" disabled={!canWrite} value={p.startTime} onChange={(e) => patchPeriod(i, pi, { startTime: e.target.value })} className={`${CONTROL} w-28`} />
-                      <span className="text-muted-foreground">-</span>
-                      <input type="time" disabled={!canWrite} value={p.endTime} onChange={(e) => patchPeriod(i, pi, { endTime: e.target.value })} className={`${CONTROL} w-28`} />
-                      {canWrite ? (
-                        <button type="button" onClick={() => addBreak(i, pi)} className="ml-1 inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs text-muted-foreground hover:text-foreground" title="Add a break">
-                          <Plus className="size-3.5" /> Break
-                        </button>
-                      ) : null}
-                      {canWrite && d.periods.length > 1 ? (
-                        <button type="button" onClick={() => removePeriod(i, pi)} className="ml-auto text-muted-foreground hover:text-destructive" aria-label="Remove period">
-                          <Trash2 className="size-4" />
-                        </button>
-                      ) : null}
-                    </div>
-                    {p.breaks.length > 0 ? (
-                      <ul className="mt-2 space-y-1.5 border-t border-border/60 pt-2">
-                        {p.breaks.map((b, bi) => (
-                          <li key={bi} className="flex flex-wrap items-center gap-1.5 text-sm">
-                            <span className="text-xs text-muted-foreground">Break</span>
-                            <input type="time" disabled={!canWrite} value={b.startTime} onChange={(e) => patchBreak(i, pi, bi, { startTime: e.target.value })} className={`${CONTROL} w-24`} />
-                            <span className="text-muted-foreground">-</span>
-                            <input type="time" disabled={!canWrite} value={b.endTime} onChange={(e) => patchBreak(i, pi, bi, { endTime: e.target.value })} className={`${CONTROL} w-24`} />
-                            {canWrite ? (
-                              <button type="button" onClick={() => removeBreak(i, pi, bi)} className="text-muted-foreground hover:text-destructive" aria-label="Remove break">
-                                <Trash2 className="size-4" />
-                              </button>
-                            ) : null}
-                          </li>
-                        ))}
-                      </ul>
+                  <div key={pi} className="flex flex-wrap items-center gap-1.5 rounded-lg border border-border/70 bg-card p-2.5 text-sm">
+                    <input type="time" disabled={!canWrite} value={p.startTime} onChange={(e) => patchPeriod(i, pi, { startTime: e.target.value })} className={`${CONTROL} w-28`} />
+                    <span className="text-muted-foreground">-</span>
+                    <input type="time" disabled={!canWrite} value={p.endTime} onChange={(e) => patchPeriod(i, pi, { endTime: e.target.value })} className={`${CONTROL} w-28`} />
+                    {canWrite && d.periods.length > 1 ? (
+                      <button type="button" onClick={() => removePeriod(i, pi)} className="ml-auto text-muted-foreground hover:text-destructive" aria-label="Remove period">
+                        <Trash2 className="size-4" />
+                      </button>
                     ) : null}
                   </div>
                 ))}
                 {canWrite ? (
                   <button type="button" onClick={() => addPeriod(i)} className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:border-primary/40 hover:text-foreground">
-                    <Plus className="size-3.5" /> Add another period
+                    <Plus className="size-3.5" /> Add another block
                   </button>
                 ) : null}
               </div>

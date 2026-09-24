@@ -114,14 +114,31 @@ export function weeklyWorkingMinutes(windows: WorkingWindow[]): number {
   return windows.reduce((sum, w) => sum + windowWorkingMinutes(w), 0);
 }
 
-/** Validate a full weekly schedule; the first offending day short-circuits. */
+/**
+ * Validate a full weekly schedule; the first offending day short-circuits.
+ * A weekday may hold several working blocks (the gaps between them act as
+ * breaks), so blocks on the same day must not overlap one another.
+ */
 export function validateWeeklySchedule(windows: WorkingWindow[]): ValidationResult {
+  const byDay = new Map<number, { s: number; e: number }[]>();
   for (const w of windows) {
     if (w.dayOfWeek < 0 || w.dayOfWeek > 6) return { ok: false, error: 'Invalid day of week.' };
     const res = validateWorkingWindow(w);
     if (!res.ok) {
       const day = WEEKDAYS.find((d) => d.value === w.dayOfWeek)?.label ?? 'A day';
       return { ok: false, error: `${day}: ${res.error}` };
+    }
+    const spans = byDay.get(w.dayOfWeek) ?? [];
+    spans.push({ s: parseHhMm(w.startTime)!, e: parseHhMm(w.endTime)! });
+    byDay.set(w.dayOfWeek, spans);
+  }
+  for (const [dayOfWeek, spans] of byDay) {
+    spans.sort((a, b) => a.s - b.s);
+    for (let i = 1; i < spans.length; i++) {
+      if (spans[i]!.s < spans[i - 1]!.e) {
+        const day = WEEKDAYS.find((d) => d.value === dayOfWeek)?.label ?? 'A day';
+        return { ok: false, error: `${day}: time blocks must not overlap.` };
+      }
     }
   }
   return { ok: true };

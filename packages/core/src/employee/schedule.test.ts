@@ -115,4 +115,19 @@ describe('validateWeeklySchedule', () => {
     expect(res.ok).toBe(false);
     expect(res.error).toMatch(/Wednesday/);
   });
+  it('accepts multiple non-overlapping blocks on the same day (gap = break)', () => {
+    const windows: WorkingWindow[] = [
+      { dayOfWeek: 1, startTime: '09:00', endTime: '12:00', breaks: [] },
+      { dayOfWeek: 1, startTime: '13:00', endTime: '17:00', breaks: [] },
+    ];
+    expect(validateWeeklySchedule(windows)).toEqual({ ok: true });
+  });
+  it('rejects overlapping blocks on the same day', () => {
+    const res = validateWeeklySchedule([
+      { dayOfWeek: 2, startTime: '09:00', endTime: '13:00', breaks: [] },
+      { dayOfWeek: 2, startTime: '12:00', endTime: '17:00', breaks: [] },
+    ]);
+    expect(res.ok).toBe(false);
+    expect(res.error).toMatch(/Tuesday: time blocks must not overlap/);
+  });
 });
