@@ -11,7 +11,17 @@ import type { NextAuthConfig } from 'next-auth';
 const PROTECTED_PREFIXES = ['/admin', '/employee'];
 
 export const authConfig: NextAuthConfig = {
-  session: { strategy: 'jwt' },
+  // JWT sessions with a bounded lifetime. Without an explicit maxAge, Auth.js
+  // keeps a session valid for 30 days, so an abandoned session on a shared
+  // office computer stays signed in for weeks. An 8-hour cap (one work day)
+  // that refreshes at most hourly while the user is active keeps daily use
+  // seamless but expires forgotten sessions the same day. Users on shared
+  // machines should still use "Sign out" when they finish.
+  session: {
+    strategy: 'jwt',
+    maxAge: 8 * 60 * 60, // 8 hours
+    updateAge: 60 * 60, // refresh the token at most once an hour of activity
+  },
   pages: { signIn: '/login' },
   trustHost: true,
   providers: [], // real providers added in ./index.ts (Node runtime)
