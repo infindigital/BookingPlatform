@@ -220,7 +220,18 @@ export class SettingsRepository extends BaseRepository {
   async replaceBusinessHours(week: DayHours[], locationId: string | null = null): Promise<DayHours[]> {
     const rows = toStorableHours(week);
     await this.db.$transaction(async (tx) => {
-      await tx.businessHours.deleteMany({ where: { businessId: this.businessId, locationId } });
+      // When saving the business-wide week (locationId = null), also drop any
+      // location-scoped opening-hours rows. The app has no per-location hours
+      // editor, so such rows only exist from older seeds; leaving them behind
+      // would keep the customer booking form on hidden hours the admin can never
+      // edit (the availability engine prefers a location's own rows over the
+      // business-wide set). Clearing them makes this saved week the single source
+      // of truth for every location.
+      const deleteWhere =
+        locationId === null
+          ? { businessId: this.businessId }
+          : { businessId: this.businessId, locationId };
+      await tx.businessHours.deleteMany({ where: deleteWhere });
       if (rows.length) {
         await tx.businessHours.createMany({
           data: rows.map((r) => ({

@@ -281,12 +281,18 @@ export async function loadMidwest(db: PrismaClient, data: MidwestData): Promise<
     : await db.location.create({ data: { businessId, name: loc.name, ...locationValues } });
 
   // 6. Weekly business hours (replace, so re-runs stay in sync).
+  //
+  // Opening hours are business-wide (locationId = null): that is the only set the
+  // admin Settings screen reads and writes, and the availability engine falls
+  // back to it for any location without its own hours. Writing these rows against
+  // a locationId (as an earlier version did) created a second, hidden set that
+  // Settings could never edit, so admin changes never reached the booking form.
   await db.businessHours.deleteMany({ where: { businessId } });
   if (data.businessHours.length > 0) {
     await db.businessHours.createMany({
       data: data.businessHours.map((h) => ({
         businessId,
-        locationId: location.id,
+        locationId: null,
         dayOfWeek: h.dayOfWeek,
         openTime: h.openTime ?? '00:00',
         closeTime: h.closeTime ?? '00:00',
